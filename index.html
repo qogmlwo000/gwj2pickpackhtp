@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>실시간 HTP 데이터 분석 (v5.0)</title>
+    <title>실시간 HTP 데이터 분석 (v5.1)</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
@@ -212,19 +212,14 @@
             if (!querySnapshot.empty) {
                 showLoader();
                 const promises = querySnapshot.docs.map(async (doc) => {
-                    const url = doc.data().fileUrl;
-                    if (url) {
+                    const dataPayload = doc.data();
+                    const compressedData = dataPayload.compressedData;
+                    if (compressedData) {
                         try {
-                            const response = await fetch(url);
-                            if (!response.ok) throw new Error(`파일 다운로드 실패: ${response.statusText}`);
-                            const arrayBuffer = await response.arrayBuffer();
-                            const data = new Uint8Array(arrayBuffer);
-                            const workbook = XLSX.read(data, { type: 'array', cellDates: true });
-                            const sheetName = workbook.SheetNames[0];
-                            const worksheet = workbook.Sheets[sheetName];
-                            historicalData[doc.id] = XLSX.utils.sheet_to_json(worksheet, { header: 1 });
+                            const decompressed = pako.inflate(Uint8Array.from(atob(compressedData), c => c.charCodeAt(0)), { to: 'string' });
+                            historicalData[doc.id] = JSON.parse(decompressed);
                         } catch (e) {
-                            console.error(`기록 데이터 로딩 실패 (${doc.id}):`, e);
+                            console.error(`데이터 압축 해제 실패 (${doc.id}):`, e);
                             historicalData[doc.id] = [];
                         }
                     }
@@ -402,20 +397,34 @@
             if (!file) return;
             showLoader();
             try {
-                const today = new Date().toISOString().split('T')[0];
-                const storageRef = ref(storage, `excel-files/${today}.xlsx`);
-                const snapshot = await uploadBytes(storageRef, file);
-                const downloadURL = await getDownloadURL(snapshot.ref);
-                await saveDataToFirestore(downloadURL);
+                const reader = new FileReader();
+                reader.onload = async (e) => {
+                    try {
+                        const data = new Uint8Array(e.target.result);
+                        const workbook = XLSX.read(data, { type: 'array' });
+                        const sheetName = workbook.SheetNames[0];
+                        const worksheet = workbook.Sheets[sheetName];
+                        const jsonData = XLSX.utils.sheet_to_json(worksheet, { header: 1 });
+                        await saveDataToFirestore(jsonData);
+                    } catch (err) {
+                        alert(err.message || "엑셀 파일 파싱 중 오류가 발생했습니다.");
+                        hideLoader();
+                    }
+                };
+                reader.readAsArrayBuffer(file);
             } catch (error) {
                 alert(error.message || "파일 업로드 중 오류가 발생했습니다.");
                 hideLoader();
             }
         }
 
-        async function saveDataToFirestore(fileUrl) {
+        async function saveDataToFirestore(jsonData) {
             const today = new Date().toISOString().split('T')[0];
-            const payload = { fileUrl: fileUrl, uploaderId: userId, timestamp: new Date().toISOString() };
+            const jsonString = JSON.stringify(jsonData);
+            const compressed = pako.deflate(jsonString);
+            const compressedBase64 = btoa(String.fromCharCode.apply(null, compressed));
+
+            const payload = { compressedData: compressedBase64, uploaderId: userId, timestamp: new Date().toISOString() };
             try { 
                 await setDoc(doc(dataCollectionRef, today), payload);
                 fetchLatestData();
@@ -426,6 +435,7 @@
             }
         }
 
+        // --- All other UI and utility functions ---
         function initializeFilters() {
             createTableHeader();
             createColumnSettings();
