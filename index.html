@@ -116,13 +116,15 @@
             measurementId: "G-77DRPC5F58"
         };
 
-        let db, auth, userId;
-        const DATA_DOC_PATH = `artifacts/${firebaseConfig.projectId}/public/data/htpData`;
+        let db, auth, userId, dataDocRef;
 
         try {
             const app = initializeApp(firebaseConfig);
             db = getFirestore(app);
             auth = getAuth(app);
+            // *** FIX: Corrected document reference with 6 segments ***
+            // Path: /artifacts/{projectId}/public/data/htpData/latest
+            dataDocRef = doc(db, 'artifacts', firebaseConfig.projectId, 'public', 'data', 'htpData', 'latest');
         } catch(e) {
             console.error("Firebase 초기화 오류:", e);
             updateStatus('disconnected', 'Firebase 초기화에 실패했습니다.');
@@ -146,7 +148,6 @@
 
         // --- Realtime Listener ---
         function setupRealtimeListener() {
-            const dataDocRef = doc(db, DATA_DOC_PATH);
             onSnapshot(dataDocRef, (docSnap) => {
                 if (docSnap.exists()) {
                     const dataPayload = docSnap.data();
@@ -339,7 +340,6 @@
         }
         
         async function saveDataToFirestore(data) {
-            const dataDocRef = doc(db, DATA_DOC_PATH);
             const payload = {
                 tableData: JSON.stringify(data),
                 uploaderId: userId,
