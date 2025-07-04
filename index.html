@@ -4,10 +4,14 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>실시간 HTP 데이터 공유 (v3.1)</title>
+    <title>실시간 HTP 데이터 공유 (v3.2)</title>
+    <!-- Favicon Add -->
+    <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>🚀</text></svg>">
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+    <!-- Add pako.js for Gzip compression -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/pako/2.1.0/pako.min.js"></script>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
     <style>
         body { font-family: 'Inter', sans-serif; scrollbar-width: thin; scrollbar-color: #4a5568 #2d3748; }
@@ -197,7 +201,7 @@
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
         import { getAuth, signInAnonymously, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
-        import { getFirestore, doc, setDoc, onSnapshot } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
+        import { getFirestore, doc, setDoc, onSnapshot, Bytes } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
 
         // --- UI Elements ---
         const ui = {
@@ -246,7 +250,8 @@
             const app = initializeApp(firebaseConfig);
             db = getFirestore(app);
             auth = getAuth(app);
-            dataDocRef = doc(db, 'artifacts', firebaseConfig.projectId, 'public', 'data', 'htpData', 'latestRaw'); // Changed to latestRaw
+            // Changed document path to store compressed data, avoiding conflicts with old format.
+            dataDocRef = doc(db, 'artifacts', firebaseConfig.projectId, 'public', 'data', 'htpData', 'latestCompressed');
         } catch(e) {
             console.error("Firebase 초기화 오류:", e);
             updateStatus('disconnected', 'Firebase 초기화에 실패했습니다.');
@@ -271,19 +276,37 @@
             onSnapshot(dataDocRef, (docSnap) => {
                 if (docSnap.exists()) {
                     const dataPayload = docSnap.data();
-                    // Data from Firestore is now the raw, un-aggregated data.
-                    globalRawData = JSON.parse(dataPayload.rawData); 
-                    // Convert date strings back to Date objects
-                    globalRawData.forEach(item => {
-                        item.htpStart = new Date(item.htpStart);
-                        item.htpEnd = new Date(item.htpEnd);
-                    });
+                    try {
+                        // **DECOMPRESSION LOGIC**
+                        // 1. Get the compressed data (as Bytes) from Firestore.
+                        const compressedBytes = dataPayload.compressedData;
+                        if (!compressedBytes) throw new Error("압축된 데이터가 없습니다.");
 
-                    ui.lastUploaderEl.textContent = dataPayload.uploaderId.substring(0, 8) + '...';
-                    ui.lastUpdatedEl.textContent = new Date(dataPayload.timestamp).toLocaleString('ko-KR');
-                    
-                    initializeFiltersFromData(globalRawData);
-                    applyFiltersAndRender();
+                        // 2. Convert Firestore Bytes to Uint8Array.
+                        const compressedUint8Array = compressedBytes.toUint8Array();
+                        
+                        // 3. Decompress using pako.
+                        const decompressedString = pako.ungzip(compressedUint8Array, { to: 'string' });
+
+                        // 4. Parse the JSON string.
+                        globalRawData = JSON.parse(decompressedString); 
+
+                        // 5. Convert date strings back to Date objects.
+                        globalRawData.forEach(item => {
+                            item.htpStart = new Date(item.htpStart);
+                            item.htpEnd = new Date(item.htpEnd);
+                        });
+
+                        ui.lastUploaderEl.textContent = dataPayload.uploaderId.substring(0, 8) + '...';
+                        ui.lastUpdatedEl.textContent = new Date(dataPayload.timestamp).toLocaleString('ko-KR');
+                        
+                        initializeFiltersFromData(globalRawData);
+                        applyFiltersAndRender();
+                    } catch (error) {
+                        console.error("데이터 압축 해제 또는 파싱 오류:", error);
+                        alert("서버로부터 받은 데이터를 처리하는 데 실패했습니다. 데이터가 손상되었을 수 있습니다.");
+                        globalRawData = [];
+                    }
                 } else {
                     globalRawData = [];
                     initializeFiltersFromData([]);
@@ -336,9 +359,7 @@
         // --- Data Processing & Filtering ---
         function getPackType(location, processTask, processPathName) {
             if (typeof location !== 'string') return DEFAULT_PACK_TYPE;
-            // This special case for 오토백 멀티 is crucial
             if (processTask === 'PACK(PACKING)' && location.startsWith('Pack at Rebin (Test') && processPathName === '0. AGV_Multi_Autobag4.0 + 일반존 통합') return "오토백 멀티";
-            
             for (const [name, prefix] of Object.entries(PACK_TYPE_MAP)) {
                 if (location.startsWith(prefix)) return name;
             }
@@ -351,10 +372,6 @@
             return targetHtpValues[packTypeName] || 100;
         }
 
-        /**
-         * Parses raw data from Excel file into a structured array of objects.
-         * Does not perform aggregation.
-         */
         function parseExcelData(data) {
             if (data.length < 2) return [];
             const headers = data[0].map(h => h ? h.toString().toLowerCase().trim() : '');
@@ -395,7 +412,6 @@
                 const location = row[colIndices.location] || '';
                 const processPathName = row[colIndices.processPathName] || '';
 
-                // **FIX**: Correctly remap REBIN to PACK for 오토백 멀티
                 if (processTask === 'REBIN(REBIN)' && location.startsWith('Pack at Rebin (Test') && processPathName === '0. AGV_Multi_Autobag4.0 + 일반존 통합') {
                     processTask = 'PACK(PACKING)';
                 }
@@ -412,16 +428,13 @@
             return rawData;
         }
 
-        /**
-         * Aggregates raw data into groups for display.
-         */
         function aggregateData(rawData) {
             const aggregatedData = {};
             rawData.forEach(item => {
                 let key;
                 if (item.processTask === 'PICK(PICKING)') {
                     key = `${item.employee}|${item.floor}|PICK`;
-                } else { // PACK(PACKING)
+                } else {
                     const packType = getPackType(item.location, item.processTask, item.processPathName);
                     key = `${item.employee}|${packType}|PACK`;
                 }
@@ -446,7 +459,6 @@
                     aggregatedData[key].totalSeconds += durationSeconds;
                 }
 
-                // **FIX**: Always update location and processPathName to get the 'last' value for the group
                 aggregatedData[key].location = item.location;
                 aggregatedData[key].processPathName = item.processPathName;
             });
@@ -461,7 +473,6 @@
             return finalData;
         }
         
-        // --- UI Rendering & Initialization ---
         function initializeFiltersFromData(rawData) {
             const allPackTypes = new Set();
             const floors = new Set();
@@ -501,7 +512,7 @@
                     if (filters.hours.size === 0) {
                         allHoursCheckbox.checked = true;
                     }
-                    applyFiltersAndRender(); // Re-render with new time filter
+                    applyFiltersAndRender();
                 });
                 label.appendChild(checkbox);
                 const text = document.createElement('span');
@@ -580,7 +591,6 @@
             }
         }
         
-        // --- Other Functions (handleFileUpload, saveDataToFirestore, renderTable, etc.) ---
         function handleFileUpload(event) {
             const file = event.target.files[0];
             if (!file) return;
@@ -595,7 +605,6 @@
                     const worksheet = workbook.Sheets[sheetName];
                     const jsonData = XLSX.utils.sheet_to_json(worksheet, { header: 1 });
                     
-                    // The parsed data is now the raw, un-aggregated data.
                     const parsedData = parseExcelData(jsonData);
                     await saveDataToFirestore(parsedData);
 
@@ -610,15 +619,28 @@
         }
 
         async function saveDataToFirestore(data) {
-            // We now save the raw, un-aggregated data.
-            const payload = { 
-                rawData: JSON.stringify(data), 
-                uploaderId: userId, 
-                timestamp: new Date().toISOString() 
-            };
-            try { await setDoc(dataDocRef, payload); } catch (error) {
+            try {
+                // **COMPRESSION LOGIC**
+                // 1. Stringify the data object.
+                const jsonString = JSON.stringify(data);
+                
+                // 2. Compress the string using pako's Gzip.
+                const compressedData = pako.gzip(jsonString);
+
+                // 3. Convert the compressed Uint8Array to Firestore's Bytes format for storage.
+                const compressedBytes = Bytes.fromUint8Array(compressedData);
+
+                // 4. Create the payload with the compressed data.
+                const payload = { 
+                    compressedData: compressedBytes, 
+                    uploaderId: userId, 
+                    timestamp: new Date().toISOString() 
+                };
+                
+                await setDoc(dataDocRef, payload);
+            } catch (error) {
                 console.error("Firestore 저장 오류:", error);
-                alert("데이터를 서버에 저장하는 데 실패했습니다.");
+                alert("데이터를 서버에 저장하는 데 실패했습니다. 파일이 너무 크거나 네트워크 문제가 있을 수 있습니다.");
                 hideLoader();
             }
         }
@@ -629,16 +651,13 @@
                 return;
             };
 
-            // 1. Apply time filter to the raw data
             let timeFilteredData = [...globalRawData];
             if (filters.hours.size > 0) {
                 timeFilteredData = timeFilteredData.filter(item => filters.hours.has(item.htpStart.getUTCHours()));
             }
 
-            // 2. Aggregate the time-filtered data
             let aggregatedData = aggregateData(timeFilteredData);
 
-            // 3. Apply display filters to the aggregated data
             let displayFilteredData = aggregatedData;
             if (filters.process === 'pick') displayFilteredData = displayFilteredData.filter(item => item.processType.includes('PICK'));
             if (filters.process === 'pack') displayFilteredData = displayFilteredData.filter(item => item.processType.includes('PACK'));
@@ -647,7 +666,6 @@
             if (filters.floors.size > 0) displayFilteredData = displayFilteredData.filter(item => item.processType.includes('PICK') && filters.floors.has(item.floor));
             if (filters.packTypes.size > 0) displayFilteredData = displayFilteredData.filter(item => item.processType.includes('PACK') && filters.packTypes.has(item.packType));
             
-            // 4. Render the final data
             renderTable(displayFilteredData);
             updateStats(displayFilteredData);
             updateTicker(displayFilteredData);
