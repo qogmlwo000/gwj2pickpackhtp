@@ -106,7 +106,6 @@
         const lastUploaderEl = document.getElementById('last-uploader');
 
         // --- Firebase Setup ---
-        // Your web app's Firebase configuration (Provided by user)
         const firebaseConfig = {
             apiKey: "AIzaSyBrPfjJWPPd8HzI1jCRoHFqwcuPuJ9u10E",
             authDomain: "gwj2-pickpack-htptool.firebaseapp.com",
@@ -134,8 +133,6 @@
                 userId = user.uid;
                 updateStatus('connected', '실시간 서버에 연결되었습니다.');
                 fileUpload.disabled = false;
-                
-                // Firestore 실시간 리스너 설정
                 setupRealtimeListener();
             } else {
                 try {
@@ -150,20 +147,16 @@
         // --- Realtime Listener ---
         function setupRealtimeListener() {
             const dataDocRef = doc(db, DATA_DOC_PATH);
-            
             onSnapshot(dataDocRef, (docSnap) => {
                 if (docSnap.exists()) {
                     const dataPayload = docSnap.data();
-                    const tableData = JSON.parse(dataPayload.tableData); // 데이터가 JSON 문자열로 저장되어 있음
+                    const tableData = JSON.parse(dataPayload.tableData);
                     const lastUploader = dataPayload.uploaderId.substring(0, 8) + '...';
                     const lastUpdated = new Date(dataPayload.timestamp).toLocaleString('ko-KR');
-
                     lastUploaderEl.textContent = lastUploader;
                     lastUpdatedEl.textContent = lastUpdated;
-
                     renderTable(tableData);
                 } else {
-                    console.log("데이터 문서가 없습니다. 새로 생성됩니다.");
                     placeholderRow.classList.remove('hidden');
                 }
                 hideLoader();
@@ -179,9 +172,7 @@
         function handleFileUpload(event) {
             const file = event.target.files[0];
             if (!file) return;
-
             showLoader();
-            
             const reader = new FileReader();
             reader.onload = async (e) => {
                 try {
@@ -190,15 +181,11 @@
                     const sheetName = workbook.SheetNames[0];
                     const worksheet = workbook.Sheets[sheetName];
                     const jsonData = XLSX.utils.sheet_to_json(worksheet, { header: 1 });
-                    
                     const processedData = processExcelData(jsonData);
-                    
-                    // Firestore에 데이터 저장
                     await saveDataToFirestore(processedData);
-                    
                 } catch (error) {
                     console.error("파일 처리 오류:", error);
-                    alert("파일을 처리하는 중 오류가 발생했습니다. 파일 형식을 확인해주세요.");
+                    alert(error.message || "파일을 처리하는 중 오류가 발생했습니다. 파일 형식을 확인해주세요.");
                     hideLoader();
                 }
             };
@@ -210,66 +197,102 @@
             reader.readAsArrayBuffer(file);
         }
 
+        // --- Data Processing Logic (Replicated from Python App) ---
+        const PACK_TYPE_MAP = {
+            "메뉴얼팩": "179_1.3F_MA_S_OG_", "메뉴얼팩 멀티": "179_1.3F_MA_M_OG_",
+            "ACE LINE": "179-1.2F-MA-ACE-OG-", "오토백 1.2": "179_1.3F_AB_R1.2_OG_",
+            "오토백 2.5": "179_1.3F_AB_R2.5_OG_", "오토백 4.0": "179_1.3F_AB_R4.0_OG_",
+            "오토백 RTPB": "179_1.3F_AB_T1_OG_", "오토백 멀티": "179_1.3F_AB_M_OG_",
+            "CFC 메뉴얼팩": "190_6.2F_MA_S_OG_", "CFC 메뉴얼팩 멀티": "190_6.2F_MA_M_OG_",
+            "CFC 오토백 2.5": "190_6.2F_AB_R2.5_OG_", "CFC 오토백 4.0": "190_6.2F_AB_R4.0_OG_",
+            "CFC 오토백 RTPB": "190_6.2G_AB_T1_OG_"
+        };
+        const DEFAULT_PACK_TYPE = "기타";
+
+        function getPackType(location, processTask, processPathName) {
+            if (typeof location !== 'string') return DEFAULT_PACK_TYPE;
+            if (processTask === 'PACK(PACKING)' && location.startsWith('Pack at Rebin (Test') && processPathName === '0. AGV_Multi_Autobag4.0 + 일반존 통합') {
+                return "오토백 멀티";
+            }
+            for (const [name, prefix] of Object.entries(PACK_TYPE_MAP)) {
+                if (location.startsWith(prefix)) return name;
+            }
+            return DEFAULT_PACK_TYPE;
+        }
+
         function processExcelData(data) {
-            // 원본 프로그램의 집계 로직을 여기에 구현합니다.
-            // 이 프로토타입에서는 단순화된 로직을 사용합니다.
-            
             if (data.length < 2) return [];
 
-            const headers = data[0].map(h => h ? h.toString() : '');
-            const requiredCols = ['Employee', 'Unit Qty', 'Floor', 'Process(Task)', 'Pack Type', 'M/H', 'HTP'];
-            const colIndices = {};
+            const headers = data[0].map(h => h ? h.toString().trim() : '');
             
-            let allColsFound = true;
-            requiredCols.forEach(col => {
-                const index = headers.indexOf(col);
-                if (index === -1) {
-                    if(!['HTP', 'M/H', 'Pack Type'].includes(col)) {
-                       console.error(`필수 컬럼이 없습니다: ${col}`);
-                       allColsFound = false;
-                    }
-                }
-                colIndices[col] = index;
-            });
+            const COLS_TO_LOAD = {
+                employee: 'Employee', unitQty: 'Unit Qty', location: 'Location',
+                floor: 'Floor', processPathName: 'Process Path Name', htpStart: 'HTP Start',
+                htpEnd: 'HTP End', processTask: 'Process(Task)'
+            };
 
-            if (!allColsFound) {
-                throw new Error("엑셀 파일에 필수 컬럼(Employee, Unit Qty, Floor, Process(Task))이 모두 포함되어 있는지 확인해주세요.");
+            const colIndices = {};
+            for (const key in COLS_TO_LOAD) {
+                const index = headers.indexOf(COLS_TO_LOAD[key]);
+                if (index === -1) {
+                    throw new Error(`엑셀 파일에 필수 컬럼이 없습니다: "${COLS_TO_LOAD[key]}"`);
+                }
+                colIndices[key] = index;
             }
 
-            // 원본 로직을 단순화하여 필요한 데이터만 추출 및 계산
-            const processed = data.slice(1).map(row => {
-                const task = row[colIndices['Process(Task)']] || '';
-                const htp = parseFloat(row[colIndices['HTP']] || 0).toFixed(1);
-                const mh = parseFloat(row[colIndices['M/H']] || 0).toFixed(4);
+            let rawData = data.slice(1).map(row => {
+                const parseDate = (dateValue) => {
+                    if (typeof dateValue === 'number') {
+                        return new Date(Date.UTC(1899, 11, 30) + dateValue * 24 * 60 * 60 * 1000);
+                    }
+                    return new Date(dateValue);
+                };
+                const htpStart = parseDate(row[colIndices.htpStart]);
+                const htpEnd = parseDate(row[colIndices.htpEnd]);
+
+                if (isNaN(htpStart.getTime()) || isNaN(htpEnd.getTime())) return null;
 
                 return {
-                    processType: task.includes('PICK') ? 'PICK(집품)' : (task.includes('PACK') ? 'PACK(포장)' : '기타'),
-                    employee: row[colIndices['Employee']] || 'N/A',
-                    floor: row[colIndices['Floor']] || '-',
-                    unitQty: parseInt(row[colIndices['Unit Qty']] || 0),
-                    mh: mh,
-                    htp: htp,
-                    packType: row[colIndices['Pack Type']] || (task.includes('PICK') ? '집품' : '기타'),
+                    employee: row[colIndices.employee] || '', unitQty: parseInt(row[colIndices.unitQty] || 0),
+                    location: row[colIndices.location] || '', floor: row[colIndices.floor] || '',
+                    processPathName: row[colIndices.processPathName] || '', processTask: row[colIndices.processTask] || '',
+                    htpStart: htpStart, htpEnd: htpEnd
                 };
-            }).filter(item => item.unitQty > 0);
-            
-            // HTP 낮은 순으로 정렬
-            processed.sort((a, b) => a.htp - b.htp);
+            }).filter(item => item && item.employee && item.unitQty > 0);
 
+            const processed = rawData.map(item => {
+                if (item.processTask === 'REBIN(REBIN)' && item.location.startsWith('Pack at Rebin (Test') && item.processPathName === '0. AGV_Multi_Autobag4.0 + 일반존 통합') {
+                    item.processTask = 'PACK(PACKING)';
+                }
+                
+                if (item.processTask !== 'PICK(PICKING)' && item.processTask !== 'PACK(PACKING)') return null;
+
+                const durationSeconds = (item.htpEnd - item.htpStart) / 1000;
+                const mh = durationSeconds > 0 ? durationSeconds / 3600 : 0;
+                const htp = mh > 0 ? item.unitQty / mh : 0;
+                const packType = getPackType(item.location, item.processTask, item.processPathName);
+
+                return {
+                    processType: item.processTask.includes('PICK') ? 'PICK(집품)' : 'PACK(포장)',
+                    employee: item.employee, floor: item.floor, unitQty: item.unitQty,
+                    mh: mh.toFixed(4), htp: htp.toFixed(1),
+                    packType: item.processTask.includes('PICK') ? '집품' : packType
+                };
+            }).filter(Boolean);
+
+            processed.sort((a, b) => parseFloat(a.htp) - parseFloat(b.htp));
             return processed;
         }
         
         async function saveDataToFirestore(data) {
             const dataDocRef = doc(db, DATA_DOC_PATH);
             const payload = {
-                tableData: JSON.stringify(data), // 데이터를 JSON 문자열로 변환하여 저장
+                tableData: JSON.stringify(data),
                 uploaderId: userId,
                 timestamp: new Date().toISOString()
             };
-            
             try {
                 await setDoc(dataDocRef, payload);
-                console.log("데이터가 성공적으로 Firestore에 저장되었습니다.");
             } catch (error) {
                 console.error("Firestore 저장 오류:", error);
                 alert("데이터를 서버에 저장하는 데 실패했습니다.");
@@ -279,7 +302,7 @@
 
         // --- UI Rendering ---
         function renderTable(data) {
-            tableBody.innerHTML = ''; // 기존 테이블 내용 삭제
+            tableBody.innerHTML = '';
             if (data.length === 0) {
                 tableBody.appendChild(placeholderRow);
                 placeholderRow.classList.remove('hidden');
@@ -290,7 +313,6 @@
             data.forEach(item => {
                 const row = document.createElement('tr');
                 row.className = 'border-b border-gray-700 hover:bg-gray-600';
-                
                 let processTypeColor = 'text-gray-400';
                 if (item.processType.includes('PICK')) processTypeColor = 'text-blue-400';
                 if (item.processType.includes('PACK')) processTypeColor = 'text-yellow-400';
@@ -302,7 +324,7 @@
                     <td class="px-4 py-3">${item.unitQty}</td>
                     <td class="px-4 py-3">${item.mh}</td>
                     <td class="px-4 py-3 font-bold ${item.htp < 100 ? 'text-red-400' : 'text-green-400'}">${item.htp}</td>
-                    <td class.px-4.py-3">${item.packType}</td>
+                    <td class="px-4 py-3">${item.packType}</td>
                 `;
                 tableBody.appendChild(row);
             });
@@ -311,12 +333,10 @@
         function updateStatus(status, message) {
             const dot = statusIndicator.querySelector('.status-dot');
             const text = statusIndicator.querySelector('span');
-            
-            dot.className = 'status-dot'; // Reset classes
+            dot.className = 'status-dot';
             if (status === 'connected') dot.classList.add('status-connected');
             else if (status === 'disconnected') dot.classList.add('status-disconnected');
             else if (status === 'loading') dot.classList.add('status-loading');
-            
             text.textContent = message;
         }
 
@@ -329,7 +349,6 @@
             loaderContainer.classList.add('hidden');
             tableContainer.classList.remove('hidden');
         }
-
     </script>
 </body>
 </html>
