@@ -1,16 +1,12 @@
 <!DOCTYPE html>
 <html lang="ko">
-
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>실시간 HTP 데이터 공유 (v3.3)</title>
-    <!-- Favicon Add -->
-    <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>🚀</text></svg>">
+    <title>실시간 HTP 데이터 공유 (v3.0)</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
-    <!-- pako.js is no longer needed -->
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
     <style>
         body { font-family: 'Inter', sans-serif; scrollbar-width: thin; scrollbar-color: #4a5568 #2d3748; }
@@ -167,7 +163,7 @@
                         <p>마지막 업데이트: <span id="last-updated" class="font-semibold text-gray-200">데이터 없음</span></p>
                         <p>업로더: <span id="last-uploader" class="font-semibold text-gray-200">데이터 없음</span></p>
                     </div>
-                    <input type="file" id="file-upload" class="hidden" accept=".xlsx, .xls">
+                    <input type="file" id="file-upload" class="hidden">
                     <label for="file-upload" class="cursor-pointer py-2 px-4 rounded-lg border-0 text-sm font-semibold bg-blue-600 text-white hover:bg-blue-700">엑셀 업로드</label>
                 </div>
             </div>
@@ -201,8 +197,6 @@
         import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
         import { getAuth, signInAnonymously, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
         import { getFirestore, doc, setDoc, onSnapshot } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
-        // Import Firebase Storage modules
-        import { getStorage, ref, uploadBytes, getDownloadURL } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-storage.js";
 
         // --- UI Elements ---
         const ui = {
@@ -229,7 +223,7 @@
         };
 
         // --- Global State ---
-        let globalRawData = []; // Store for un-aggregated data from Firestore
+        let globalRawData = [];
         let filters = {
             process: 'all', search: '', lowHtp: false,
             hours: new Set(), floors: new Set(), packTypes: new Set()
@@ -246,14 +240,12 @@
             appId: "1:913661158847:web:ebaf60d2afbeadda452d0a",
             measurementId: "G-77DRPC5F58"
         };
-        let db, auth, storage, userId, dataDocRef;
+        let db, auth, userId, dataDocRef;
         try {
             const app = initializeApp(firebaseConfig);
             db = getFirestore(app);
             auth = getAuth(app);
-            storage = getStorage(app); // Initialize Firebase Storage
-            // This document will now only store the URL to the file in Storage
-            dataDocRef = doc(db, 'artifacts', firebaseConfig.projectId, 'public', 'data', 'htpData', 'latestFileReference');
+            dataDocRef = doc(db, 'artifacts', firebaseConfig.projectId, 'public', 'data', 'htpData', 'latest');
         } catch(e) {
             console.error("Firebase 초기화 오류:", e);
             updateStatus('disconnected', 'Firebase 초기화에 실패했습니다.');
@@ -275,60 +267,23 @@
 
         // --- Realtime Listener ---
         function setupRealtimeListener() {
-            onSnapshot(dataDocRef, async (docSnap) => {
+            onSnapshot(dataDocRef, (docSnap) => {
                 if (docSnap.exists()) {
                     const dataPayload = docSnap.data();
-                    const downloadURL = dataPayload.downloadURL;
-
-                    if (!downloadURL) {
-                        console.log("No download URL found.");
-                        hideLoader();
-                        return;
-                    }
+                    globalRawData = JSON.parse(dataPayload.tableData);
+                    ui.lastUploaderEl.textContent = dataPayload.uploaderId.substring(0, 8) + '...';
+                    ui.lastUpdatedEl.textContent = new Date(dataPayload.timestamp).toLocaleString('ko-KR');
                     
-                    showLoader();
-                    try {
-                        // Fetch the Excel file from Firebase Storage
-                        const response = await fetch(downloadURL);
-                        if (!response.ok) {
-                            throw new Error(`Storage 파일 다운로드 실패: ${response.statusText}`);
-                        }
-                        const fileArrayBuffer = await response.arrayBuffer();
-                        
-                        // Process the downloaded Excel file
-                        const data = new Uint8Array(fileArrayBuffer);
-                        const workbook = XLSX.read(data, { type: 'array', cellDates: true });
-                        const sheetName = workbook.SheetNames[0];
-                        const worksheet = workbook.Sheets[sheetName];
-                        const jsonData = XLSX.utils.sheet_to_json(worksheet, { header: 1 });
-                        
-                        globalRawData = parseExcelData(jsonData);
-
-                        ui.lastUploaderEl.textContent = dataPayload.uploaderId.substring(0, 8) + '...';
-                        ui.lastUpdatedEl.textContent = new Date(dataPayload.timestamp).toLocaleString('ko-KR');
-                        
-                        initializeFiltersFromData(globalRawData);
-                        applyFiltersAndRender();
-
-                    } catch (error) {
-                        console.error("Storage 파일 처리 오류:", error);
-                        alert("서버로부터 파일을 가져오거나 처리하는 데 실패했습니다.");
-                        globalRawData = [];
-                    } finally {
-                        hideLoader();
-                    }
+                    initializeFilters();
+                    applyFiltersAndRender();
                 } else {
-                    globalRawData = [];
-                    initializeFiltersFromData([]);
-                    ui.tableBody.innerHTML = '';
-                    ui.tableBody.appendChild(ui.placeholderRow);
+                    initializeFilters();
                     ui.placeholderRow.classList.remove('hidden');
-                    hideLoader();
                 }
+                hideLoader();
             }, (error) => {
                 console.error("실시간 데이터 수신 오류:", error);
                 updateStatus('disconnected', '데이터 수신 중 오류 발생');
-                hideLoader();
             });
         }
         
@@ -383,7 +338,7 @@
             return targetHtpValues[packTypeName] || 100;
         }
 
-        function parseExcelData(data) {
+        function processExcelData(data) {
             if (data.length < 2) return [];
             const headers = data[0].map(h => h ? h.toString().toLowerCase().trim() : '');
             const COLS_TO_LOAD = {
@@ -400,7 +355,7 @@
             }
             if (missingCols.length > 0) throw new Error(`엑셀 파일에 다음 필수 컬럼이 없습니다:\n[${missingCols.join(', ')}]`);
 
-            const rawData = data.slice(1).map(row => {
+            let rawData = data.slice(1).map(row => {
                 const combineDateTime = (dateValue, timeValue) => {
                     if (!dateValue || !timeValue) return null;
                     let datePart = (typeof dateValue === 'number') ? new Date(Date.UTC(1899, 11, 30) + dateValue * 24 * 60 * 60 * 1000) : new Date(dateValue);
@@ -418,38 +373,30 @@
                 const htpStart = combineDateTime(row[colIndices.workDate], row[colIndices.htpStart]);
                 const htpEnd = combineDateTime(row[colIndices.workDate], row[colIndices.htpEnd]);
                 if (!htpStart || !htpEnd) return null;
-                
-                let processTask = row[colIndices.processTask] || '';
-                const location = row[colIndices.location] || '';
-                const processPathName = row[colIndices.processPathName] || '';
-
-                if (processTask === 'REBIN(REBIN)' && location.startsWith('Pack at Rebin (Test') && processPathName === '0. AGV_Multi_Autobag4.0 + 일반존 통합') {
-                    processTask = 'PACK(PACKING)';
-                }
-
                 return {
                     employee: row[colIndices.employee] || '', unitQty: parseInt(row[colIndices.unitQty] || 0),
-                    location: location, floor: row[colIndices.floor] || '',
-                    processPathName: processPathName, processTask: processTask,
+                    location: row[colIndices.location] || '', floor: row[colIndices.floor] || '',
+                    processPathName: row[colIndices.processPathName] || '', processTask: row[colIndices.processTask] || '',
                     contractType: (row[colIndices.contractType] || '').toUpperCase(),
                     htpStart: htpStart, htpEnd: htpEnd
                 };
-            }).filter(item => item && item.employee && item.unitQty > 0 && (item.processTask === 'PICK(PICKING)' || item.processTask === 'PACK(PACKING)'));
+            }).filter(item => item && item.employee && item.unitQty > 0);
             
-            return rawData;
-        }
+            // Apply time filters before aggregation
+            if (filters.hours.size > 0) {
+                rawData = rawData.filter(item => filters.hours.has(item.htpStart.getUTCHours()));
+            }
 
-        function aggregateData(rawData) {
             const aggregatedData = {};
             rawData.forEach(item => {
+                if (item.processTask === 'REBIN(REBIN)' && item.location.startsWith('Pack at Rebin (Test')) item.processTask = 'PACK(PACKING)';
+                if (item.processTask !== 'PICK(PICKING)' && item.processTask !== 'PACK(PACKING)') return;
                 let key;
-                if (item.processTask === 'PICK(PICKING)') {
-                    key = `${item.employee}|${item.floor}|PICK`;
-                } else {
+                if (item.processTask === 'PICK(PICKING)') key = `${item.employee}|${item.floor}|PICK`;
+                else {
                     const packType = getPackType(item.location, item.processTask, item.processPathName);
                     key = `${item.employee}|${packType}|PACK`;
                 }
-                
                 if (!aggregatedData[key]) {
                     const empIdMatch = item.employee.match(/\((.*?)\)/);
                     const empId = empIdMatch ? empIdMatch[1] : '';
@@ -463,15 +410,9 @@
                         isPerm: item.contractType === 'PERM'
                     };
                 }
-                
                 aggregatedData[key].unitQty += item.unitQty;
                 const durationSeconds = (item.htpEnd - item.htpStart) / 1000;
-                if (durationSeconds > 0) {
-                    aggregatedData[key].totalSeconds += durationSeconds;
-                }
-
-                aggregatedData[key].location = item.location;
-                aggregatedData[key].processPathName = item.processPathName;
+                if (durationSeconds > 0) aggregatedData[key].totalSeconds += durationSeconds;
             });
 
             const finalData = Object.values(aggregatedData).map(item => {
@@ -484,19 +425,11 @@
             return finalData;
         }
         
-        function initializeFiltersFromData(rawData) {
-            const allPackTypes = new Set();
-            const floors = new Set();
-
-            rawData.forEach(item => {
-                if(item.processTask.includes('PICK')) {
-                    floors.add(item.floor);
-                } else if (item.processTask.includes('PACK')) {
-                    allPackTypes.add(getPackType(item.location, item.processTask, item.processPathName));
-                }
-            });
-            
-            createFilterCheckboxes(ui.packTypeFilters, Array.from(allPackTypes).sort(), 'packTypes', 'packtypes');
+        // --- UI Rendering & Initialization ---
+        function initializeFilters() {
+            const allPackTypes = [...Object.keys(PACK_TYPE_MAP), DEFAULT_PACK_TYPE];
+            createFilterCheckboxes(ui.packTypeFilters, allPackTypes.sort(), 'packTypes', 'packtypes');
+            const floors = new Set(globalRawData.filter(d => d.processType.includes('PICK')).map(d => d.floor));
             createFilterCheckboxes(ui.floorFilters, Array.from(floors).sort(), 'floors', 'floors');
             createTimeFilters();
             createTargetHtpSettings();
@@ -514,16 +447,10 @@
                 checkbox.className = 'hour-checkbox form-checkbox h-4 w-4 bg-gray-600 border-gray-500 rounded text-blue-500 focus:ring-blue-500';
                 checkbox.addEventListener('change', (e) => {
                     const hourVal = parseInt(e.target.value);
-                    if (e.target.checked) {
-                        filters.hours.add(hourVal);
-                        allHoursCheckbox.checked = false;
-                    } else {
-                        filters.hours.delete(hourVal);
-                    }
-                    if (filters.hours.size === 0) {
-                        allHoursCheckbox.checked = true;
-                    }
-                    applyFiltersAndRender();
+                    if (e.target.checked) filters.hours.add(hourVal);
+                    else filters.hours.delete(hourVal);
+                    allHoursCheckbox.checked = filters.hours.size === 0;
+                    handleFileUpload({ target: { files: [ui.fileUpload.files[0]] } });
                 });
                 label.appendChild(checkbox);
                 const text = document.createElement('span');
@@ -532,11 +459,9 @@
                 ui.hourFilters.appendChild(label);
             }
             allHoursCheckbox.addEventListener('change', (e) => {
-                if (e.target.checked) {
-                    document.querySelectorAll('.hour-checkbox').forEach(cb => cb.checked = false);
-                    filters.hours.clear();
-                    applyFiltersAndRender();
-                }
+                document.querySelectorAll('.hour-checkbox').forEach(cb => cb.checked = false);
+                filters.hours.clear();
+                if (ui.fileUpload.files[0]) handleFileUpload({ target: { files: [ui.fileUpload.files[0]] } });
             });
             document.getElementById('select-all-hours').addEventListener('click', () => {
                 allHoursCheckbox.checked = false;
@@ -544,13 +469,13 @@
                     cb.checked = true;
                     filters.hours.add(parseInt(cb.value));
                 });
-                applyFiltersAndRender();
+                if (ui.fileUpload.files[0]) handleFileUpload({ target: { files: [ui.fileUpload.files[0]] } });
             });
             document.getElementById('deselect-all-hours').addEventListener('click', () => {
                 allHoursCheckbox.checked = true;
                 document.querySelectorAll('.hour-checkbox').forEach(cb => cb.checked = false);
                 filters.hours.clear();
-                applyFiltersAndRender();
+                if (ui.fileUpload.files[0]) handleFileUpload({ target: { files: [ui.fileUpload.files[0]] } });
             });
         }
 
@@ -602,72 +527,54 @@
             }
         }
         
-        async function handleFileUpload(event) {
+        // --- Other Functions (handleFileUpload, saveDataToFirestore, renderTable, etc.) ---
+        function handleFileUpload(event) {
             const file = event.target.files[0];
-            if (!file) return;
-
-            showLoader();
-            try {
-                // Create a reference to the file in Firebase Storage.
-                // This will overwrite the previous file, which is desired.
-                const storageRef = ref(storage, 'htp-data/latest-upload.xlsx');
-
-                // Upload the file.
-                const snapshot = await uploadBytes(storageRef, file);
-                
-                // Get the download URL.
-                const downloadURL = await getDownloadURL(snapshot.ref);
-
-                // Save the file reference (URL) to Firestore.
-                await saveDataReferenceToFirestore(downloadURL);
-
-            } catch (error) {
-                console.error("파일 업로드 또는 처리 오류:", error);
-                alert("파일을 업로드하는 중 오류가 발생했습니다.");
-                hideLoader();
+            if (!file) {
+                if(globalRawData.length > 0) applyFiltersAndRender();
+                return;
             }
+            showLoader();
+            const reader = new FileReader();
+            reader.onload = async (e) => {
+                try {
+                    const data = new Uint8Array(e.target.result);
+                    const workbook = XLSX.read(data, { type: 'array', cellDates: true });
+                    const sheetName = workbook.SheetNames[0];
+                    const worksheet = workbook.Sheets[sheetName];
+                    const jsonData = XLSX.utils.sheet_to_json(worksheet, { header: 1 });
+                    const processedData = processExcelData(jsonData);
+                    await saveDataToFirestore(processedData);
+                } catch (error) {
+                    console.error("파일 처리 오류:", error);
+                    alert(error.message || "파일을 처리하는 중 오류가 발생했습니다. 파일 형식을 확인해주세요.");
+                    hideLoader();
+                }
+            };
+            reader.onerror = (error) => { console.error("파일 읽기 오류:", error); alert("파일을 읽을 수 없습니다."); hideLoader(); };
+            reader.readAsArrayBuffer(file);
         }
 
-        async function saveDataReferenceToFirestore(downloadURL) {
-            const payload = { 
-                downloadURL: downloadURL, 
-                uploaderId: userId, 
-                timestamp: new Date().toISOString() 
-            };
-            try {
-                await setDoc(dataDocRef, payload);
-                // The onSnapshot listener will handle the rest.
-            } catch (error) {
-                console.error("Firestore 참조 저장 오류:", error);
-                alert("파일 참조를 서버에 저장하는 데 실패했습니다.");
+        async function saveDataToFirestore(data) {
+            const payload = { tableData: JSON.stringify(data), uploaderId: userId, timestamp: new Date().toISOString() };
+            try { await setDoc(dataDocRef, payload); } catch (error) {
+                console.error("Firestore 저장 오류:", error);
+                alert("데이터를 서버에 저장하는 데 실패했습니다.");
                 hideLoader();
             }
         }
 
         function applyFiltersAndRender() {
-            if (globalRawData.length === 0) {
-                renderTable([]);
-                return;
-            };
-
-            let timeFilteredData = [...globalRawData];
-            if (filters.hours.size > 0) {
-                timeFilteredData = timeFilteredData.filter(item => filters.hours.has(item.htpStart.getUTCHours()));
-            }
-
-            let aggregatedData = aggregateData(timeFilteredData);
-
-            let displayFilteredData = aggregatedData;
-            if (filters.process === 'pick') displayFilteredData = displayFilteredData.filter(item => item.processType.includes('PICK'));
-            if (filters.process === 'pack') displayFilteredData = displayFilteredData.filter(item => item.processType.includes('PACK'));
-            if (filters.search) displayFilteredData = displayFilteredData.filter(item => item.employee.toLowerCase().includes(filters.search));
-            if (filters.lowHtp) displayFilteredData = displayFilteredData.filter(item => parseFloat(item.htp) < getTargetHtp(item));
-            if (filters.floors.size > 0) displayFilteredData = displayFilteredData.filter(item => item.processType.includes('PICK') && filters.floors.has(item.floor));
-            if (filters.packTypes.size > 0) displayFilteredData = displayFilteredData.filter(item => item.processType.includes('PACK') && filters.packTypes.has(item.packType));
-            
-            renderTable(displayFilteredData);
-            updateStats(displayFilteredData);
-            updateTicker(displayFilteredData);
+            let filteredData = [...globalRawData];
+            if (filters.process === 'pick') filteredData = filteredData.filter(item => item.processType.includes('PICK'));
+            if (filters.process === 'pack') filteredData = filteredData.filter(item => item.processType.includes('PACK'));
+            if (filters.search) filteredData = filteredData.filter(item => item.employee.toLowerCase().includes(filters.search));
+            if (filters.lowHtp) filteredData = filteredData.filter(item => parseFloat(item.htp) < getTargetHtp(item));
+            if (filters.floors.size > 0) filteredData = filteredData.filter(item => item.processType.includes('PICK') && filters.floors.has(item.floor));
+            if (filters.packTypes.size > 0) filteredData = filteredData.filter(item => item.processType.includes('PACK') && filters.packTypes.has(item.packType));
+            renderTable(filteredData);
+            updateStats(filteredData);
+            updateTicker(filteredData);
         }
 
         function renderTable(data) {
@@ -735,23 +642,15 @@
             const topStr = "🏆Top3: " + (top3.length > 0 ? top3.map(formatTickerItem).join(', ') : '-');
             const lowStr = "🚨Low3: " + (low3.length > 0 ? low3.map(formatTickerItem).join(', ') : '-');
             
-            ui.tickerText.textContent = `${topStr}       ${lowStr}`;
+            ui.tickerText.textContent = `${topStr}      ${lowStr}`;
         }
 
         function captureTable() {
             html2canvas(document.getElementById('table-container')).then(canvas => {
                 canvas.toBlob(blob => {
-                    try {
-                        navigator.clipboard.write([new ClipboardItem({'image/png': blob})])
-                            .then(() => alert('테이블이 클립보드에 복사되었습니다.'))
-                            .catch(err => {
-                                console.error('클립보드 복사 실패:', err);
-                                alert('클립보드 복사에 실패했습니다. 브라우저 설정을 확인해주세요.');
-                            });
-                    } catch (error) {
-                         console.error('클립보드 API 오류:', error);
-                         alert('클립보드 API를 사용할 수 없는 환경입니다.');
-                    }
+                    navigator.clipboard.write([new ClipboardItem({'image/png': blob})])
+                        .then(() => alert('테이블이 클립보드에 복사되었습니다.'))
+                        .catch(err => console.error('클립보드 복사 실패:', err));
                 });
             });
         }
@@ -792,7 +691,7 @@
         function hideLoader() { ui.loaderContainer.classList.add('hidden'); ui.tableContainer.classList.remove('hidden'); }
         
         // Initialize on page load
-        initializeFiltersFromData([]);
+        initializeFilters();
 
     </script>
 </body>
