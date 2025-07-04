@@ -3,10 +3,11 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>실시간 HTP 데이터 공유 (v3.0)</title>
+    <title>실시간 HTP 데이터 분석 (v4.1)</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
     <style>
         body { font-family: 'Inter', sans-serif; scrollbar-width: thin; scrollbar-color: #4a5568 #2d3748; }
@@ -24,35 +25,17 @@
         .filter-btn.active { background-color: #2563eb; color: white; }
         .filter-group-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(50px, 1fr)); gap: 0.5rem; }
         
-        #main-title {
-            animation: color-cycle 10s infinite linear;
-        }
-        @keyframes color-cycle {
-            0%   { color: #FF0000; }
-            14%  { color: #FF7F00; }
-            28%  { color: #FFFF00; }
-            42%  { color: #00FF00; }
-            57%  { color: #0000FF; }
-            71%  { color: #4B0082; }
-            85%  { color: #9400D3; }
-            100% { color: #FF0000; }
-        }
+        #main-title { animation: color-cycle 10s infinite linear; }
+        @keyframes color-cycle { 0%{color:#FF0000} 14%{color:#FF7F00} 28%{color:#FFFF00} 42%{color:#00FF00} 57%{color:#0000FF} 71%{color:#4B0082} 85%{color:#9400D3} 100%{color:#FF0000} }
         
-        #ticker-container {
-            overflow: hidden;
-            white-space: nowrap;
-            position: relative;
-        }
-        #ticker-text {
-            position: absolute;
-            animation: ticker-scroll 20s linear infinite;
-            color: #FFD700;
-            font-weight: bold;
-        }
-        @keyframes ticker-scroll {
-            0%   { transform: translateX(100%); }
-            100% { transform: translateX(-100%); }
-        }
+        #ticker-container { overflow: hidden; white-space: nowrap; position: relative; }
+        #ticker-text { position: absolute; animation: ticker-scroll 30s linear infinite; color: #FFD700; font-weight: bold; }
+        @keyframes ticker-scroll { 0% { transform: translateX(100%); } 100% { transform: translateX(-100%); } }
+
+        .modal-overlay { position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: rgba(0,0,0,0.7); display: flex; align-items: center; justify-content: center; z-index: 1000; }
+        
+        .sortable { cursor: pointer; }
+        .sort-arrow { display: inline-block; width: 1em; text-align: center; }
     </style>
 </head>
 <body class="bg-gray-900 text-gray-200 flex h-screen overflow-hidden">
@@ -60,58 +43,42 @@
     <!-- Sidebar -->
     <aside id="sidebar" class="sidebar bg-gray-800 p-4 flex-shrink-0 flex flex-col space-y-4 overflow-y-auto">
         <h2 class="text-xl font-bold text-white border-b border-gray-700 pb-2">⚙️ 필터 및 설정</h2>
-        
-        <!-- Time Filters -->
         <div class="bg-gray-700 p-3 rounded-lg">
             <h3 class="font-semibold mb-2 text-white">⏰ 시간대별 필터</h3>
             <div class="space-y-2">
                 <label class="flex items-center space-x-2 text-sm cursor-pointer"><input type="checkbox" id="all-hours-checkbox" class="form-checkbox h-4 w-4 bg-gray-600 border-gray-500 rounded text-blue-500 focus:ring-blue-500" checked><span>전체 시간</span></label>
                 <div id="hour-filters" class="filter-group-grid pt-2 border-t border-gray-600"></div>
-                <div class="flex space-x-2 pt-2 border-t border-gray-600">
-                    <button id="select-all-hours" class="text-xs py-1 px-2 rounded bg-gray-600 hover:bg-gray-500 w-full">모두 선택</button>
-                    <button id="deselect-all-hours" class="text-xs py-1 px-2 rounded bg-gray-600 hover:bg-gray-500 w-full">모두 해제</button>
-                </div>
             </div>
         </div>
-
-        <!-- Floor Filters -->
         <div class="bg-gray-700 p-3 rounded-lg">
             <h3 class="font-semibold mb-2 text-white">📶 층별 필터 (집품)</h3>
             <div id="floor-filters" class="space-y-2"></div>
-            <div class="flex space-x-2 pt-2 mt-2 border-t border-gray-600">
-                <button id="select-all-floors" class="text-xs py-1 px-2 rounded bg-gray-600 hover:bg-gray-500 w-full">모두 선택</button>
-                <button id="deselect-all-floors" class="text-xs py-1 px-2 rounded bg-gray-600 hover:bg-gray-500 w-full">모두 해제</button>
-            </div>
         </div>
-
-        <!-- Pack Type Filters -->
         <div class="bg-gray-700 p-3 rounded-lg">
             <h3 class="font-semibold mb-2 text-white">📦 팩 종류 필터 (포장)</h3>
             <div id="pack-type-filters" class="space-y-2"></div>
-             <div class="flex space-x-2 pt-2 mt-2 border-t border-gray-600">
-                <button id="select-all-packtypes" class="text-xs py-1 px-2 rounded bg-gray-600 hover:bg-gray-500 w-full">모두 선택</button>
-                <button id="deselect-all-packtypes" class="text-xs py-1 px-2 rounded bg-gray-600 hover:bg-gray-500 w-full">모두 해제</button>
-            </div>
         </div>
-        
-        <!-- Target HTP Settings -->
         <div class="bg-gray-700 p-3 rounded-lg">
             <h3 class="font-semibold mb-2 text-white">🎯 Target HTP 설정</h3>
             <div id="target-htp-settings" class="space-y-2 text-sm"></div>
+        </div>
+        <div class="bg-gray-700 p-3 rounded-lg">
+            <h3 class="font-semibold mb-2 text-white">📊 컬럼 설정</h3>
+            <div id="column-settings" class="space-y-2 text-sm"></div>
         </div>
     </aside>
 
     <!-- Main Content -->
     <main class="flex-1 flex flex-col overflow-hidden">
         <div class="w-full bg-gray-800 shadow-lg p-4">
-            <div class="flex justify-between items-center">
+             <div class="flex justify-between items-center">
                 <div class="flex items-center">
                     <button id="sidebar-toggle" class="p-2 rounded-md hover:bg-gray-700 mr-4">
-                        <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16"></path></svg>
+                        <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16"></path></svg>
                     </button>
                     <div>
-                        <h1 id="main-title" class="text-2xl font-extrabold">🚀 실시간 HTP 데이터 공유</h1>
-                        <p class="text-gray-400 text-sm">한 명이 엑셀을 올리면 모두에게 실시간으로 반영됩니다.</p>
+                        <h1 id="main-title" class="text-2xl font-extrabold">🚀 실시간 HTP 데이터 분석</h1>
+                        <p class="text-gray-400 text-sm">데이터 기반의 성과 관리를 시작하세요.</p>
                     </div>
                 </div>
                 <div id="status-indicator" class="flex items-center">
@@ -122,7 +89,6 @@
         </div>
 
         <div class="p-4 space-y-4">
-            <!-- Controls -->
             <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
                 <div class="bg-gray-800 p-3 rounded-lg flex items-center space-x-2">
                     <button id="filter-all" class="filter-btn flex-1 py-2 px-3 text-sm font-semibold rounded-md hover:bg-gray-600 active">전체</button>
@@ -133,171 +99,138 @@
                     <input type="text" id="search-input" placeholder="🔍 이름(원바코드) 검색..." class="w-full bg-gray-700 border border-gray-600 rounded-md py-2 px-3 text-sm focus:ring-blue-500 focus:border-blue-500">
                 </div>
                 <div class="bg-gray-800 p-3 rounded-lg flex items-center space-x-2">
-                    <label class="flex items-center cursor-pointer">
-                        <input type="checkbox" id="low-htp-toggle" class="sr-only peer">
-                        <div class="relative w-11 h-6 bg-gray-600 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-0.5 after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-red-500"></div>
-                        <span class="ml-3 text-sm font-medium">� 저조자만 보기</span>
-                    </label>
+                    <label class="flex items-center cursor-pointer"><input type="checkbox" id="low-htp-toggle" class="sr-only peer"><div class="relative w-11 h-6 bg-gray-600 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-0.5 after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-red-500"></div><span class="ml-3 text-sm font-medium">🚨 저조자만</span></label>
                     <button id="capture-btn" class="py-2 px-3 text-sm font-semibold rounded-md hover:bg-gray-600">📷 캡처</button>
                     <button id="export-btn" class="py-2 px-3 text-sm font-semibold rounded-md hover:bg-gray-600">📊 엑셀</button>
                 </div>
             </div>
             
-            <!-- Ticker -->
-            <div id="ticker-container" class="bg-gray-800 p-2 rounded-lg text-sm">
-                <div id="ticker-text-wrapper" class="relative w-full h-5 overflow-hidden">
-                    <span id="ticker-text">Top/Low HTP 정보가 여기에 표시됩니다.</span>
-                </div>
-            </div>
-
-            <!-- Stats & Upload -->
+            <div id="ticker-container" class="bg-gray-800 p-2 rounded-lg text-sm"><div id="ticker-text-wrapper" class="relative w-full h-5 overflow-hidden"><span id="ticker-text">Top/Low HTP 정보가 여기에 표시됩니다.</span></div></div>
             <div class="bg-gray-800 p-3 rounded-lg flex flex-col md:flex-row justify-between items-center text-sm">
-                 <div id="stats-display" class="text-gray-300 mb-2 md:mb-0">
-                    표시 그룹: <span class="font-bold text-white">-</span> | 
-                    작업자 수: <span class="font-bold text-white">-</span> | 
-                    총 작업량: <span class="font-bold text-white">-</span> | 
-                    평균 HTP: <span class="font-bold text-white">-</span>
-                </div>
+                 <div id="stats-display" class="text-gray-300 mb-2 md:mb-0"></div>
                 <div class="flex items-center gap-4">
-                    <div class="text-right">
-                        <p>마지막 업데이트: <span id="last-updated" class="font-semibold text-gray-200">데이터 없음</span></p>
-                        <p>업로더: <span id="last-uploader" class="font-semibold text-gray-200">데이터 없음</span></p>
-                    </div>
-                    <input type="file" id="file-upload" class="hidden">
-                    <label for="file-upload" class="cursor-pointer py-2 px-4 rounded-lg border-0 text-sm font-semibold bg-blue-600 text-white hover:bg-blue-700">엑셀 업로드</label>
+                    <div class="text-right"><p>마지막 업데이트: <span id="last-updated" class="font-semibold text-gray-200">데이터 없음</span></p><p>업로더: <span id="last-uploader" class="font-semibold text-gray-200">데이터 없음</span></p></div>
+                    <input type="file" id="file-upload" class="hidden"><label for="file-upload" class="cursor-pointer py-2 px-4 rounded-lg border-0 text-sm font-semibold bg-blue-600 text-white hover:bg-blue-700">엑셀 업로드</label>
                 </div>
             </div>
         </div>
 
-        <!-- Table -->
         <div id="loader-container" class="flex-1 flex justify-center items-center hidden"><div class="loader"></div></div>
         <div id="table-container" class="flex-1 table-container overflow-auto px-4 pb-4">
             <table class="w-full text-sm text-left text-gray-400">
-                <thead class="text-xs text-gray-300 uppercase bg-gray-700 sticky top-0 z-10">
-                    <tr>
-                        <th scope="col" class="px-4 py-3">집품/포장</th>
-                        <th scope="col" class="px-4 py-3">이름(원바코드)</th>
-                        <th scope="col" class="px-4 py-3">층</th>
-                        <th scope="col" class="px-4 py-3">PP</th>
-                        <th scope="col" class="px-4 py-3">Location</th>
-                        <th scope="col" class="px-4 py-3">작업량</th>
-                        <th scope="col" class="px-4 py-3">M/H</th>
-                        <th scope="col" class="px-4 py-3">HTP</th>
-                        <th scope="col" class="px-4 py-3">팩 종류</th>
-                    </tr>
-                </thead>
+                <thead id="table-head" class="text-xs text-gray-300 uppercase bg-gray-700 sticky top-0 z-10"></thead>
                 <tbody id="data-table-body" class="bg-gray-800">
-                    <tr id="placeholder-row"><td colspan="9" class="text-center py-10 text-gray-500">엑셀 파일을 업로드하여 데이터를 확인하세요.</td></tr>
+                    <tr id="placeholder-row"><td colspan="10" class="text-center py-10 text-gray-500">엑셀 파일을 업로드하여 데이터를 확인하세요.</td></tr>
                 </tbody>
             </table>
         </div>
     </main>
 
+    <!-- Chart Modal -->
+    <div id="chart-modal" class="modal-overlay hidden">
+        <div class="bg-gray-800 rounded-lg shadow-xl p-6 w-11/12 md:w-2/3 lg:w-1/2">
+            <div class="flex justify-between items-center border-b border-gray-700 pb-3 mb-4">
+                <h3 id="chart-title" class="text-lg font-bold text-white">성과 추이 분석</h3>
+                <button id="chart-close-btn" class="p-1 rounded-full hover:bg-gray-700 text-2xl leading-none">&times;</button>
+            </div>
+            <canvas id="performance-chart"></canvas>
+        </div>
+    </div>
+
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
         import { getAuth, signInAnonymously, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
-        import { getFirestore, doc, setDoc, onSnapshot } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
+        import { getFirestore, doc, setDoc, getDoc, collection, query, orderBy, limit, getDocs } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
 
-        // --- UI Elements ---
         const ui = {
-            fileUpload: document.getElementById('file-upload'),
-            tableBody: document.getElementById('data-table-body'),
-            placeholderRow: document.getElementById('placeholder-row'),
-            loaderContainer: document.getElementById('loader-container'),
-            tableContainer: document.getElementById('table-container'),
-            statusIndicator: document.getElementById('status-indicator'),
-            lastUpdatedEl: document.getElementById('last-updated'),
-            lastUploaderEl: document.getElementById('last-uploader'),
-            sidebar: document.getElementById('sidebar'),
-            sidebarToggle: document.getElementById('sidebar-toggle'),
-            floorFilters: document.getElementById('floor-filters'),
-            packTypeFilters: document.getElementById('pack-type-filters'),
-            hourFilters: document.getElementById('hour-filters'),
-            searchInput: document.getElementById('search-input'),
-            lowHtpToggle: document.getElementById('low-htp-toggle'),
-            statsDisplay: document.getElementById('stats-display'),
-            captureBtn: document.getElementById('capture-btn'),
-            exportBtn: document.getElementById('export-btn'),
-            targetHtpSettings: document.getElementById('target-htp-settings'),
-            tickerText: document.getElementById('ticker-text'),
+            fileUpload: document.getElementById('file-upload'), tableBody: document.getElementById('data-table-body'),
+            placeholderRow: document.getElementById('placeholder-row'), loaderContainer: document.getElementById('loader-container'),
+            tableContainer: document.getElementById('table-container'), statusIndicator: document.getElementById('status-indicator'),
+            lastUpdatedEl: document.getElementById('last-updated'), lastUploaderEl: document.getElementById('last-uploader'),
+            sidebar: document.getElementById('sidebar'), sidebarToggle: document.getElementById('sidebar-toggle'),
+            floorFilters: document.getElementById('floor-filters'), packTypeFilters: document.getElementById('pack-type-filters'),
+            hourFilters: document.getElementById('hour-filters'), searchInput: document.getElementById('search-input'),
+            lowHtpToggle: document.getElementById('low-htp-toggle'), statsDisplay: document.getElementById('stats-display'),
+            captureBtn: document.getElementById('capture-btn'), exportBtn: document.getElementById('export-btn'),
+            targetHtpSettings: document.getElementById('target-htp-settings'), tickerText: document.getElementById('ticker-text'),
+            tableHead: document.getElementById('table-head'), columnSettings: document.getElementById('column-settings'),
+            chartModal: document.getElementById('chart-modal'), chartTitle: document.getElementById('chart-title'),
+            chartCloseBtn: document.getElementById('chart-close-btn')
         };
 
-        // --- Global State ---
-        let globalRawData = [];
-        let filters = {
-            process: 'all', search: '', lowHtp: false,
-            hours: new Set(), floors: new Set(), packTypes: new Set()
-        };
+        let globalExcelJsonData = []; let historicalData = {};
+        let filters = { process: 'all', search: '', lowHtp: false, hours: new Set(), floors: new Set(), packTypes: new Set() };
+        let sortState = { key: 'htp', order: 'asc' };
         let targetHtpValues = {};
+        let performanceChart = null;
 
-        // --- Firebase Setup ---
-        const firebaseConfig = {
-            apiKey: "AIzaSyBrPfjJWPPd8HzI1jCRoHFqwcuPuJ9u10E",
-            authDomain: "gwj2-pickpack-htptool.firebaseapp.com",
-            projectId: "gwj2-pickpack-htptool",
-            storageBucket: "gwj2-pickpack-htptool.appspot.com",
-            messagingSenderId: "913661158847",
-            appId: "1:913661158847:web:ebaf60d2afbeadda452d0a",
-            measurementId: "G-77DRPC5F58"
-        };
-        let db, auth, userId, dataDocRef;
+        const PACK_TYPE_MAP = {"메뉴얼팩":"179_1.3F_MA_S_OG_","메뉴얼팩 멀티":"179_1.3F_MA_M_OG_","ACE LINE":"179-1.2F-MA-ACE-OG-","오토백 1.2":"179_1.3F_AB_R1.2_OG_","오토백 2.5":"179_1.3F_AB_R2.5_OG_","오토백 4.0":"179_1.3F_AB_R4.0_OG_","오토백 RTPB":"179_1.3F_AB_T1_OG_","오토백 멀티":"179_1.3F_AB_M_OG_","CFC 메뉴얼팩":"190_6.2F_MA_S_OG_","CFC 메뉴얼팩 멀티":"190_6.2F_MA_M_OG_","CFC 오토백 2.5":"190_6.2F_AB_R2.5_OG_","CFC 오토백 4.0":"190_6.2F_AB_R4.0_OG_","CFC 오토백 RTPB":"190_6.2G_AB_T1_OG_"};
+        const DEFAULT_PACK_TYPE = "기타";
+        const MANAGERS_LIST = ['98659377','31629728','26485305','94354606','66476877','21284456','24856615','87406548','57101574','39104550','23761528','29801698','27407697','30997520','26152514','42103385','47548283','92816677','55540763','39678603','29787775','88463987','65712250','37005613','88031159','24304330','58548628','58728654','27507426','92733138','41310393','21220693','38876677','53909931','77358628','95383395','86473941','28996527','36148186','96358817','64118293','50908038','30049374','68100618','29229926','66536830','25657753','47848283','46802436','93246435','83689729','92718820','87935445','97224272','39359504'];
+        const TARGET_HTP_DEFAULTS = {"Manual SINGULATION":100,"Manual MULTI":120,"ACE LINE":150,"Autobagger 1.2":380,"Autobagger 2.5":350,"Autobagger 4.0":280,"Autobagger RTPB":150,"Auto MULTI":250,"CFC Manual S":100,"CFC Manual M":120,"CFC Autobag 2.5":350,"CFC Autobag 4.0":280,"CFC Autobag RTPB":150,"PICK":90};
+        Object.assign(targetHtpValues, TARGET_HTP_DEFAULTS);
+
+        const ALL_COLUMNS = [
+            { key: 'processType', label: '집품/포장', visible: true },
+            { key: 'employee', label: '이름(원바코드)', visible: true, sortable: true },
+            { key: 'rankChange', label: '변동', visible: true },
+            { key: 'floor', label: '층', visible: true, sortable: true },
+            { key: 'processPathName', label: 'PP', visible: true, sortable: true },
+            { key: 'location', label: 'Location', visible: false, sortable: true },
+            { key: 'unitQty', label: '작업량', visible: true, sortable: true },
+            { key: 'mh', label: 'M/H', visible: true, sortable: true },
+            { key: 'htp', label: 'HTP', visible: true, sortable: true },
+            { key: 'packType', label: '팩 종류', visible: true, sortable: true },
+        ];
+
+        const firebaseConfig = { apiKey: "AIzaSyBrPfjJWPPd8HzI1jCRoHFqwcuPuJ9u10E", authDomain: "gwj2-pickpack-htptool.firebaseapp.com", projectId: "gwj2-pickpack-htptool", storageBucket: "gwj2-pickpack-htptool.appspot.com", messagingSenderId: "913661158847", appId: "1:913661158847:web:ebaf60d2afbeadda452d0a" };
+        let db, auth, userId, dataCollectionRef;
         try {
             const app = initializeApp(firebaseConfig);
             db = getFirestore(app);
             auth = getAuth(app);
-            dataDocRef = doc(db, 'artifacts', firebaseConfig.projectId, 'public', 'data', 'htpData', 'latest');
-        } catch(e) {
-            console.error("Firebase 초기화 오류:", e);
-            updateStatus('disconnected', 'Firebase 초기화에 실패했습니다.');
-        }
+            dataCollectionRef = collection(db, 'artifacts', firebaseConfig.projectId, 'public', 'data', 'htpData');
+        } catch(e) { console.error("Firebase 초기화 오류:", e); }
         
         onAuthStateChanged(auth, async (user) => {
             if (user) {
                 userId = user.uid;
                 updateStatus('connected', '실시간 서버에 연결되었습니다.');
                 ui.fileUpload.disabled = false;
-                setupRealtimeListener();
+                fetchLatestData();
             } else {
-                try { await signInAnonymously(auth); } catch (error) {
-                    console.error("익명 로그인 오류:", error);
-                    updateStatus('disconnected', '서버에 연결할 수 없습니다.');
-                }
+                try { await signInAnonymously(auth); } catch (error) { console.error("익명 로그인 오류:", error); }
             }
         });
 
-        // --- Realtime Listener ---
-        function setupRealtimeListener() {
-            onSnapshot(dataDocRef, (docSnap) => {
-                if (docSnap.exists()) {
-                    const dataPayload = docSnap.data();
-                    globalRawData = JSON.parse(dataPayload.tableData);
-                    ui.lastUploaderEl.textContent = dataPayload.uploaderId.substring(0, 8) + '...';
-                    ui.lastUpdatedEl.textContent = new Date(dataPayload.timestamp).toLocaleString('ko-KR');
-                    
-                    initializeFilters();
-                    applyFiltersAndRender();
-                } else {
-                    initializeFilters();
-                    ui.placeholderRow.classList.remove('hidden');
-                }
-                hideLoader();
-            }, (error) => {
-                console.error("실시간 데이터 수신 오류:", error);
-                updateStatus('disconnected', '데이터 수신 중 오류 발생');
-            });
+        async function fetchLatestData() {
+            const q = query(dataCollectionRef, orderBy('timestamp', 'desc'), limit(8));
+            const querySnapshot = await getDocs(q);
+            historicalData = {};
+            if (!querySnapshot.empty) {
+                querySnapshot.forEach(doc => {
+                    historicalData[doc.id] = JSON.parse(doc.data().excelData);
+                });
+                const latestDoc = querySnapshot.docs[0];
+                globalExcelJsonData = historicalData[latestDoc.id];
+                
+                const dataPayload = latestDoc.data();
+                ui.lastUploaderEl.textContent = dataPayload.uploaderId.substring(0, 8) + '...';
+                ui.lastUpdatedEl.textContent = new Date(dataPayload.timestamp).toLocaleString('ko-KR');
+
+                initializeFilters();
+                applyFiltersAndRender();
+            } else {
+                initializeFilters();
+                ui.placeholderRow.classList.remove('hidden');
+            }
+            hideLoader();
         }
-        
-        // --- Event Listeners ---
+
         ui.sidebarToggle.addEventListener('click', () => ui.sidebar.classList.toggle('collapsed'));
         ui.fileUpload.addEventListener('change', handleFileUpload);
-        ui.searchInput.addEventListener('input', (e) => {
-            filters.search = e.target.value.toLowerCase();
-            applyFiltersAndRender();
-        });
-        ui.lowHtpToggle.addEventListener('change', (e) => {
-            filters.lowHtp = e.target.checked;
-            applyFiltersAndRender();
-        });
+        ui.searchInput.addEventListener('input', (e) => { filters.search = e.target.value.toLowerCase(); applyFiltersAndRender(); });
+        ui.lowHtpToggle.addEventListener('change', (e) => { filters.lowHtp = e.target.checked; applyFiltersAndRender(); });
         document.querySelectorAll('.filter-btn').forEach(btn => {
             btn.addEventListener('click', (e) => {
                 document.querySelectorAll('.filter-btn').forEach(b => b.classList.remove('active'));
@@ -308,44 +241,23 @@
         });
         ui.captureBtn.addEventListener('click', captureTable);
         ui.exportBtn.addEventListener('click', exportToExcel);
+        ui.chartCloseBtn.addEventListener('click', () => ui.chartModal.classList.add('hidden'));
 
-        // --- Data Processing Constants ---
-        const PACK_TYPE_MAP = {
-            "메뉴얼팩": "179_1.3F_MA_S_OG_", "메뉴얼팩 멀티": "179_1.3F_MA_M_OG_", "ACE LINE": "179-1.2F-MA-ACE-OG-",
-            "오토백 1.2": "179_1.3F_AB_R1.2_OG_", "오토백 2.5": "179_1.3F_AB_R2.5_OG_", "오토백 4.0": "179_1.3F_AB_R4.0_OG_",
-            "오토백 RTPB": "179_1.3F_AB_T1_OG_", "오토백 멀티": "179_1.3F_AB_M_OG_", "CFC 메뉴얼팩": "190_6.2F_MA_S_OG_",
-            "CFC 메뉴얼팩 멀티": "190_6.2F_MA_M_OG_", "CFC 오토백 2.5": "190_6.2F_AB_R2.5_OG_", "CFC 오토백 4.0": "190_6.2F_AB_R4.0_OG_",
-            "CFC 오토백 RTPB": "190_6.2G_AB_T1_OG_"
-        };
-        const DEFAULT_PACK_TYPE = "기타";
-        const MANAGERS_LIST = ['98659377', '31629728', '26485305', '94354606', '66476877', '21284456', '24856615', '87406548', '57101574', '39104550', '23761528', '29801698', '27407697', '30997520', '26152514', '42103385', '47548283', '92816677', '55540763', '39678603', '29787775', '88463987', '65712250', '37005613', '88031159', '24304330', '58548628', '58728654', '27507426', '92733138', '41310393', '21220693', '38876677', '53909931', '77358628', '95383395', '86473941', '28996527', '36148186', '96358817', '64118293', '50908038', '30049374', '68100618', '29229926', '66536830', '25657753', '47848283', '46802436', '93246435', '83689729', '92718820', '87935445', '97224272', '39359504'];
-        const TARGET_HTP_DEFAULTS = { "Manual SINGULATION": 100, "Manual MULTI": 120, "ACE LINE": 150, "Autobagger 1.2": 380, "Autobagger 2.5": 350, "Autobagger 4.0": 280, "Autobagger RTPB": 150, "Auto MULTI": 250, "CFC Manual S": 100, "CFC Manual M": 120, "CFC Autobag 2.5": 350, "CFC Autobag 4.0": 280, "CFC Autobag RTPB": 150, "PICK": 90 };
-        Object.assign(targetHtpValues, TARGET_HTP_DEFAULTS); // Initialize with defaults
-
-        // --- Data Processing & Filtering ---
         function getPackType(location, processTask, processPathName) {
             if (typeof location !== 'string') return DEFAULT_PACK_TYPE;
             if (processTask === 'PACK(PACKING)' && location.startsWith('Pack at Rebin (Test') && processPathName === '0. AGV_Multi_Autobag4.0 + 일반존 통합') return "오토백 멀티";
-            for (const [name, prefix] of Object.entries(PACK_TYPE_MAP)) {
-                if (location.startsWith(prefix)) return name;
-            }
+            for (const [name, prefix] of Object.entries(PACK_TYPE_MAP)) { if (location.startsWith(prefix)) return name; }
             return DEFAULT_PACK_TYPE;
         }
-
         function getTargetHtp(item) {
             if (item.processType.includes('PICK')) return targetHtpValues['PICK'];
             const packTypeName = Object.keys(targetHtpValues).find(k => k.toLowerCase().replace(/ /g, '') === item.packType.toLowerCase().replace(/ /g, ''));
             return targetHtpValues[packTypeName] || 100;
         }
 
-        function processExcelData(data) {
-            if (data.length < 2) return [];
-            const headers = data[0].map(h => h ? h.toString().toLowerCase().trim() : '');
-            const COLS_TO_LOAD = {
-                workDate: 'work date', employee: 'employee', unitQty: 'unit qty', location: 'location', floor: 'floor',
-                processPathName: 'process path name', htpStart: 'htp start', htpEnd: 'htp end', processTask: 'process(task)',
-                contractType: 'contract type'
-            };
+        function aggregateData(jsonData) {
+            const headers = jsonData[0].map(h => h ? h.toString().toLowerCase().trim() : '');
+            const COLS_TO_LOAD = { workDate: 'work date', employee: 'employee', unitQty: 'unit qty', location: 'location', floor: 'floor', processPathName: 'process path name', htpStart: 'htp start', htpEnd: 'htp end', processTask: 'process(task)', contractType: 'contract type' };
             const colIndices = {};
             const missingCols = [];
             for (const key in COLS_TO_LOAD) {
@@ -355,7 +267,8 @@
             }
             if (missingCols.length > 0) throw new Error(`엑셀 파일에 다음 필수 컬럼이 없습니다:\n[${missingCols.join(', ')}]`);
 
-            let rawData = data.slice(1).map(row => {
+            let rawData = jsonData.slice(1).map(row => {
+                if ((row[colIndices.employee] || '').includes('AGV_Agent')) return null;
                 const combineDateTime = (dateValue, timeValue) => {
                     if (!dateValue || !timeValue) return null;
                     let datePart = (typeof dateValue === 'number') ? new Date(Date.UTC(1899, 11, 30) + dateValue * 24 * 60 * 60 * 1000) : new Date(dateValue);
@@ -374,18 +287,13 @@
                 const htpEnd = combineDateTime(row[colIndices.workDate], row[colIndices.htpEnd]);
                 if (!htpStart || !htpEnd) return null;
                 return {
-                    employee: row[colIndices.employee] || '', unitQty: parseInt(row[colIndices.unitQty] || 0),
-                    location: row[colIndices.location] || '', floor: row[colIndices.floor] || '',
-                    processPathName: row[colIndices.processPathName] || '', processTask: row[colIndices.processTask] || '',
-                    contractType: (row[colIndices.contractType] || '').toUpperCase(),
-                    htpStart: htpStart, htpEnd: htpEnd
+                    employee: row[colIndices.employee] || '', unitQty: parseInt(row[colIndices.unitQty] || 0), location: row[colIndices.location] || '',
+                    floor: row[colIndices.floor] || '', processPathName: row[colIndices.processPathName] || '', processTask: row[colIndices.processTask] || '',
+                    contractType: (row[colIndices.contractType] || '').toUpperCase(), htpStart: htpStart, htpEnd: htpEnd
                 };
             }).filter(item => item && item.employee && item.unitQty > 0);
             
-            // Apply time filters before aggregation
-            if (filters.hours.size > 0) {
-                rawData = rawData.filter(item => filters.hours.has(item.htpStart.getUTCHours()));
-            }
+            if (filters.hours.size > 0) rawData = rawData.filter(item => filters.hours.has(item.htpStart.getUTCHours()));
 
             const aggregatedData = {};
             rawData.forEach(item => {
@@ -401,13 +309,10 @@
                     const empIdMatch = item.employee.match(/\((.*?)\)/);
                     const empId = empIdMatch ? empIdMatch[1] : '';
                     aggregatedData[key] = {
-                        processType: item.processTask.includes('PICK') ? 'PICK(집품)' : 'PACK(포장)',
-                        employee: item.employee, floor: item.floor,
+                        processType: item.processTask.includes('PICK') ? 'PICK(집품)' : 'PACK(포장)', employee: item.employee, floor: item.floor,
                         processPathName: item.processPathName, location: item.location,
                         packType: item.processTask.includes('PICK') ? '집품' : getPackType(item.location, item.processTask, item.processPathName),
-                        unitQty: 0, totalSeconds: 0,
-                        isManager: MANAGERS_LIST.includes(empId),
-                        isPerm: item.contractType === 'PERM'
+                        unitQty: 0, totalSeconds: 0, isManager: MANAGERS_LIST.includes(empId), isPerm: item.contractType === 'PERM'
                     };
                 }
                 aggregatedData[key].unitQty += item.unitQty;
@@ -420,120 +325,60 @@
                 const htp = mh > 0 ? item.unitQty / mh : 0;
                 return { ...item, mh: mh.toFixed(4), htp: htp.toFixed(1) };
             });
-
-            finalData.sort((a, b) => parseFloat(a.htp) - parseFloat(b.htp));
             return finalData;
         }
-        
-        // --- UI Rendering & Initialization ---
-        function initializeFilters() {
-            const allPackTypes = [...Object.keys(PACK_TYPE_MAP), DEFAULT_PACK_TYPE];
-            createFilterCheckboxes(ui.packTypeFilters, allPackTypes.sort(), 'packTypes', 'packtypes');
-            const floors = new Set(globalRawData.filter(d => d.processType.includes('PICK')).map(d => d.floor));
-            createFilterCheckboxes(ui.floorFilters, Array.from(floors).sort(), 'floors', 'floors');
-            createTimeFilters();
-            createTargetHtpSettings();
-        }
 
-        function createTimeFilters() {
-            const allHoursCheckbox = document.getElementById('all-hours-checkbox');
-            ui.hourFilters.innerHTML = '';
-            for (let i = 0; i < 24; i++) {
-                const hour = i.toString().padStart(2, '0');
-                const label = document.createElement('label');
-                label.className = 'flex items-center space-x-2 text-sm cursor-pointer';
-                const checkbox = document.createElement('input');
-                checkbox.type = 'checkbox'; checkbox.value = i;
-                checkbox.className = 'hour-checkbox form-checkbox h-4 w-4 bg-gray-600 border-gray-500 rounded text-blue-500 focus:ring-blue-500';
-                checkbox.addEventListener('change', (e) => {
-                    const hourVal = parseInt(e.target.value);
-                    if (e.target.checked) filters.hours.add(hourVal);
-                    else filters.hours.delete(hourVal);
-                    allHoursCheckbox.checked = filters.hours.size === 0;
-                    handleFileUpload({ target: { files: [ui.fileUpload.files[0]] } });
+        function applyFiltersAndRender() {
+            if (!globalExcelJsonData || globalExcelJsonData.length === 0) return;
+            const aggregatedData = aggregateData(globalExcelJsonData);
+            
+            const yesterdayDate = new Date();
+            yesterdayDate.setDate(yesterdayDate.getDate() - 1);
+            const yesterdayKey = yesterdayDate.toISOString().split('T')[0];
+            const yesterdayJsonData = historicalData[yesterdayKey] || [];
+            const yesterdayAggregated = yesterdayJsonData.length > 0 ? aggregateData(yesterdayJsonData) : [];
+
+            const getRankMap = (data) => new Map(data.sort((a,b) => b.htp - a.htp).map((item, i) => [item.employee, i + 1]));
+            const todayRankMap = getRankMap(aggregatedData);
+            const yesterdayRankMap = getRankMap(yesterdayAggregated);
+
+            let filteredData = aggregatedData.map(item => {
+                const todayRank = todayRankMap.get(item.employee);
+                const yesterdayRank = yesterdayRankMap.get(item.employee);
+                let rankChange = 'N';
+                if (todayRank && yesterdayRank) {
+                    if (todayRank < yesterdayRank) rankChange = '▲';
+                    else if (todayRank > yesterdayRank) rankChange = '▼';
+                    else rankChange = '-';
+                }
+                return { ...item, rankChange };
+            });
+
+            if (filters.process === 'pick') filteredData = filteredData.filter(item => item.processType.includes('PICK'));
+            if (filters.process === 'pack') filteredData = filteredData.filter(item => item.processType.includes('PACK'));
+            if (filters.search) filteredData = filteredData.filter(item => item.employee.toLowerCase().includes(filters.search));
+            if (filters.lowHtp) filteredData = filteredData.filter(item => parseFloat(item.htp) < getTargetHtp(item));
+            if (filters.floors.size > 0) filteredData = filteredData.filter(item => item.processType.includes('PICK') && filters.floors.has(item.floor));
+            if (filters.packTypes.size > 0) filteredData = filteredData.filter(item => item.processType.includes('PACK') && filters.packTypes.has(item.packType));
+            
+            if (sortState.key) {
+                filteredData.sort((a, b) => {
+                    let valA = a[sortState.key], valB = b[sortState.key];
+                    if (['unitQty', 'mh', 'htp'].includes(sortState.key)) { valA = parseFloat(valA); valB = parseFloat(valB); }
+                    if (valA < valB) return sortState.order === 'asc' ? -1 : 1;
+                    if (valA > valB) return sortState.order === 'asc' ? 1 : -1;
+                    return 0;
                 });
-                label.appendChild(checkbox);
-                const text = document.createElement('span');
-                text.textContent = hour;
-                label.appendChild(text);
-                ui.hourFilters.appendChild(label);
             }
-            allHoursCheckbox.addEventListener('change', (e) => {
-                document.querySelectorAll('.hour-checkbox').forEach(cb => cb.checked = false);
-                filters.hours.clear();
-                if (ui.fileUpload.files[0]) handleFileUpload({ target: { files: [ui.fileUpload.files[0]] } });
-            });
-            document.getElementById('select-all-hours').addEventListener('click', () => {
-                allHoursCheckbox.checked = false;
-                document.querySelectorAll('.hour-checkbox').forEach(cb => {
-                    cb.checked = true;
-                    filters.hours.add(parseInt(cb.value));
-                });
-                if (ui.fileUpload.files[0]) handleFileUpload({ target: { files: [ui.fileUpload.files[0]] } });
-            });
-            document.getElementById('deselect-all-hours').addEventListener('click', () => {
-                allHoursCheckbox.checked = true;
-                document.querySelectorAll('.hour-checkbox').forEach(cb => cb.checked = false);
-                filters.hours.clear();
-                if (ui.fileUpload.files[0]) handleFileUpload({ target: { files: [ui.fileUpload.files[0]] } });
-            });
+            
+            renderTable(filteredData);
+            updateStats(filteredData);
+            updateTicker(filteredData);
         }
 
-        function createFilterCheckboxes(container, items, filterType, type) {
-            container.innerHTML = '';
-            items.forEach(item => {
-                const label = document.createElement('label');
-                label.className = 'flex items-center space-x-2 text-sm cursor-pointer';
-                const checkbox = document.createElement('input');
-                checkbox.type = 'checkbox'; checkbox.value = item;
-                checkbox.className = `form-checkbox h-4 w-4 bg-gray-600 border-gray-500 rounded text-blue-500 focus:ring-blue-500 ${type}-checkbox`;
-                checkbox.addEventListener('change', (e) => {
-                    if (e.target.checked) filters[filterType].add(item);
-                    else filters[filterType].delete(item);
-                    applyFiltersAndRender();
-                });
-                label.appendChild(checkbox);
-                label.appendChild(document.createTextNode(` ${item}`));
-                container.appendChild(label);
-            });
-            document.getElementById(`select-all-${type}`).addEventListener('click', () => {
-                container.querySelectorAll('input').forEach(cb => { cb.checked = true; filters[filterType].add(cb.value); });
-                applyFiltersAndRender();
-            });
-            document.getElementById(`deselect-all-${type}`).addEventListener('click', () => {
-                container.querySelectorAll('input').forEach(cb => { cb.checked = false; filters[filterType].delete(cb.value); });
-                applyFiltersAndRender();
-            });
-        }
-
-        function createTargetHtpSettings() {
-            ui.targetHtpSettings.innerHTML = '';
-            for (const key in TARGET_HTP_DEFAULTS) {
-                const div = document.createElement('div');
-                div.className = 'flex items-center justify-between';
-                const label = document.createElement('label');
-                label.textContent = key + ':';
-                const input = document.createElement('input');
-                input.type = 'number';
-                input.value = targetHtpValues[key];
-                input.className = 'w-20 bg-gray-800 border border-gray-600 rounded-md py-1 px-2 text-sm text-right';
-                input.addEventListener('change', (e) => {
-                    targetHtpValues[key] = parseFloat(e.target.value) || 0;
-                    applyFiltersAndRender();
-                });
-                div.appendChild(label);
-                div.appendChild(input);
-                ui.targetHtpSettings.appendChild(div);
-            }
-        }
-        
-        // --- Other Functions (handleFileUpload, saveDataToFirestore, renderTable, etc.) ---
         function handleFileUpload(event) {
             const file = event.target.files[0];
-            if (!file) {
-                if(globalRawData.length > 0) applyFiltersAndRender();
-                return;
-            }
+            if (!file) return;
             showLoader();
             const reader = new FileReader();
             reader.onload = async (e) => {
@@ -543,38 +388,84 @@
                     const sheetName = workbook.SheetNames[0];
                     const worksheet = workbook.Sheets[sheetName];
                     const jsonData = XLSX.utils.sheet_to_json(worksheet, { header: 1 });
-                    const processedData = processExcelData(jsonData);
-                    await saveDataToFirestore(processedData);
+                    await saveDataToFirestore(jsonData);
                 } catch (error) {
-                    console.error("파일 처리 오류:", error);
-                    alert(error.message || "파일을 처리하는 중 오류가 발생했습니다. 파일 형식을 확인해주세요.");
+                    alert(error.message || "파일 처리 중 오류가 발생했습니다.");
                     hideLoader();
                 }
             };
-            reader.onerror = (error) => { console.error("파일 읽기 오류:", error); alert("파일을 읽을 수 없습니다."); hideLoader(); };
             reader.readAsArrayBuffer(file);
         }
 
-        async function saveDataToFirestore(data) {
-            const payload = { tableData: JSON.stringify(data), uploaderId: userId, timestamp: new Date().toISOString() };
-            try { await setDoc(dataDocRef, payload); } catch (error) {
+        async function saveDataToFirestore(jsonData) {
+            const today = new Date().toISOString().split('T')[0];
+            const payload = { excelData: JSON.stringify(jsonData), uploaderId: userId, timestamp: new Date().toISOString() };
+            try { await setDoc(doc(dataCollectionRef, today), payload); } catch (error) {
                 console.error("Firestore 저장 오류:", error);
                 alert("데이터를 서버에 저장하는 데 실패했습니다.");
                 hideLoader();
             }
         }
 
-        function applyFiltersAndRender() {
-            let filteredData = [...globalRawData];
-            if (filters.process === 'pick') filteredData = filteredData.filter(item => item.processType.includes('PICK'));
-            if (filters.process === 'pack') filteredData = filteredData.filter(item => item.processType.includes('PACK'));
-            if (filters.search) filteredData = filteredData.filter(item => item.employee.toLowerCase().includes(filters.search));
-            if (filters.lowHtp) filteredData = filteredData.filter(item => parseFloat(item.htp) < getTargetHtp(item));
-            if (filters.floors.size > 0) filteredData = filteredData.filter(item => item.processType.includes('PICK') && filters.floors.has(item.floor));
-            if (filters.packTypes.size > 0) filteredData = filteredData.filter(item => item.processType.includes('PACK') && filters.packTypes.has(item.packType));
-            renderTable(filteredData);
-            updateStats(filteredData);
-            updateTicker(filteredData);
+        // --- All other UI and utility functions ---
+        // initializeFilters, createTableHeader, handleSort, renderTable, showPerformanceChart, etc.
+        function initializeFilters() {
+            createTableHeader();
+            createColumnSettings();
+            const allPackTypes = [...Object.keys(PACK_TYPE_MAP), DEFAULT_PACK_TYPE];
+            createFilterCheckboxes(ui.packTypeFilters, allPackTypes.sort(), 'packTypes');
+            const floors = new Set(globalExcelJsonData.flatMap(row => row[4])); // Assuming floor is 5th column
+            createFilterCheckboxes(ui.floorFilters, Array.from(floors).filter(Boolean).sort(), 'floors');
+            createTimeFilters();
+            createTargetHtpSettings();
+        }
+
+        function createTableHeader() {
+            const headerRow = document.createElement('tr');
+            ALL_COLUMNS.forEach(col => {
+                if (!col.visible) return;
+                const th = document.createElement('th');
+                th.scope = 'col';
+                th.className = 'px-4 py-3';
+                if (col.sortable) {
+                    th.classList.add('sortable');
+                    th.addEventListener('click', () => handleSort(col.key));
+                    let arrow = sortState.key === col.key ? (sortState.order === 'asc' ? '▲' : '▼') : '';
+                    th.innerHTML = `${col.label} <span class="sort-arrow">${arrow}</span>`;
+                } else {
+                    th.textContent = col.label;
+                }
+                headerRow.appendChild(th);
+            });
+            ui.tableHead.innerHTML = '';
+            ui.tableHead.appendChild(headerRow);
+        }
+        
+        function createColumnSettings() {
+            ui.columnSettings.innerHTML = '';
+            ALL_COLUMNS.forEach(col => {
+                const label = document.createElement('label');
+                label.className = 'flex items-center space-x-2 text-sm cursor-pointer';
+                const checkbox = document.createElement('input');
+                checkbox.type = 'checkbox';
+                checkbox.checked = col.visible;
+                checkbox.className = 'form-checkbox h-4 w-4 bg-gray-600 border-gray-500 rounded text-blue-500 focus:ring-blue-500';
+                checkbox.addEventListener('change', (e) => {
+                    col.visible = e.target.checked;
+                    createTableHeader();
+                    applyFiltersAndRender();
+                });
+                label.appendChild(checkbox);
+                label.appendChild(document.createTextNode(` ${col.label}`));
+                ui.columnSettings.appendChild(label);
+            });
+        }
+
+        function handleSort(key) {
+            sortState.order = (sortState.key === key && sortState.order === 'asc') ? 'desc' : 'asc';
+            sortState.key = key;
+            createTableHeader();
+            applyFiltersAndRender();
         }
 
         function renderTable(data) {
@@ -582,113 +473,76 @@
             if (data.length === 0) {
                 ui.tableBody.appendChild(ui.placeholderRow);
                 ui.placeholderRow.classList.remove('hidden');
-                updateStats([]);
-                updateTicker([]);
-                return;
+                updateStats([]); updateTicker([]); return;
             }
             ui.placeholderRow.classList.add('hidden');
-
             data.forEach(item => {
                 const row = document.createElement('tr');
-                let rowClass = 'border-b border-gray-700';
+                let rowClass = 'border-b border-gray-700 hover:bg-gray-600/50';
                 if (item.isPerm && !item.isManager) rowClass += ' bg-blue-900/30';
                 row.className = rowClass;
                 
-                let processTypeColor = item.processType.includes('PICK') ? 'text-blue-400' : 'text-yellow-400';
-                const targetHtp = getTargetHtp(item);
-                let htpColor = parseFloat(item.htp) < targetHtp ? 'text-red-400' : 'text-green-400';
-                let empName = item.isManager ? `👑 ${item.employee}` : item.employee;
-                let empColor = item.isManager ? 'text-yellow-300 font-bold' : '';
-
-                row.innerHTML = `
-                    <td class="px-4 py-3 font-medium ${processTypeColor}">${item.processType}</td>
-                    <td class="px-4 py-3 ${empColor}">${empName}</td>
-                    <td class="px-4 py-3">${item.floor}</td>
-                    <td class="px-4 py-3">${item.processPathName}</td>
-                    <td class="px-4 py-3">${item.location}</td>
-                    <td class="px-4 py-3">${item.unitQty}</td>
-                    <td class="px-4 py-3">${item.mh}</td>
-                    <td class="px-4 py-3 font-bold ${htpColor}">${parseFloat(item.htp) < targetHtp ? '🚨 ' : ''}${item.htp}</td>
-                    <td class="px-4 py-3">${item.packType}</td>
-                `;
+                ALL_COLUMNS.forEach(col => {
+                    if (!col.visible) return;
+                    const cell = document.createElement('td');
+                    cell.className = 'px-4 py-3';
+                    let content = item[col.key];
+                    
+                    switch(col.key) {
+                        case 'processType':
+                            cell.className += ` font-medium ${item.processType.includes('PICK') ? 'text-blue-400' : 'text-yellow-400'}`;
+                            break;
+                        case 'employee':
+                            cell.className += ` cursor-pointer hover:underline ${item.isManager ? 'text-yellow-300 font-bold' : ''}`;
+                            content = item.isManager ? `👑 ${item.employee}` : item.employee;
+                            cell.addEventListener('click', () => showPerformanceChart(item.employee));
+                            break;
+                        case 'rankChange':
+                            let color = item.rankChange === '▲' ? 'text-green-400' : (item.rankChange === '▼' ? 'text-red-400' : 'text-gray-500');
+                            content = item.rankChange === 'N' ? '-' : item.rankChange;
+                            cell.className += ` text-center font-bold ${color}`;
+                            break;
+                        case 'htp':
+                            const targetHtp = getTargetHtp(item);
+                            cell.className += ` font-bold ${parseFloat(item.htp) < targetHtp ? 'text-red-400' : 'text-green-400'}`;
+                            content = `${parseFloat(item.htp) < targetHtp ? '🚨 ' : ''}${item.htp}`;
+                            break;
+                    }
+                    cell.textContent = content;
+                    row.appendChild(cell);
+                });
                 ui.tableBody.appendChild(row);
             });
         }
-
-        function updateStats(data) {
-            const visibleRows = data.length;
-            const visibleWorkers = new Set(data.map(d => d.employee)).size;
-            const totalQty = data.reduce((sum, d) => sum + d.unitQty, 0);
-            const totalHtp = data.reduce((sum, d) => sum + parseFloat(d.htp), 0);
-            const avgHtp = visibleRows > 0 ? (totalHtp / visibleRows).toFixed(1) : '0.0';
-            ui.statsDisplay.innerHTML = `
-                표시 그룹: <span class="font-bold text-white">${visibleRows}</span> | 
-                작업자 수: <span class="font-bold text-white">${visibleWorkers}</span> | 
-                총 작업량: <span class="font-bold text-white">${totalQty.toLocaleString()}</span> | 
-                평균 HTP: <span class="font-bold text-white">${avgHtp}</span>`;
-        }
         
-        function updateTicker(data) {
-            if (data.length === 0) {
-                ui.tickerText.textContent = "Top/Low HTP 정보가 여기에 표시됩니다.";
-                return;
-            }
-            const sortedByHtp = [...data].sort((a, b) => parseFloat(b.htp) - parseFloat(a.htp));
-            const top3 = sortedByHtp.slice(0, 3);
-            const low3 = sortedByHtp.filter(d => d.htp > 0).slice(-3).reverse();
-
-            const formatTickerItem = (item) => `${item.employee.split('(')[0].trim()} (${item.htp})`;
+        function showPerformanceChart(employeeName) {
+            const chartData = { labels: [], datasets: [{ label: 'HTP', data: [], borderColor: '#3b82f6', tension: 0.1, backgroundColor: 'rgba(59, 130, 246, 0.2)', fill: true }] };
+            const dateKeys = Object.keys(historicalData).sort().slice(-7);
             
-            const topStr = "🏆Top3: " + (top3.length > 0 ? top3.map(formatTickerItem).join(', ') : '-');
-            const lowStr = "🚨Low3: " + (low3.length > 0 ? low3.map(formatTickerItem).join(', ') : '-');
-            
-            ui.tickerText.textContent = `${topStr}      ${lowStr}`;
-        }
-
-        function captureTable() {
-            html2canvas(document.getElementById('table-container')).then(canvas => {
-                canvas.toBlob(blob => {
-                    navigator.clipboard.write([new ClipboardItem({'image/png': blob})])
-                        .then(() => alert('테이블이 클립보드에 복사되었습니다.'))
-                        .catch(err => console.error('클립보드 복사 실패:', err));
-                });
+            dateKeys.forEach(dateKey => {
+                chartData.labels.push(dateKey.substring(5));
+                const dayData = aggregateData(historicalData[dateKey]);
+                const employeeData = dayData.find(d => d.employee === employeeName);
+                chartData.datasets[0].data.push(employeeData ? parseFloat(employeeData.htp) : null);
             });
-        }
 
-        function exportToExcel() {
-            const dataToExport = Array.from(ui.tableBody.querySelectorAll('tr')).filter(tr => !tr.id.includes('placeholder'));
-            if (dataToExport.length === 0) { alert('내보낼 데이터가 없습니다.'); return; }
-            const pickData = [];
-            const packData = [];
-            dataToExport.forEach(row => {
-                const cells = row.querySelectorAll('td');
-                const rowData = {
-                    '집품/포장': cells[0].textContent, '이름(원바코드)': cells[1].textContent.replace('👑 ', ''),
-                    '층': cells[2].textContent, 'PP': cells[3].textContent, 'Location': cells[4].textContent,
-                    '작업량': cells[5].textContent, 'M/H': cells[6].textContent,
-                    'HTP': cells[7].textContent.replace('🚨 ', ''), '팩 종류': cells[8].textContent
-                };
-                if (rowData['집품/포장'].includes('PICK')) pickData.push(rowData);
-                else packData.push(rowData);
+            ui.chartTitle.textContent = `${employeeName} - 최근 7일 성과 추이`;
+            if (performanceChart) performanceChart.destroy();
+            performanceChart = new Chart(document.getElementById('performance-chart'), {
+                type: 'line', data: chartData,
+                options: { scales: { y: { beginAtZero: true, ticks: { color: '#9ca3af' } }, x: { ticks: { color: '#9ca3af' } } }, plugins: { legend: { labels: { color: '#9ca3af' } } } }
             });
-            const wb = XLSX.utils.book_new();
-            if (pickData.length > 0) XLSX.utils.book_append_sheet(wb, XLSX.utils.json_to_sheet(pickData), "PICK(집품)");
-            if (packData.length > 0) XLSX.utils.book_append_sheet(wb, XLSX.utils.json_to_sheet(packData), "PACK(포장)");
-            XLSX.writeFile(wb, "HTP_Data_Export.xlsx");
+            ui.chartModal.classList.remove('hidden');
         }
 
-        function updateStatus(status, message) {
-            const dot = ui.statusIndicator.querySelector('.status-dot');
-            const text = ui.statusIndicator.querySelector('span');
-            dot.className = 'status-dot';
-            if (status === 'connected') dot.classList.add('status-connected');
-            else if (status === 'disconnected') dot.classList.add('status-disconnected');
-            else if (status === 'loading') dot.classList.add('status-loading');
-            text.textContent = message;
-        }
-
-        function showLoader() { ui.loaderContainer.classList.remove('hidden'); ui.tableContainer.classList.add('hidden'); }
-        function hideLoader() { ui.loaderContainer.classList.add('hidden'); ui.tableContainer.classList.remove('hidden'); }
+        // ... (Other UI functions: updateStats, updateTicker, captureTable, exportToExcel, etc.)
+        function updateStats(data){const vR=data.length;const vW=new Set(data.map(d=>d.employee)).size;const tQ=data.reduce((s,d)=>s+d.unitQty,0);const tH=data.reduce((s,d)=>s+parseFloat(d.htp),0);const aH=vR>0?(tH/vR).toFixed(1):'0.0';ui.statsDisplay.innerHTML=`표시 그룹: <span class="font-bold text-white">${vR}</span> | 작업자 수: <span class="font-bold text-white">${vW}</span> | 총 작업량: <span class="font-bold text-white">${tQ.toLocaleString()}</span> | 평균 HTP: <span class="font-bold text-white">${aH}</span>`}
+        function updateTicker(d){if(d.length===0){ui.tickerText.textContent="데이터를 업로드해주세요.";return}const s=d.sort((a,b)=>b.htp-a.htp);const t=s.slice(0,3);const l=s.filter(i=>i.htp>0).slice(-3).reverse();const f=i=>`${i.employee.split("(")[0].trim()}(${i.htp})`;const tS="🏆Top3: "+(t.length>0?t.map(f).join(", "):"-");const lS="🚨Low3: "+(l.length>0?l.map(f).join(", "):"-");ui.tickerText.textContent=`${tS}      ${lS}`}
+        function captureTable(){html2canvas(ui.tableContainer).then(c=>{c.toBlob(b=>{navigator.clipboard.write([new ClipboardItem({'image/png':b})]).then(()=>alert('클립보드에 복사되었습니다.')).catch(e=>console.error(e))})})}
+        function exportToExcel(){const d=Array.from(ui.tableBody.querySelectorAll('tr')).filter(r=>!r.id.includes('placeholder'));if(d.length===0){alert('내보낼 데이터가 없습니다.');return}const pD=[],aD=[];d.forEach(r=>{const c=r.querySelectorAll('td');const rD={};ALL_COLUMNS.forEach((col,i)=>{if(col.visible)rD[col.label]=c[i].textContent.replace('👑 ','').replace('🚨 ','')});if(rD['집품/포장'].includes('PICK'))pD.push(rD);else aD.push(rD)});const w=XLSX.utils.book_new();if(pD.length>0)XLSX.utils.book_append_sheet(w,XLSX.utils.json_to_sheet(pD),"PICK(집품)");if(aD.length>0)XLSX.utils.book_append_sheet(w,XLSX.utils.json_to_sheet(aD),"PACK(포장)");XLSX.writeFile(w,"HTP_Data_Export.xlsx")}
+        function updateStatus(s,m){const d=ui.statusIndicator.querySelector('.status-dot'),t=ui.statusIndicator.querySelector('span');d.className='status-dot';if(s==='connected')d.classList.add('status-connected');else if(s==='disconnected')d.classList.add('status-disconnected');else if(s==='loading')d.classList.add('status-loading');t.textContent=m}
+        function showLoader(){ui.loaderContainer.classList.remove('hidden');ui.tableContainer.classList.add('hidden')}
+        function hideLoader(){ui.loaderContainer.classList.add('hidden');ui.tableContainer.classList.remove('hidden')}
         
         // Initialize on page load
         initializeFilters();
@@ -696,4 +550,3 @@
     </script>
 </body>
 </html>
-�
