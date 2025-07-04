@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>실시간 HTP 데이터 분석 (v4.3)</title>
+    <title>실시간 HTP 데이터 분석 (v5.0)</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
@@ -141,6 +141,7 @@
         import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
         import { getAuth, signInAnonymously, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
         import { getFirestore, doc, setDoc, getDoc, collection, query, orderBy, limit, getDocs } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
+        import { getStorage, ref, uploadBytes, getDownloadURL } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-storage.js";
 
         const ui = {
             fileUpload: document.getElementById('file-upload'), tableBody: document.getElementById('data-table-body'),
@@ -184,11 +185,12 @@
         ];
 
         const firebaseConfig = { apiKey: "AIzaSyBrPfjJWPPd8HzI1jCRoHFqwcuPuJ9u10E", authDomain: "gwj2-pickpack-htptool.firebaseapp.com", projectId: "gwj2-pickpack-htptool", storageBucket: "gwj2-pickpack-htptool.appspot.com", messagingSenderId: "913661158847", appId: "1:913661158847:web:ebaf60d2afbeadda452d0a" };
-        let db, auth, userId, dataCollectionRef;
+        let db, auth, userId, storage, dataCollectionRef;
         try {
             const app = initializeApp(firebaseConfig);
             db = getFirestore(app);
             auth = getAuth(app);
+            storage = getStorage(app);
             dataCollectionRef = collection(db, 'artifacts', firebaseConfig.projectId, 'public', 'data', 'htpData');
         } catch(e) { console.error("Firebase 초기화 오류:", e); }
         
@@ -208,16 +210,28 @@
             const querySnapshot = await getDocs(q);
             historicalData = {};
             if (!querySnapshot.empty) {
-                querySnapshot.forEach(doc => {
-                    historicalData[doc.id] = JSON.parse(doc.data().excelData);
-                });
                 const latestDoc = querySnapshot.docs[0];
-                globalExcelJsonData = historicalData[latestDoc.id];
-                
                 const dataPayload = latestDoc.data();
                 ui.lastUploaderEl.textContent = dataPayload.uploaderId.substring(0, 8) + '...';
                 ui.lastUpdatedEl.textContent = new Date(dataPayload.timestamp).toLocaleString('ko-KR');
 
+                showLoader();
+                // Fetch all historical data files
+                const promises = querySnapshot.docs.map(async (doc) => {
+                    const url = doc.data().fileUrl;
+                    if (url) {
+                        const response = await fetch(url);
+                        const arrayBuffer = await response.arrayBuffer();
+                        const data = new Uint8Array(arrayBuffer);
+                        const workbook = XLSX.read(data, { type: 'array', cellDates: true });
+                        const sheetName = workbook.SheetNames[0];
+                        const worksheet = workbook.Sheets[sheetName];
+                        historicalData[doc.id] = XLSX.utils.sheet_to_json(worksheet, { header: 1 });
+                    }
+                });
+                await Promise.all(promises);
+                globalExcelJsonData = historicalData[latestDoc.id];
+                
                 initializeFilters();
                 applyFiltersAndRender();
             } else {
@@ -377,31 +391,45 @@
             updateTicker(filteredData);
         }
 
-        function handleFileUpload(event) {
+        async function handleFileUpload(event) {
             const file = event.target.files[0];
             if (!file) return;
             showLoader();
-            const reader = new FileReader();
-            reader.onload = async (e) => {
-                try {
+            try {
+                const today = new Date().toISOString().split('T')[0];
+                const storageRef = ref(storage, `excel-files/${today}.xlsx`);
+                const snapshot = await uploadBytes(storageRef, file);
+                const downloadURL = await getDownloadURL(snapshot.ref);
+
+                const reader = new FileReader();
+                reader.onload = async (e) => {
                     const data = new Uint8Array(e.target.result);
                     const workbook = XLSX.read(data, { type: 'array', cellDates: true });
                     const sheetName = workbook.SheetNames[0];
                     const worksheet = workbook.Sheets[sheetName];
                     const jsonData = XLSX.utils.sheet_to_json(worksheet, { header: 1 });
-                    await saveDataToFirestore(jsonData);
-                } catch (error) {
-                    alert(error.message || "파일 처리 중 오류가 발생했습니다.");
-                    hideLoader();
-                }
-            };
-            reader.readAsArrayBuffer(file);
+                    await saveDataToFirestore(jsonData, downloadURL);
+                };
+                reader.readAsArrayBuffer(file);
+
+            } catch (error) {
+                alert(error.message || "파일 업로드 중 오류가 발생했습니다.");
+                hideLoader();
+            }
         }
 
-        async function saveDataToFirestore(jsonData) {
+        async function saveDataToFirestore(jsonData, fileUrl) {
             const today = new Date().toISOString().split('T')[0];
-            const payload = { excelData: JSON.stringify(jsonData), uploaderId: userId, timestamp: new Date().toISOString() };
-            try { await setDoc(doc(dataCollectionRef, today), payload); } catch (error) {
+            const payload = { 
+                excelData: JSON.stringify(jsonData), // Keep for historical re-aggregation
+                fileUrl: fileUrl, // Store the file URL
+                uploaderId: userId, 
+                timestamp: new Date().toISOString() 
+            };
+            try { 
+                await setDoc(doc(dataCollectionRef, today), payload);
+                // No need to call fetchLatestData here, onSnapshot will trigger automatically
+            } catch (error) {
                 console.error("Firestore 저장 오류:", error);
                 alert(`데이터를 서버에 저장하는 데 실패했습니다.\n\n오류: ${error.message}\n\nFirestore 보안 규칙이 올바르게 설정되었는지 확인해주세요.`);
                 hideLoader();
@@ -413,7 +441,7 @@
             createColumnSettings();
             const allPackTypes = [...Object.keys(PACK_TYPE_MAP), DEFAULT_PACK_TYPE];
             createFilterCheckboxes(ui.packTypeFilters, allPackTypes.sort(), 'packTypes');
-            const floors = new Set(globalExcelJsonData.flatMap(row => [row[colIndices.floor]]));
+            const floors = new Set(globalExcelJsonData.flatMap(row => [row[4]]));
             createFilterCheckboxes(ui.floorFilters, Array.from(floors).filter(Boolean).sort(), 'floors');
             createTimeFilters();
             createTargetHtpSettings();
@@ -488,9 +516,7 @@
                     let content = item[col.key];
                     
                     switch(col.key) {
-                        case 'processType':
-                            cell.className += ` font-medium ${item.processType.includes('PICK') ? 'text-blue-400' : 'text-yellow-400'}`;
-                            break;
+                        case 'processType': cell.className += ` font-medium ${item.processType.includes('PICK') ? 'text-blue-400' : 'text-yellow-400'}`; break;
                         case 'employee':
                             cell.className += ` cursor-pointer hover:underline ${item.isManager ? 'text-yellow-300 font-bold' : ''}`;
                             content = item.isManager ? `👑 ${item.employee}` : item.employee;
@@ -534,7 +560,6 @@
             ui.chartModal.classList.remove('hidden');
         }
 
-        // ... (Other UI functions: updateStats, updateTicker, captureTable, exportToExcel, etc.)
         function updateStats(data){const vR=data.length;const vW=new Set(data.map(d=>d.employee)).size;const tQ=data.reduce((s,d)=>s+d.unitQty,0);const tH=data.reduce((s,d)=>s+parseFloat(d.htp),0);const aH=vR>0?(tH/vR).toFixed(1):'0.0';ui.statsDisplay.innerHTML=`표시 그룹: <span class="font-bold text-white">${vR}</span> | 작업자 수: <span class="font-bold text-white">${vW}</span> | 총 작업량: <span class="font-bold text-white">${tQ.toLocaleString()}</span> | 평균 HTP: <span class="font-bold text-white">${aH}</span>`}
         function updateTicker(d){if(d.length===0){ui.tickerText.textContent="데이터를 업로드해주세요.";return}const s=d.sort((a,b)=>b.htp-a.htp);const t=s.slice(0,3);const l=s.filter(i=>i.htp>0).slice(-3).reverse();const f=i=>`${i.employee.split("(")[0].trim()}(${i.htp})`;const tS="🏆Top3: "+(t.length>0?t.map(f).join(", "):"-");const lS="🚨Low3: "+(l.length>0?l.map(f).join(", "):"-");ui.tickerText.textContent=`${tS}      ${lS}`}
         function captureTable(){html2canvas(ui.tableContainer).then(c=>{c.toBlob(b=>{navigator.clipboard.write([new ClipboardItem({'image/png':b})]).then(()=>alert('클립보드에 복사되었습니다.')).catch(e=>console.error(e))})})}
@@ -543,9 +568,7 @@
         function showLoader(){ui.loaderContainer.classList.remove('hidden');ui.tableContainer.classList.add('hidden')}
         function hideLoader(){ui.loaderContainer.classList.add('hidden');ui.tableContainer.classList.remove('hidden')}
         
-        // Initialize on page load
         initializeFilters();
-
     </script>
 </body>
 </html>
