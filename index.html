@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>실시간 HTP 데이터 분석 (v4.1)</title>
+    <title>실시간 HTP 데이터 분석 (v4.2)</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
@@ -408,13 +408,12 @@
         }
 
         // --- All other UI and utility functions ---
-        // initializeFilters, createTableHeader, handleSort, renderTable, showPerformanceChart, etc.
         function initializeFilters() {
             createTableHeader();
             createColumnSettings();
             const allPackTypes = [...Object.keys(PACK_TYPE_MAP), DEFAULT_PACK_TYPE];
             createFilterCheckboxes(ui.packTypeFilters, allPackTypes.sort(), 'packTypes');
-            const floors = new Set(globalExcelJsonData.flatMap(row => row[4])); // Assuming floor is 5th column
+            const floors = new Set(globalExcelJsonData.flatMap(row => [row[colIndices.floor]]));
             createFilterCheckboxes(ui.floorFilters, Array.from(floors).filter(Boolean).sort(), 'floors');
             createTimeFilters();
             createTargetHtpSettings();
