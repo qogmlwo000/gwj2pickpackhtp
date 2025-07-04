@@ -226,62 +226,117 @@
             const headers = data[0].map(h => h ? h.toString().trim() : '');
             
             const COLS_TO_LOAD = {
-                employee: 'Employee', unitQty: 'Unit Qty', location: 'Location',
-                floor: 'Floor', processPathName: 'Process Path Name', htpStart: 'HTP Start',
-                htpEnd: 'HTP End', processTask: 'Process(Task)'
+                workDate: 'Work Date', employee: 'Employee', unitQty: 'Unit Qty', 
+                location: 'Location', floor: 'Floor', processPathName: 'Process Path Name', 
+                htpStart: 'HTP Start', htpEnd: 'HTP End', processTask: 'Process(Task)'
             };
 
             const colIndices = {};
+            const missingCols = [];
             for (const key in COLS_TO_LOAD) {
-                const index = headers.indexOf(COLS_TO_LOAD[key]);
+                const expectedHeader = COLS_TO_LOAD[key];
+                const index = headers.indexOf(expectedHeader);
                 if (index === -1) {
-                    throw new Error(`엑셀 파일에 필수 컬럼이 없습니다: "${COLS_TO_LOAD[key]}"`);
+                    missingCols.push(expectedHeader);
                 }
                 colIndices[key] = index;
             }
 
-            let rawData = data.slice(1).map(row => {
-                const parseDate = (dateValue) => {
-                    if (typeof dateValue === 'number') {
-                        return new Date(Date.UTC(1899, 11, 30) + dateValue * 24 * 60 * 60 * 1000);
-                    }
-                    return new Date(dateValue);
-                };
-                const htpStart = parseDate(row[colIndices.htpStart]);
-                const htpEnd = parseDate(row[colIndices.htpEnd]);
+            if (missingCols.length > 0) {
+                throw new Error(`엑셀 파일에 다음 필수 컬럼이 없습니다:\n[${missingCols.join(', ')}]\n\n엑셀 파일의 첫 번째 행에 있는 헤더 이름이 정확한지 확인해주세요.`);
+            }
+            
+            let rawData;
+            try {
+                rawData = data.slice(1).map(row => {
+                    const workDateVal = row[colIndices.workDate];
+                    const htpStartVal = row[colIndices.htpStart];
+                    const htpEndVal = row[colIndices.htpEnd];
+                    
+                    // --- 날짜와 시간 조합 로직 ---
+                    const combineDateTime = (dateValue, timeValue) => {
+                        if (!dateValue || !timeValue) return null;
+                        
+                        let datePart = (typeof dateValue === 'number') ? new Date(Date.UTC(1899, 11, 30) + dateValue * 24 * 60 * 60 * 1000) : new Date(dateValue);
+                        if (isNaN(datePart.getTime())) return null;
 
-                if (isNaN(htpStart.getTime()) || isNaN(htpEnd.getTime())) return null;
+                        let timePart;
+                        if (typeof timeValue === 'number') { // 엑셀 시간 형식 (0.xxxx)
+                             timePart = new Date(Date.UTC(1899, 11, 30) + timeValue * 24 * 60 * 60 * 1000);
+                        } else if (typeof timeValue === 'string') {
+                            const parts = timeValue.split(':');
+                            timePart = new Date();
+                            timePart.setUTCHours(parts[0] || 0, parts[1] || 0, parts[2] || 0, 0);
+                        } else { // 이미 Date 객체일 경우
+                            timePart = timeValue;
+                        }
+                        if (isNaN(timePart.getTime())) return null;
 
-                return {
-                    employee: row[colIndices.employee] || '', unitQty: parseInt(row[colIndices.unitQty] || 0),
-                    location: row[colIndices.location] || '', floor: row[colIndices.floor] || '',
-                    processPathName: row[colIndices.processPathName] || '', processTask: row[colIndices.processTask] || '',
-                    htpStart: htpStart, htpEnd: htpEnd
-                };
-            }).filter(item => item && item.employee && item.unitQty > 0);
+                        return new Date(Date.UTC(
+                            datePart.getUTCFullYear(), datePart.getUTCMonth(), datePart.getUTCDate(),
+                            timePart.getUTCHours(), timePart.getUTCMinutes(), timePart.getUTCSeconds()
+                        ));
+                    };
 
-            const processed = rawData.map(item => {
-                if (item.processTask === 'REBIN(REBIN)' && item.location.startsWith('Pack at Rebin (Test') && item.processPathName === '0. AGV_Multi_Autobag4.0 + 일반존 통합') {
-                    item.processTask = 'PACK(PACKING)';
+                    const htpStart = combineDateTime(workDateVal, htpStartVal);
+                    const htpEnd = combineDateTime(workDateVal, htpEndVal);
+
+                    if (!htpStart || !htpEnd) return null;
+
+                    return {
+                        employee: row[colIndices.employee] || '', unitQty: parseInt(row[colIndices.unitQty] || 0),
+                        location: row[colIndices.location] || '', floor: row[colIndices.floor] || '',
+                        processPathName: row[colIndices.processPathName] || '', processTask: row[colIndices.processTask] || '',
+                        htpStart: htpStart, htpEnd: htpEnd
+                    };
+                }).filter(item => item && item.employee && item.unitQty > 0);
+            } catch (e) {
+                 console.error("데이터 행 처리 중 오류:", e);
+                 throw new Error("엑셀 데이터의 특정 행을 처리하는 중 오류가 발생했습니다. 날짜 또는 숫자 형식에 문제가 없는지 확인해주세요.");
+            }
+
+            const aggregatedData = {};
+            rawData.forEach(item => {
+                if (item.processTask !== 'PICK(PICKING)' && item.processTask !== 'PACK(PACKING)') return;
+                
+                let key;
+                if (item.processTask === 'PICK(PICKING)') {
+                    key = `${item.employee}|${item.floor}|PICK`;
+                } else { // PACK(PACKING)
+                    const packType = getPackType(item.location, item.processTask, item.processPathName);
+                    key = `${item.employee}|${packType}|PACK`;
+                }
+
+                if (!aggregatedData[key]) {
+                    aggregatedData[key] = {
+                        processType: item.processTask.includes('PICK') ? 'PICK(집품)' : 'PACK(포장)',
+                        employee: item.employee,
+                        floor: item.floor,
+                        packType: item.processTask.includes('PICK') ? '집품' : getPackType(item.location, item.processTask, item.processPathName),
+                        unitQty: 0,
+                        totalSeconds: 0
+                    };
                 }
                 
-                if (item.processTask !== 'PICK(PICKING)' && item.processTask !== 'PACK(PACKING)') return null;
-
+                aggregatedData[key].unitQty += item.unitQty;
                 const durationSeconds = (item.htpEnd - item.htpStart) / 1000;
-                const mh = durationSeconds > 0 ? durationSeconds / 3600 : 0;
+                if (durationSeconds > 0) {
+                    aggregatedData[key].totalSeconds += durationSeconds;
+                }
+            });
+
+            const finalData = Object.values(aggregatedData).map(item => {
+                const mh = item.totalSeconds > 0 ? item.totalSeconds / 3600 : 0;
                 const htp = mh > 0 ? item.unitQty / mh : 0;
-                const packType = getPackType(item.location, item.processTask, item.processPathName);
-
                 return {
-                    processType: item.processTask.includes('PICK') ? 'PICK(집품)' : 'PACK(포장)',
-                    employee: item.employee, floor: item.floor, unitQty: item.unitQty,
-                    mh: mh.toFixed(4), htp: htp.toFixed(1),
-                    packType: item.processTask.includes('PICK') ? '집품' : packType
+                    ...item,
+                    mh: mh.toFixed(4),
+                    htp: htp.toFixed(1)
                 };
-            }).filter(Boolean);
+            });
 
-            processed.sort((a, b) => parseFloat(a.htp) - parseFloat(b.htp));
-            return processed;
+            finalData.sort((a, b) => parseFloat(a.htp) - parseFloat(b.htp));
+            return finalData;
         }
         
         async function saveDataToFirestore(data) {
