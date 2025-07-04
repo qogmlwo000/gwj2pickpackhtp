@@ -1,9 +1,10 @@
 <!DOCTYPE html>
 <html lang="ko">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>실시간 HTP 데이터 공유 (v3.0)</title>
+    <title>실시간 HTP 데이터 공유 (v3.1)</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
@@ -163,7 +164,7 @@
                         <p>마지막 업데이트: <span id="last-updated" class="font-semibold text-gray-200">데이터 없음</span></p>
                         <p>업로더: <span id="last-uploader" class="font-semibold text-gray-200">데이터 없음</span></p>
                     </div>
-                    <input type="file" id="file-upload" class="hidden">
+                    <input type="file" id="file-upload" class="hidden" accept=".xlsx, .xls">
                     <label for="file-upload" class="cursor-pointer py-2 px-4 rounded-lg border-0 text-sm font-semibold bg-blue-600 text-white hover:bg-blue-700">엑셀 업로드</label>
                 </div>
             </div>
@@ -223,7 +224,7 @@
         };
 
         // --- Global State ---
-        let globalRawData = [];
+        let globalRawData = []; // Store for un-aggregated data from Firestore
         let filters = {
             process: 'all', search: '', lowHtp: false,
             hours: new Set(), floors: new Set(), packTypes: new Set()
@@ -245,7 +246,7 @@
             const app = initializeApp(firebaseConfig);
             db = getFirestore(app);
             auth = getAuth(app);
-            dataDocRef = doc(db, 'artifacts', firebaseConfig.projectId, 'public', 'data', 'htpData', 'latest');
+            dataDocRef = doc(db, 'artifacts', firebaseConfig.projectId, 'public', 'data', 'htpData', 'latestRaw'); // Changed to latestRaw
         } catch(e) {
             console.error("Firebase 초기화 오류:", e);
             updateStatus('disconnected', 'Firebase 초기화에 실패했습니다.');
@@ -270,14 +271,24 @@
             onSnapshot(dataDocRef, (docSnap) => {
                 if (docSnap.exists()) {
                     const dataPayload = docSnap.data();
-                    globalRawData = JSON.parse(dataPayload.tableData);
+                    // Data from Firestore is now the raw, un-aggregated data.
+                    globalRawData = JSON.parse(dataPayload.rawData); 
+                    // Convert date strings back to Date objects
+                    globalRawData.forEach(item => {
+                        item.htpStart = new Date(item.htpStart);
+                        item.htpEnd = new Date(item.htpEnd);
+                    });
+
                     ui.lastUploaderEl.textContent = dataPayload.uploaderId.substring(0, 8) + '...';
                     ui.lastUpdatedEl.textContent = new Date(dataPayload.timestamp).toLocaleString('ko-KR');
                     
-                    initializeFilters();
+                    initializeFiltersFromData(globalRawData);
                     applyFiltersAndRender();
                 } else {
-                    initializeFilters();
+                    globalRawData = [];
+                    initializeFiltersFromData([]);
+                    ui.tableBody.innerHTML = '';
+                    ui.tableBody.appendChild(ui.placeholderRow);
                     ui.placeholderRow.classList.remove('hidden');
                 }
                 hideLoader();
@@ -325,7 +336,9 @@
         // --- Data Processing & Filtering ---
         function getPackType(location, processTask, processPathName) {
             if (typeof location !== 'string') return DEFAULT_PACK_TYPE;
+            // This special case for 오토백 멀티 is crucial
             if (processTask === 'PACK(PACKING)' && location.startsWith('Pack at Rebin (Test') && processPathName === '0. AGV_Multi_Autobag4.0 + 일반존 통합') return "오토백 멀티";
+            
             for (const [name, prefix] of Object.entries(PACK_TYPE_MAP)) {
                 if (location.startsWith(prefix)) return name;
             }
@@ -338,7 +351,11 @@
             return targetHtpValues[packTypeName] || 100;
         }
 
-        function processExcelData(data) {
+        /**
+         * Parses raw data from Excel file into a structured array of objects.
+         * Does not perform aggregation.
+         */
+        function parseExcelData(data) {
             if (data.length < 2) return [];
             const headers = data[0].map(h => h ? h.toString().toLowerCase().trim() : '');
             const COLS_TO_LOAD = {
@@ -355,7 +372,7 @@
             }
             if (missingCols.length > 0) throw new Error(`엑셀 파일에 다음 필수 컬럼이 없습니다:\n[${missingCols.join(', ')}]`);
 
-            let rawData = data.slice(1).map(row => {
+            const rawData = data.slice(1).map(row => {
                 const combineDateTime = (dateValue, timeValue) => {
                     if (!dateValue || !timeValue) return null;
                     let datePart = (typeof dateValue === 'number') ? new Date(Date.UTC(1899, 11, 30) + dateValue * 24 * 60 * 60 * 1000) : new Date(dateValue);
@@ -373,30 +390,42 @@
                 const htpStart = combineDateTime(row[colIndices.workDate], row[colIndices.htpStart]);
                 const htpEnd = combineDateTime(row[colIndices.workDate], row[colIndices.htpEnd]);
                 if (!htpStart || !htpEnd) return null;
+                
+                let processTask = row[colIndices.processTask] || '';
+                const location = row[colIndices.location] || '';
+                const processPathName = row[colIndices.processPathName] || '';
+
+                // **FIX**: Correctly remap REBIN to PACK for 오토백 멀티
+                if (processTask === 'REBIN(REBIN)' && location.startsWith('Pack at Rebin (Test') && processPathName === '0. AGV_Multi_Autobag4.0 + 일반존 통합') {
+                    processTask = 'PACK(PACKING)';
+                }
+
                 return {
                     employee: row[colIndices.employee] || '', unitQty: parseInt(row[colIndices.unitQty] || 0),
-                    location: row[colIndices.location] || '', floor: row[colIndices.floor] || '',
-                    processPathName: row[colIndices.processPathName] || '', processTask: row[colIndices.processTask] || '',
+                    location: location, floor: row[colIndices.floor] || '',
+                    processPathName: processPathName, processTask: processTask,
                     contractType: (row[colIndices.contractType] || '').toUpperCase(),
                     htpStart: htpStart, htpEnd: htpEnd
                 };
-            }).filter(item => item && item.employee && item.unitQty > 0);
+            }).filter(item => item && item.employee && item.unitQty > 0 && (item.processTask === 'PICK(PICKING)' || item.processTask === 'PACK(PACKING)'));
             
-            // Apply time filters before aggregation
-            if (filters.hours.size > 0) {
-                rawData = rawData.filter(item => filters.hours.has(item.htpStart.getUTCHours()));
-            }
+            return rawData;
+        }
 
+        /**
+         * Aggregates raw data into groups for display.
+         */
+        function aggregateData(rawData) {
             const aggregatedData = {};
             rawData.forEach(item => {
-                if (item.processTask === 'REBIN(REBIN)' && item.location.startsWith('Pack at Rebin (Test')) item.processTask = 'PACK(PACKING)';
-                if (item.processTask !== 'PICK(PICKING)' && item.processTask !== 'PACK(PACKING)') return;
                 let key;
-                if (item.processTask === 'PICK(PICKING)') key = `${item.employee}|${item.floor}|PICK`;
-                else {
+                if (item.processTask === 'PICK(PICKING)') {
+                    key = `${item.employee}|${item.floor}|PICK`;
+                } else { // PACK(PACKING)
                     const packType = getPackType(item.location, item.processTask, item.processPathName);
                     key = `${item.employee}|${packType}|PACK`;
                 }
+                
                 if (!aggregatedData[key]) {
                     const empIdMatch = item.employee.match(/\((.*?)\)/);
                     const empId = empIdMatch ? empIdMatch[1] : '';
@@ -410,9 +439,16 @@
                         isPerm: item.contractType === 'PERM'
                     };
                 }
+                
                 aggregatedData[key].unitQty += item.unitQty;
                 const durationSeconds = (item.htpEnd - item.htpStart) / 1000;
-                if (durationSeconds > 0) aggregatedData[key].totalSeconds += durationSeconds;
+                if (durationSeconds > 0) {
+                    aggregatedData[key].totalSeconds += durationSeconds;
+                }
+
+                // **FIX**: Always update location and processPathName to get the 'last' value for the group
+                aggregatedData[key].location = item.location;
+                aggregatedData[key].processPathName = item.processPathName;
             });
 
             const finalData = Object.values(aggregatedData).map(item => {
@@ -426,10 +462,19 @@
         }
         
         // --- UI Rendering & Initialization ---
-        function initializeFilters() {
-            const allPackTypes = [...Object.keys(PACK_TYPE_MAP), DEFAULT_PACK_TYPE];
-            createFilterCheckboxes(ui.packTypeFilters, allPackTypes.sort(), 'packTypes', 'packtypes');
-            const floors = new Set(globalRawData.filter(d => d.processType.includes('PICK')).map(d => d.floor));
+        function initializeFiltersFromData(rawData) {
+            const allPackTypes = new Set();
+            const floors = new Set();
+
+            rawData.forEach(item => {
+                if(item.processTask.includes('PICK')) {
+                    floors.add(item.floor);
+                } else if (item.processTask.includes('PACK')) {
+                    allPackTypes.add(getPackType(item.location, item.processTask, item.processPathName));
+                }
+            });
+            
+            createFilterCheckboxes(ui.packTypeFilters, Array.from(allPackTypes).sort(), 'packTypes', 'packtypes');
             createFilterCheckboxes(ui.floorFilters, Array.from(floors).sort(), 'floors', 'floors');
             createTimeFilters();
             createTargetHtpSettings();
@@ -447,10 +492,16 @@
                 checkbox.className = 'hour-checkbox form-checkbox h-4 w-4 bg-gray-600 border-gray-500 rounded text-blue-500 focus:ring-blue-500';
                 checkbox.addEventListener('change', (e) => {
                     const hourVal = parseInt(e.target.value);
-                    if (e.target.checked) filters.hours.add(hourVal);
-                    else filters.hours.delete(hourVal);
-                    allHoursCheckbox.checked = filters.hours.size === 0;
-                    handleFileUpload({ target: { files: [ui.fileUpload.files[0]] } });
+                    if (e.target.checked) {
+                        filters.hours.add(hourVal);
+                        allHoursCheckbox.checked = false;
+                    } else {
+                        filters.hours.delete(hourVal);
+                    }
+                    if (filters.hours.size === 0) {
+                        allHoursCheckbox.checked = true;
+                    }
+                    applyFiltersAndRender(); // Re-render with new time filter
                 });
                 label.appendChild(checkbox);
                 const text = document.createElement('span');
@@ -459,9 +510,11 @@
                 ui.hourFilters.appendChild(label);
             }
             allHoursCheckbox.addEventListener('change', (e) => {
-                document.querySelectorAll('.hour-checkbox').forEach(cb => cb.checked = false);
-                filters.hours.clear();
-                if (ui.fileUpload.files[0]) handleFileUpload({ target: { files: [ui.fileUpload.files[0]] } });
+                if (e.target.checked) {
+                    document.querySelectorAll('.hour-checkbox').forEach(cb => cb.checked = false);
+                    filters.hours.clear();
+                    applyFiltersAndRender();
+                }
             });
             document.getElementById('select-all-hours').addEventListener('click', () => {
                 allHoursCheckbox.checked = false;
@@ -469,13 +522,13 @@
                     cb.checked = true;
                     filters.hours.add(parseInt(cb.value));
                 });
-                if (ui.fileUpload.files[0]) handleFileUpload({ target: { files: [ui.fileUpload.files[0]] } });
+                applyFiltersAndRender();
             });
             document.getElementById('deselect-all-hours').addEventListener('click', () => {
                 allHoursCheckbox.checked = true;
                 document.querySelectorAll('.hour-checkbox').forEach(cb => cb.checked = false);
                 filters.hours.clear();
-                if (ui.fileUpload.files[0]) handleFileUpload({ target: { files: [ui.fileUpload.files[0]] } });
+                applyFiltersAndRender();
             });
         }
 
@@ -530,10 +583,8 @@
         // --- Other Functions (handleFileUpload, saveDataToFirestore, renderTable, etc.) ---
         function handleFileUpload(event) {
             const file = event.target.files[0];
-            if (!file) {
-                if(globalRawData.length > 0) applyFiltersAndRender();
-                return;
-            }
+            if (!file) return;
+
             showLoader();
             const reader = new FileReader();
             reader.onload = async (e) => {
@@ -543,8 +594,11 @@
                     const sheetName = workbook.SheetNames[0];
                     const worksheet = workbook.Sheets[sheetName];
                     const jsonData = XLSX.utils.sheet_to_json(worksheet, { header: 1 });
-                    const processedData = processExcelData(jsonData);
-                    await saveDataToFirestore(processedData);
+                    
+                    // The parsed data is now the raw, un-aggregated data.
+                    const parsedData = parseExcelData(jsonData);
+                    await saveDataToFirestore(parsedData);
+
                 } catch (error) {
                     console.error("파일 처리 오류:", error);
                     alert(error.message || "파일을 처리하는 중 오류가 발생했습니다. 파일 형식을 확인해주세요.");
@@ -556,7 +610,12 @@
         }
 
         async function saveDataToFirestore(data) {
-            const payload = { tableData: JSON.stringify(data), uploaderId: userId, timestamp: new Date().toISOString() };
+            // We now save the raw, un-aggregated data.
+            const payload = { 
+                rawData: JSON.stringify(data), 
+                uploaderId: userId, 
+                timestamp: new Date().toISOString() 
+            };
             try { await setDoc(dataDocRef, payload); } catch (error) {
                 console.error("Firestore 저장 오류:", error);
                 alert("데이터를 서버에 저장하는 데 실패했습니다.");
@@ -565,16 +624,33 @@
         }
 
         function applyFiltersAndRender() {
-            let filteredData = [...globalRawData];
-            if (filters.process === 'pick') filteredData = filteredData.filter(item => item.processType.includes('PICK'));
-            if (filters.process === 'pack') filteredData = filteredData.filter(item => item.processType.includes('PACK'));
-            if (filters.search) filteredData = filteredData.filter(item => item.employee.toLowerCase().includes(filters.search));
-            if (filters.lowHtp) filteredData = filteredData.filter(item => parseFloat(item.htp) < getTargetHtp(item));
-            if (filters.floors.size > 0) filteredData = filteredData.filter(item => item.processType.includes('PICK') && filters.floors.has(item.floor));
-            if (filters.packTypes.size > 0) filteredData = filteredData.filter(item => item.processType.includes('PACK') && filters.packTypes.has(item.packType));
-            renderTable(filteredData);
-            updateStats(filteredData);
-            updateTicker(filteredData);
+            if (globalRawData.length === 0) {
+                renderTable([]);
+                return;
+            };
+
+            // 1. Apply time filter to the raw data
+            let timeFilteredData = [...globalRawData];
+            if (filters.hours.size > 0) {
+                timeFilteredData = timeFilteredData.filter(item => filters.hours.has(item.htpStart.getUTCHours()));
+            }
+
+            // 2. Aggregate the time-filtered data
+            let aggregatedData = aggregateData(timeFilteredData);
+
+            // 3. Apply display filters to the aggregated data
+            let displayFilteredData = aggregatedData;
+            if (filters.process === 'pick') displayFilteredData = displayFilteredData.filter(item => item.processType.includes('PICK'));
+            if (filters.process === 'pack') displayFilteredData = displayFilteredData.filter(item => item.processType.includes('PACK'));
+            if (filters.search) displayFilteredData = displayFilteredData.filter(item => item.employee.toLowerCase().includes(filters.search));
+            if (filters.lowHtp) displayFilteredData = displayFilteredData.filter(item => parseFloat(item.htp) < getTargetHtp(item));
+            if (filters.floors.size > 0) displayFilteredData = displayFilteredData.filter(item => item.processType.includes('PICK') && filters.floors.has(item.floor));
+            if (filters.packTypes.size > 0) displayFilteredData = displayFilteredData.filter(item => item.processType.includes('PACK') && filters.packTypes.has(item.packType));
+            
+            // 4. Render the final data
+            renderTable(displayFilteredData);
+            updateStats(displayFilteredData);
+            updateTicker(displayFilteredData);
         }
 
         function renderTable(data) {
@@ -642,15 +718,23 @@
             const topStr = "🏆Top3: " + (top3.length > 0 ? top3.map(formatTickerItem).join(', ') : '-');
             const lowStr = "🚨Low3: " + (low3.length > 0 ? low3.map(formatTickerItem).join(', ') : '-');
             
-            ui.tickerText.textContent = `${topStr}      ${lowStr}`;
+            ui.tickerText.textContent = `${topStr}       ${lowStr}`;
         }
 
         function captureTable() {
             html2canvas(document.getElementById('table-container')).then(canvas => {
                 canvas.toBlob(blob => {
-                    navigator.clipboard.write([new ClipboardItem({'image/png': blob})])
-                        .then(() => alert('테이블이 클립보드에 복사되었습니다.'))
-                        .catch(err => console.error('클립보드 복사 실패:', err));
+                    try {
+                        navigator.clipboard.write([new ClipboardItem({'image/png': blob})])
+                            .then(() => alert('테이블이 클립보드에 복사되었습니다.'))
+                            .catch(err => {
+                                console.error('클립보드 복사 실패:', err);
+                                alert('클립보드 복사에 실패했습니다. 브라우저 설정을 확인해주세요.');
+                            });
+                    } catch (error) {
+                         console.error('클립보드 API 오류:', error);
+                         alert('클립보드 API를 사용할 수 없는 환경입니다.');
+                    }
                 });
             });
         }
@@ -691,7 +775,7 @@
         function hideLoader() { ui.loaderContainer.classList.add('hidden'); ui.tableContainer.classList.remove('hidden'); }
         
         // Initialize on page load
-        initializeFilters();
+        initializeFiltersFromData([]);
 
     </script>
 </body>
