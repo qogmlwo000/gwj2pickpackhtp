@@ -256,6 +256,7 @@
         }
 
         function aggregateData(jsonData) {
+            if (!jsonData || jsonData.length < 2) return [];
             const headers = jsonData[0].map(h => h ? h.toString().toLowerCase().trim() : '');
             const COLS_TO_LOAD = { workDate: 'work date', employee: 'employee', unitQty: 'unit qty', location: 'location', floor: 'floor', processPathName: 'process path name', htpStart: 'htp start', htpEnd: 'htp end', processTask: 'process(task)', contractType: 'contract type' };
             const colIndices = {};
@@ -338,7 +339,7 @@
             const yesterdayJsonData = historicalData[yesterdayKey] || [];
             const yesterdayAggregated = yesterdayJsonData.length > 0 ? aggregateData(yesterdayJsonData) : [];
 
-            const getRankMap = (data) => new Map(data.sort((a,b) => b.htp - a.htp).map((item, i) => [item.employee, i + 1]));
+            const getRankMap = (data) => new Map([...data].sort((a,b) => parseFloat(b.htp) - parseFloat(a.htp)).map((item, i) => [item.employee, i + 1]));
             const todayRankMap = getRankMap(aggregatedData);
             const yesterdayRankMap = getRankMap(yesterdayAggregated);
 
@@ -407,7 +408,6 @@
             }
         }
 
-        // --- All other UI and utility functions ---
         function initializeFilters() {
             createTableHeader();
             createColumnSettings();
