@@ -3,11 +3,13 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>실시간 HTP 데이터 분석 (v5.0)</title>
+    <title>실시간 HTP 데이터 분석 (v5.1 - 압축)</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <!-- 데이터 압축/해제 라이브러리 추가 -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/pako/2.1.0/pako.min.js"></script>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
     <style>
         body { font-family: 'Inter', sans-serif; scrollbar-width: thin; scrollbar-color: #4a5568 #2d3748; }
@@ -141,7 +143,6 @@
         import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
         import { getAuth, signInAnonymously, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
         import { getFirestore, doc, setDoc, getDoc, collection, query, orderBy, limit, getDocs } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
-        import { getStorage, ref, uploadBytes, getDownloadURL } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-storage.js";
 
         const ui = {
             fileUpload: document.getElementById('file-upload'), tableBody: document.getElementById('data-table-body'),
@@ -185,12 +186,11 @@
         ];
 
         const firebaseConfig = { apiKey: "AIzaSyBrPfjJWPPd8HzI1jCRoHFqwcuPuJ9u10E", authDomain: "gwj2-pickpack-htptool.firebaseapp.com", projectId: "gwj2-pickpack-htptool", storageBucket: "gwj2-pickpack-htptool.appspot.com", messagingSenderId: "913661158847", appId: "1:913661158847:web:ebaf60d2afbeadda452d0a" };
-        let db, auth, userId, storage, dataCollectionRef;
+        let db, auth, userId, dataCollectionRef;
         try {
             const app = initializeApp(firebaseConfig);
             db = getFirestore(app);
             auth = getAuth(app);
-            storage = getStorage(app);
             dataCollectionRef = collection(db, 'artifacts', firebaseConfig.projectId, 'public', 'data', 'htpData');
         } catch(e) { console.error("Firebase 초기화 오류:", e); }
         
@@ -210,28 +210,29 @@
             const querySnapshot = await getDocs(q);
             historicalData = {};
             if (!querySnapshot.empty) {
+                showLoader();
+                const promises = querySnapshot.docs.map(async (docSnap) => {
+                    const dataPayload = docSnap.data();
+                    const compressedData = dataPayload.compressedData;
+                    if (compressedData) {
+                        try {
+                            const decompressed = pako.inflate(Uint8Array.from(atob(compressedData), c => c.charCodeAt(0)), { to: 'string' });
+                            historicalData[docSnap.id] = JSON.parse(decompressed);
+                        } catch (e) {
+                            console.error(`데이터 압축 해제 실패 (${docSnap.id}):`, e);
+                            historicalData[docSnap.id] = [];
+                        }
+                    }
+                });
+                await Promise.all(promises);
+
                 const latestDoc = querySnapshot.docs[0];
+                globalExcelJsonData = historicalData[latestDoc.id] || [];
+                
                 const dataPayload = latestDoc.data();
                 ui.lastUploaderEl.textContent = dataPayload.uploaderId.substring(0, 8) + '...';
                 ui.lastUpdatedEl.textContent = new Date(dataPayload.timestamp).toLocaleString('ko-KR');
 
-                showLoader();
-                // Fetch all historical data files
-                const promises = querySnapshot.docs.map(async (doc) => {
-                    const url = doc.data().fileUrl;
-                    if (url) {
-                        const response = await fetch(url);
-                        const arrayBuffer = await response.arrayBuffer();
-                        const data = new Uint8Array(arrayBuffer);
-                        const workbook = XLSX.read(data, { type: 'array', cellDates: true });
-                        const sheetName = workbook.SheetNames[0];
-                        const worksheet = workbook.Sheets[sheetName];
-                        historicalData[doc.id] = XLSX.utils.sheet_to_json(worksheet, { header: 1 });
-                    }
-                });
-                await Promise.all(promises);
-                globalExcelJsonData = historicalData[latestDoc.id];
-                
                 initializeFilters();
                 applyFiltersAndRender();
             } else {
@@ -395,40 +396,33 @@
             const file = event.target.files[0];
             if (!file) return;
             showLoader();
-            try {
-                const today = new Date().toISOString().split('T')[0];
-                const storageRef = ref(storage, `excel-files/${today}.xlsx`);
-                const snapshot = await uploadBytes(storageRef, file);
-                const downloadURL = await getDownloadURL(snapshot.ref);
-
-                const reader = new FileReader();
-                reader.onload = async (e) => {
+            const reader = new FileReader();
+            reader.onload = async (e) => {
+                try {
                     const data = new Uint8Array(e.target.result);
                     const workbook = XLSX.read(data, { type: 'array', cellDates: true });
                     const sheetName = workbook.SheetNames[0];
                     const worksheet = workbook.Sheets[sheetName];
                     const jsonData = XLSX.utils.sheet_to_json(worksheet, { header: 1 });
-                    await saveDataToFirestore(jsonData, downloadURL);
-                };
-                reader.readAsArrayBuffer(file);
-
-            } catch (error) {
-                alert(error.message || "파일 업로드 중 오류가 발생했습니다.");
-                hideLoader();
-            }
+                    await saveDataToFirestore(jsonData);
+                } catch (error) {
+                    alert(error.message || "파일 처리 중 오류가 발생했습니다.");
+                    hideLoader();
+                }
+            };
+            reader.readAsArrayBuffer(file);
         }
 
-        async function saveDataToFirestore(jsonData, fileUrl) {
+        async function saveDataToFirestore(jsonData) {
             const today = new Date().toISOString().split('T')[0];
-            const payload = { 
-                excelData: JSON.stringify(jsonData), // Keep for historical re-aggregation
-                fileUrl: fileUrl, // Store the file URL
-                uploaderId: userId, 
-                timestamp: new Date().toISOString() 
-            };
+            const jsonString = JSON.stringify(jsonData);
+            const compressed = pako.deflate(jsonString);
+            const compressedBase64 = btoa(String.fromCharCode.apply(null, compressed));
+
+            const payload = { compressedData: compressedBase64, uploaderId: userId, timestamp: new Date().toISOString() };
             try { 
                 await setDoc(doc(dataCollectionRef, today), payload);
-                // No need to call fetchLatestData here, onSnapshot will trigger automatically
+                fetchLatestData();
             } catch (error) {
                 console.error("Firestore 저장 오류:", error);
                 alert(`데이터를 서버에 저장하는 데 실패했습니다.\n\n오류: ${error.message}\n\nFirestore 보안 규칙이 올바르게 설정되었는지 확인해주세요.`);
@@ -441,7 +435,7 @@
             createColumnSettings();
             const allPackTypes = [...Object.keys(PACK_TYPE_MAP), DEFAULT_PACK_TYPE];
             createFilterCheckboxes(ui.packTypeFilters, allPackTypes.sort(), 'packTypes');
-            const floors = new Set(globalExcelJsonData.flatMap(row => [row[4]]));
+            const floors = new Set(globalExcelJsonData.flatMap(row => [row[colIndices.floor]]));
             createFilterCheckboxes(ui.floorFilters, Array.from(floors).filter(Boolean).sort(), 'floors');
             createTimeFilters();
             createTargetHtpSettings();
