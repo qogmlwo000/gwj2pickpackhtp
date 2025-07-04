@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>실시간 HTP 데이터 분석 (v4.2)</title>
+    <title>실시간 HTP 데이터 분석 (v4.3)</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
@@ -402,7 +402,7 @@
             const payload = { excelData: JSON.stringify(jsonData), uploaderId: userId, timestamp: new Date().toISOString() };
             try { await setDoc(doc(dataCollectionRef, today), payload); } catch (error) {
                 console.error("Firestore 저장 오류:", error);
-                alert("데이터를 서버에 저장하는 데 실패했습니다.");
+                alert(`데이터를 서버에 저장하는 데 실패했습니다.\n\n오류: ${error.message}\n\nFirestore 보안 규칙이 올바르게 설정되었는지 확인해주세요.`);
                 hideLoader();
             }
         }
