@@ -144,432 +144,430 @@
         import { getAuth, signInAnonymously, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
         import { getFirestore, doc, setDoc, getDoc, collection, query, orderBy, limit, getDocs } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
         
-        // *** FIX: Moved all code that depends on imports inside the DOMContentLoaded event listener ***
-        window.addEventListener('DOMContentLoaded', () => {
-            const ui = {
-                fileUpload: document.getElementById('file-upload'), tableBody: document.getElementById('data-table-body'),
-                placeholderRow: document.getElementById('placeholder-row'), loaderContainer: document.getElementById('loader-container'),
-                tableContainer: document.getElementById('table-container'), statusIndicator: document.getElementById('status-indicator'),
-                lastUpdatedEl: document.getElementById('last-updated'), lastUploaderEl: document.getElementById('last-uploader'),
-                sidebar: document.getElementById('sidebar'), sidebarToggle: document.getElementById('sidebar-toggle'),
-                floorFilters: document.getElementById('floor-filters'), packTypeFilters: document.getElementById('pack-type-filters'),
-                hourFilters: document.getElementById('hour-filters'), searchInput: document.getElementById('search-input'),
-                lowHtpToggle: document.getElementById('low-htp-toggle'), statsDisplay: document.getElementById('stats-display'),
-                captureBtn: document.getElementById('capture-btn'), exportBtn: document.getElementById('export-btn'),
-                targetHtpSettings: document.getElementById('target-htp-settings'), tickerText: document.getElementById('ticker-text'),
-                tableHead: document.getElementById('table-head'), columnSettings: document.getElementById('column-settings'),
-                chartModal: document.getElementById('chart-modal'), chartTitle: document.getElementById('chart-title'),
-                chartCloseBtn: document.getElementById('chart-close-btn')
-            };
+        const ui = {
+            fileUpload: document.getElementById('file-upload'), tableBody: document.getElementById('data-table-body'),
+            placeholderRow: document.getElementById('placeholder-row'), loaderContainer: document.getElementById('loader-container'),
+            tableContainer: document.getElementById('table-container'), statusIndicator: document.getElementById('status-indicator'),
+            lastUpdatedEl: document.getElementById('last-updated'), lastUploaderEl: document.getElementById('last-uploader'),
+            sidebar: document.getElementById('sidebar'), sidebarToggle: document.getElementById('sidebar-toggle'),
+            floorFilters: document.getElementById('floor-filters'), packTypeFilters: document.getElementById('pack-type-filters'),
+            hourFilters: document.getElementById('hour-filters'), searchInput: document.getElementById('search-input'),
+            lowHtpToggle: document.getElementById('low-htp-toggle'), statsDisplay: document.getElementById('stats-display'),
+            captureBtn: document.getElementById('capture-btn'), exportBtn: document.getElementById('export-btn'),
+            targetHtpSettings: document.getElementById('target-htp-settings'), tickerText: document.getElementById('ticker-text'),
+            tableHead: document.getElementById('table-head'), columnSettings: document.getElementById('column-settings'),
+            chartModal: document.getElementById('chart-modal'), chartTitle: document.getElementById('chart-title'),
+            chartCloseBtn: document.getElementById('chart-close-btn')
+        };
 
-            let globalExcelJsonData = []; let historicalData = {};
-            let filters = { process: 'all', search: '', lowHtp: false, hours: new Set(), floors: new Set(), packTypes: new Set() };
-            let sortState = { key: 'htp', order: 'asc' };
-            let targetHtpValues = {};
-            let performanceChart = null;
+        let globalExcelJsonData = []; let historicalData = {};
+        let filters = { process: 'all', search: '', lowHtp: false, hours: new Set(), floors: new Set(), packTypes: new Set() };
+        let sortState = { key: 'htp', order: 'asc' };
+        let targetHtpValues = {};
+        let performanceChart = null;
 
-            const PACK_TYPE_MAP = {"메뉴얼팩":"179_1.3F_MA_S_OG_","메뉴얼팩 멀티":"179_1.3F_MA_M_OG_","ACE LINE":"179-1.2F-MA-ACE-OG-","오토백 1.2":"179_1.3F_AB_R1.2_OG_","오토백 2.5":"179_1.3F_AB_R2.5_OG_","오토백 4.0":"179_1.3F_AB_R4.0_OG_","오토백 RTPB":"179_1.3F_AB_T1_OG_","오토백 멀티":"179_1.3F_AB_M_OG_","CFC 메뉴얼팩":"190_6.2F_MA_S_OG_","CFC 메뉴얼팩 멀티":"190_6.2F_MA_M_OG_","CFC 오토백 2.5":"190_6.2F_AB_R2.5_OG_","CFC 오토백 4.0":"190_6.2F_AB_R4.0_OG_","CFC 오토백 RTPB":"190_6.2G_AB_T1_OG_"};
-            const DEFAULT_PACK_TYPE = "기타";
-            const MANAGERS_LIST = ['98659377','31629728','26485305','94354606','66476877','21284456','24856615','87406548','57101574','39104550','23761528','29801698','27407697','30997520','26152514','42103385','47548283','92816677','55540763','39678603','29787775','88463987','65712250','37005613','88031159','24304330','58548628','58728654','27507426','92733138','41310393','21220693','38876677','53909931','77358628','95383395','86473941','28996527','36148186','96358817','64118293','50908038','30049374','68100618','29229926','66536830','25657753','47848283','46802436','93246435','83689729','92718820','87935445','97224272','39359504'];
-            const TARGET_HTP_DEFAULTS = {"Manual SINGULATION":100,"Manual MULTI":120,"ACE LINE":150,"Autobagger 1.2":380,"Autobagger 2.5":350,"Autobagger 4.0":280,"Autobagger RTPB":150,"Auto MULTI":250,"CFC Manual S":100,"CFC Manual M":120,"CFC Autobag 2.5":350,"CFC Autobag 4.0":280,"CFC Autobag RTPB":150,"PICK":90};
-            Object.assign(targetHtpValues, TARGET_HTP_DEFAULTS);
+        const PACK_TYPE_MAP = {"메뉴얼팩":"179_1.3F_MA_S_OG_","메뉴얼팩 멀티":"179_1.3F_MA_M_OG_","ACE LINE":"179-1.2F-MA-ACE-OG-","오토백 1.2":"179_1.3F_AB_R1.2_OG_","오토백 2.5":"179_1.3F_AB_R2.5_OG_","오토백 4.0":"179_1.3F_AB_R4.0_OG_","오토백 RTPB":"179_1.3F_AB_T1_OG_","오토백 멀티":"179_1.3F_AB_M_OG_","CFC 메뉴얼팩":"190_6.2F_MA_S_OG_","CFC 메뉴얼팩 멀티":"190_6.2F_MA_M_OG_","CFC 오토백 2.5":"190_6.2F_AB_R2.5_OG_","CFC 오토백 4.0":"190_6.2F_AB_R4.0_OG_","CFC 오토백 RTPB":"190_6.2G_AB_T1_OG_"};
+        const DEFAULT_PACK_TYPE = "기타";
+        const MANAGERS_LIST = ['98659377','31629728','26485305','94354606','66476877','21284456','24856615','87406548','57101574','39104550','23761528','29801698','27407697','30997520','26152514','42103385','47548283','92816677','55540763','39678603','29787775','88463987','65712250','37005613','88031159','24304330','58548628','58728654','27507426','92733138','41310393','21220693','38876677','53909931','77358628','95383395','86473941','28996527','36148186','96358817','64118293','50908038','30049374','68100618','29229926','66536830','25657753','47848283','46802436','93246435','83689729','92718820','87935445','97224272','39359504'];
+        const TARGET_HTP_DEFAULTS = {"Manual SINGULATION":100,"Manual MULTI":120,"ACE LINE":150,"Autobagger 1.2":380,"Autobagger 2.5":350,"Autobagger 4.0":280,"Autobagger RTPB":150,"Auto MULTI":250,"CFC Manual S":100,"CFC Manual M":120,"CFC Autobag 2.5":350,"CFC Autobag 4.0":280,"CFC Autobag RTPB":150,"PICK":90};
+        Object.assign(targetHtpValues, TARGET_HTP_DEFAULTS);
 
-            const ALL_COLUMNS = [
-                { key: 'processType', label: '집품/포장', visible: true },
-                { key: 'employee', label: '이름(원바코드)', visible: true, sortable: true },
-                { key: 'rankChange', label: '변동', visible: true },
-                { key: 'floor', label: '층', visible: true, sortable: true },
-                { key: 'processPathName', label: 'PP', visible: true, sortable: true },
-                { key: 'location', label: 'Location', visible: false, sortable: true },
-                { key: 'unitQty', label: '작업량', visible: true, sortable: true },
-                { key: 'mh', label: 'M/H', visible: true, sortable: true },
-                { key: 'htp', label: 'HTP', visible: true, sortable: true },
-                { key: 'packType', label: '팩 종류', visible: true, sortable: true },
-            ];
+        const ALL_COLUMNS = [
+            { key: 'processType', label: '집품/포장', visible: true },
+            { key: 'employee', label: '이름(원바코드)', visible: true, sortable: true },
+            { key: 'rankChange', label: '변동', visible: true },
+            { key: 'floor', label: '층', visible: true, sortable: true },
+            { key: 'processPathName', label: 'PP', visible: true, sortable: true },
+            { key: 'location', label: 'Location', visible: false, sortable: true },
+            { key: 'unitQty', label: '작업량', visible: true, sortable: true },
+            { key: 'mh', label: 'M/H', visible: true, sortable: true },
+            { key: 'htp', label: 'HTP', visible: true, sortable: true },
+            { key: 'packType', label: '팩 종류', visible: true, sortable: true },
+        ];
 
-            const firebaseConfig = { apiKey: "AIzaSyBrPfjJWPPd8HzI1jCRoHFqwcuPuJ9u10E", authDomain: "gwj2-pickpack-htptool.firebaseapp.com", projectId: "gwj2-pickpack-htptool", storageBucket: "gwj2-pickpack-htptool.appspot.com", messagingSenderId: "913661158847", appId: "1:913661158847:web:ebaf60d2afbeadda452d0a" };
-            let db, auth, userId, dataCollectionRef;
-            try {
-                const app = initializeApp(firebaseConfig);
-                db = getFirestore(app);
-                auth = getAuth(app);
-                dataCollectionRef = collection(db, 'artifacts', firebaseConfig.projectId, 'public', 'data', 'htpData');
-            } catch(e) { console.error("Firebase 초기화 오류:", e); }
+        const firebaseConfig = { apiKey: "AIzaSyBrPfjJWPPd8HzI1jCRoHFqwcuPuJ9u10E", authDomain: "gwj2-pickpack-htptool.firebaseapp.com", projectId: "gwj2-pickpack-htptool", storageBucket: "gwj2-pickpack-htptool.appspot.com", messagingSenderId: "913661158847", appId: "1:913661158847:web:ebaf60d2afbeadda452d0a" };
+        let db, auth, userId, dataCollectionRef;
+        try {
+            const app = initializeApp(firebaseConfig);
+            db = getFirestore(app);
+            auth = getAuth(app);
+            dataCollectionRef = collection(db, 'artifacts', firebaseConfig.projectId, 'public', 'data', 'htpData');
+        } catch(e) { console.error("Firebase 초기화 오류:", e); }
+        
+        onAuthStateChanged(auth, async (user) => {
+            if (user) {
+                userId = user.uid;
+                updateStatus('connected', '실시간 서버에 연결되었습니다.');
+                ui.fileUpload.disabled = false;
+                fetchLatestData();
+            } else {
+                try { await signInAnonymously(auth); } catch (error) { console.error("익명 로그인 오류:", error); }
+            }
+        });
+
+        async function fetchLatestData() {
+            const q = query(dataCollectionRef, orderBy('timestamp', 'desc'), limit(8));
+            const querySnapshot = await getDocs(q);
+            historicalData = {};
+            if (!querySnapshot.empty) {
+                showLoader();
+                const promises = querySnapshot.docs.map(async (docSnap) => {
+                    const dataPayload = docSnap.data();
+                    const compressedData = dataPayload.compressedData;
+                    if (compressedData) {
+                        try {
+                            const decompressed = pako.inflate(Uint8Array.from(atob(compressedData), c => c.charCodeAt(0)), { to: 'string' });
+                            historicalData[docSnap.id] = JSON.parse(decompressed);
+                        } catch (e) {
+                            console.error(`데이터 압축 해제 실패 (${docSnap.id}):`, e);
+                            historicalData[docSnap.id] = [];
+                        }
+                    }
+                });
+                await Promise.all(promises);
+
+                const latestDoc = querySnapshot.docs[0];
+                globalExcelJsonData = historicalData[latestDoc.id] || [];
+                
+                const dataPayload = latestDoc.data();
+                ui.lastUploaderEl.textContent = dataPayload.uploaderId.substring(0, 8) + '...';
+                ui.lastUpdatedEl.textContent = new Date(dataPayload.timestamp).toLocaleString('ko-KR');
+
+                initializeFilters();
+                applyFiltersAndRender();
+            } else {
+                initializeFilters();
+                ui.placeholderRow.classList.remove('hidden');
+            }
+            hideLoader();
+        }
+
+        ui.sidebarToggle.addEventListener('click', () => ui.sidebar.classList.toggle('collapsed'));
+        ui.fileUpload.addEventListener('change', handleFileUpload);
+        ui.searchInput.addEventListener('input', (e) => { filters.search = e.target.value.toLowerCase(); applyFiltersAndRender(); });
+        ui.lowHtpToggle.addEventListener('change', (e) => { filters.lowHtp = e.target.checked; applyFiltersAndRender(); });
+        document.querySelectorAll('.filter-btn').forEach(btn => {
+            btn.addEventListener('click', (e) => {
+                document.querySelectorAll('.filter-btn').forEach(b => b.classList.remove('active'));
+                e.currentTarget.classList.add('active');
+                filters.process = e.currentTarget.id.replace('filter-', '');
+                applyFiltersAndRender();
+            });
+        });
+        ui.captureBtn.addEventListener('click', captureTable);
+        ui.exportBtn.addEventListener('click', exportToExcel);
+        ui.chartCloseBtn.addEventListener('click', () => ui.chartModal.classList.add('hidden'));
+
+        function getPackType(location, processTask, processPathName) {
+            if (typeof location !== 'string') return DEFAULT_PACK_TYPE;
+            if (processTask === 'PACK(PACKING)' && location.startsWith('Pack at Rebin (Test') && processPathName === '0. AGV_Multi_Autobag4.0 + 일반존 통합') return "오토백 멀티";
+            for (const [name, prefix] of Object.entries(PACK_TYPE_MAP)) { if (location.startsWith(prefix)) return name; }
+            return DEFAULT_PACK_TYPE;
+        }
+        function getTargetHtp(item) {
+            if (item.processType.includes('PICK')) return targetHtpValues['PICK'];
+            const packTypeName = Object.keys(targetHtpValues).find(k => k.toLowerCase().replace(/ /g, '') === item.packType.toLowerCase().replace(/ /g, ''));
+            return targetHtpValues[packTypeName] || 100;
+        }
+
+        function aggregateData(jsonData) {
+            if (!jsonData || jsonData.length < 2) return [];
+            const headers = jsonData[0].map(h => h ? h.toString().toLowerCase().trim() : '');
+            const COLS_TO_LOAD = { workDate: 'work date', employee: 'employee', unitQty: 'unit qty', location: 'location', floor: 'floor', processPathName: 'process path name', htpStart: 'htp start', htpEnd: 'htp end', processTask: 'process(task)', contractType: 'contract type' };
+            const colIndices = {};
+            const missingCols = [];
+            for (const key in COLS_TO_LOAD) {
+                const index = headers.indexOf(COLS_TO_LOAD[key]);
+                if (index === -1) missingCols.push(COLS_TO_LOAD[key]);
+                colIndices[key] = index;
+            }
+            if (missingCols.length > 0) throw new Error(`엑셀 파일에 다음 필수 컬럼이 없습니다:\n[${missingCols.join(', ')}]`);
+
+            let rawData = jsonData.slice(1).map(row => {
+                if ((row[colIndices.employee] || '').includes('AGV_Agent')) return null;
+                const combineDateTime = (dateValue, timeValue) => {
+                    if (!dateValue || !timeValue) return null;
+                    let datePart = (typeof dateValue === 'number') ? new Date(Date.UTC(1899, 11, 30) + dateValue * 24 * 60 * 60 * 1000) : new Date(dateValue);
+                    if (isNaN(datePart.getTime())) return null;
+                    let timePart;
+                    if (typeof timeValue === 'number') timePart = new Date(Date.UTC(1899, 11, 30) + timeValue * 24 * 60 * 60 * 1000);
+                    else if (typeof timeValue === 'string') {
+                        const parts = timeValue.split(':');
+                        timePart = new Date(0);
+                        timePart.setUTCHours(parts[0] || 0, parts[1] || 0, parts[2] || 0, 0);
+                    } else timePart = timeValue;
+                    if (isNaN(timePart.getTime())) return null;
+                    return new Date(Date.UTC(datePart.getUTCFullYear(), datePart.getUTCMonth(), datePart.getUTCDate(), timePart.getUTCHours(), timePart.getUTCMinutes(), timePart.getUTCSeconds()));
+                };
+                const htpStart = combineDateTime(row[colIndices.workDate], row[colIndices.htpStart]);
+                const htpEnd = combineDateTime(row[colIndices.workDate], row[colIndices.htpEnd]);
+                if (!htpStart || !htpEnd) return null;
+                return {
+                    employee: row[colIndices.employee] || '', unitQty: parseInt(row[colIndices.unitQty] || 0), location: row[colIndices.location] || '',
+                    floor: row[colIndices.floor] || '', processPathName: row[colIndices.processPathName] || '', processTask: row[colIndices.processTask] || '',
+                    contractType: (row[colIndices.contractType] || '').toUpperCase(), htpStart: htpStart, htpEnd: htpEnd
+                };
+            }).filter(item => item && item.employee && item.unitQty > 0);
             
-            onAuthStateChanged(auth, async (user) => {
-                if (user) {
-                    userId = user.uid;
-                    updateStatus('connected', '실시간 서버에 연결되었습니다.');
-                    ui.fileUpload.disabled = false;
-                    fetchLatestData();
-                } else {
-                    try { await signInAnonymously(auth); } catch (error) { console.error("익명 로그인 오류:", error); }
+            if (filters.hours.size > 0) rawData = rawData.filter(item => filters.hours.has(item.htpStart.getUTCHours()));
+
+            const aggregatedData = {};
+            rawData.forEach(item => {
+                if (item.processTask === 'REBIN(REBIN)' && item.location.startsWith('Pack at Rebin (Test')) item.processTask = 'PACK(PACKING)';
+                if (item.processTask !== 'PICK(PICKING)' && item.processTask !== 'PACK(PACKING)') return;
+                let key;
+                if (item.processTask === 'PICK(PICKING)') key = `${item.employee}|${item.floor}|PICK`;
+                else {
+                    const packType = getPackType(item.location, item.processTask, item.processPathName);
+                    key = `${item.employee}|${packType}|PACK`;
                 }
+                if (!aggregatedData[key]) {
+                    const empIdMatch = item.employee.match(/\((.*?)\)/);
+                    const empId = empIdMatch ? empIdMatch[1] : '';
+                    aggregatedData[key] = {
+                        processType: item.processTask.includes('PICK') ? 'PICK(집품)' : 'PACK(포장)', employee: item.employee, floor: item.floor,
+                        processPathName: item.processPathName, location: item.location,
+                        packType: item.processTask.includes('PICK') ? '집품' : getPackType(item.location, item.processTask, item.processPathName),
+                        unitQty: 0, totalSeconds: 0, isManager: MANAGERS_LIST.includes(empId), isPerm: item.contractType === 'PERM'
+                    };
+                }
+                aggregatedData[key].unitQty += item.unitQty;
+                const durationSeconds = (item.htpEnd - item.htpStart) / 1000;
+                if (durationSeconds > 0) aggregatedData[key].totalSeconds += durationSeconds;
             });
 
-            async function fetchLatestData() {
-                const q = query(dataCollectionRef, orderBy('timestamp', 'desc'), limit(8));
-                const querySnapshot = await getDocs(q);
-                historicalData = {};
-                if (!querySnapshot.empty) {
-                    showLoader();
-                    const promises = querySnapshot.docs.map(async (docSnap) => {
-                        const dataPayload = docSnap.data();
-                        const compressedData = dataPayload.compressedData;
-                        if (compressedData) {
-                            try {
-                                const decompressed = pako.inflate(Uint8Array.from(atob(compressedData), c => c.charCodeAt(0)), { to: 'string' });
-                                historicalData[docSnap.id] = JSON.parse(decompressed);
-                            } catch (e) {
-                                console.error(`데이터 압축 해제 실패 (${docSnap.id}):`, e);
-                                historicalData[docSnap.id] = [];
-                            }
-                        }
-                    });
-                    await Promise.all(promises);
+            const finalData = Object.values(aggregatedData).map(item => {
+                const mh = item.totalSeconds > 0 ? item.totalSeconds / 3600 : 0;
+                const htp = mh > 0 ? item.unitQty / mh : 0;
+                return { ...item, mh: mh.toFixed(4), htp: htp.toFixed(1) };
+            });
+            return finalData;
+        }
 
-                    const latestDoc = querySnapshot.docs[0];
-                    globalExcelJsonData = historicalData[latestDoc.id] || [];
-                    
-                    const dataPayload = latestDoc.data();
-                    ui.lastUploaderEl.textContent = dataPayload.uploaderId.substring(0, 8) + '...';
-                    ui.lastUpdatedEl.textContent = new Date(dataPayload.timestamp).toLocaleString('ko-KR');
+        function applyFiltersAndRender() {
+            if (!globalExcelJsonData || globalExcelJsonData.length === 0) return;
+            const aggregatedData = aggregateData(globalExcelJsonData);
+            
+            const yesterdayDate = new Date();
+            yesterdayDate.setDate(yesterdayDate.getDate() - 1);
+            const yesterdayKey = yesterdayDate.toISOString().split('T')[0];
+            const yesterdayJsonData = historicalData[yesterdayKey] || [];
+            const yesterdayAggregated = yesterdayJsonData.length > 0 ? aggregateData(yesterdayJsonData) : [];
 
-                    initializeFilters();
-                    applyFiltersAndRender();
-                } else {
-                    initializeFilters();
-                    ui.placeholderRow.classList.remove('hidden');
+            const getRankMap = (data) => new Map([...data].sort((a,b) => parseFloat(b.htp) - parseFloat(a.htp)).map((item, i) => [item.employee, i + 1]));
+            const todayRankMap = getRankMap(aggregatedData);
+            const yesterdayRankMap = getRankMap(yesterdayAggregated);
+
+            let filteredData = aggregatedData.map(item => {
+                const todayRank = todayRankMap.get(item.employee);
+                const yesterdayRank = yesterdayRankMap.get(item.employee);
+                let rankChange = 'N';
+                if (todayRank && yesterdayRank) {
+                    if (todayRank < yesterdayRank) rankChange = '▲';
+                    else if (todayRank > yesterdayRank) rankChange = '▼';
+                    else rankChange = '-';
                 }
+                return { ...item, rankChange };
+            });
+
+            if (filters.process === 'pick') filteredData = filteredData.filter(item => item.processType.includes('PICK'));
+            if (filters.process === 'pack') filteredData = filteredData.filter(item => item.processType.includes('PACK'));
+            if (filters.search) filteredData = filteredData.filter(item => item.employee.toLowerCase().includes(filters.search));
+            if (filters.lowHtp) filteredData = filteredData.filter(item => parseFloat(item.htp) < getTargetHtp(item));
+            if (filters.floors.size > 0) filteredData = filteredData.filter(item => item.processType.includes('PICK') && filters.floors.has(item.floor));
+            if (filters.packTypes.size > 0) filteredData = filteredData.filter(item => item.processType.includes('PACK') && filters.packTypes.has(item.packType));
+            
+            if (sortState.key) {
+                filteredData.sort((a, b) => {
+                    let valA = a[sortState.key], valB = b[sortState.key];
+                    if (['unitQty', 'mh', 'htp'].includes(sortState.key)) { valA = parseFloat(valA); valB = parseFloat(valB); }
+                    if (valA < valB) return sortState.order === 'asc' ? -1 : 1;
+                    if (valA > valB) return sortState.order === 'asc' ? 1 : -1;
+                    return 0;
+                });
+            }
+            
+            renderTable(filteredData);
+            updateStats(filteredData);
+            updateTicker(filteredData);
+        }
+
+        async function handleFileUpload(event) {
+            const file = event.target.files[0];
+            if (!file) return;
+            showLoader();
+            try {
+                const reader = new FileReader();
+                reader.onload = async (e) => {
+                    try {
+                        const data = new Uint8Array(e.target.result);
+                        const workbook = XLSX.read(data, { type: 'array' });
+                        const sheetName = workbook.SheetNames[0];
+                        const worksheet = workbook.Sheets[sheetName];
+                        const jsonData = XLSX.utils.sheet_to_json(worksheet, { header: 1 });
+                        await saveDataToFirestore(jsonData);
+                    } catch (err) {
+                        alert(err.message || "엑셀 파일 파싱 중 오류가 발생했습니다.");
+                        hideLoader();
+                    }
+                };
+                reader.readAsArrayBuffer(file);
+            } catch (error) {
+                alert(error.message || "파일 업로드 중 오류가 발생했습니다.");
                 hideLoader();
             }
+        }
 
-            ui.sidebarToggle.addEventListener('click', () => ui.sidebar.classList.toggle('collapsed'));
-            ui.fileUpload.addEventListener('change', handleFileUpload);
-            ui.searchInput.addEventListener('input', (e) => { filters.search = e.target.value.toLowerCase(); applyFiltersAndRender(); });
-            ui.lowHtpToggle.addEventListener('change', (e) => { filters.lowHtp = e.target.checked; applyFiltersAndRender(); });
-            document.querySelectorAll('.filter-btn').forEach(btn => {
-                btn.addEventListener('click', (e) => {
-                    document.querySelectorAll('.filter-btn').forEach(b => b.classList.remove('active'));
-                    e.currentTarget.classList.add('active');
-                    filters.process = e.currentTarget.id.replace('filter-', '');
+        async function saveDataToFirestore(jsonData) {
+            const today = new Date().toISOString().split('T')[0];
+            const jsonString = JSON.stringify(jsonData);
+            const compressed = pako.deflate(jsonString);
+            const compressedBase64 = btoa(String.fromCharCode.apply(null, compressed));
+
+            const payload = { compressedData: compressedBase64, uploaderId: userId, timestamp: new Date().toISOString() };
+            try { 
+                await setDoc(doc(dataCollectionRef, today), payload);
+                fetchLatestData();
+            } catch (error) {
+                console.error("Firestore 저장 오류:", error);
+                alert(`데이터를 서버에 저장하는 데 실패했습니다.\n\n오류: ${error.message}\n\nFirestore 보안 규칙이 올바르게 설정되었는지 확인해주세요.`);
+                hideLoader();
+            }
+        }
+
+        function initializeFilters() {
+            createTableHeader();
+            createColumnSettings();
+            const allPackTypes = [...Object.keys(PACK_TYPE_MAP), DEFAULT_PACK_TYPE];
+            createFilterCheckboxes(ui.packTypeFilters, allPackTypes.sort(), 'packTypes');
+            const floors = new Set(globalExcelJsonData.flatMap(row => [row[colIndices.floor]]));
+            createFilterCheckboxes(ui.floorFilters, Array.from(floors).filter(Boolean).sort(), 'floors');
+            createTimeFilters();
+            createTargetHtpSettings();
+        }
+
+        function createTableHeader() {
+            const headerRow = document.createElement('tr');
+            ALL_COLUMNS.forEach(col => {
+                if (!col.visible) return;
+                const th = document.createElement('th');
+                th.scope = 'col';
+                th.className = 'px-4 py-3';
+                if (col.sortable) {
+                    th.classList.add('sortable');
+                    th.addEventListener('click', () => handleSort(col.key));
+                    let arrow = sortState.key === col.key ? (sortState.order === 'asc' ? '▲' : '▼') : '';
+                    th.innerHTML = `${col.label} <span class="sort-arrow">${arrow}</span>`;
+                } else {
+                    th.textContent = col.label;
+                }
+                headerRow.appendChild(th);
+            });
+            ui.tableHead.innerHTML = '';
+            ui.tableHead.appendChild(headerRow);
+        }
+        
+        function createColumnSettings() {
+            ui.columnSettings.innerHTML = '';
+            ALL_COLUMNS.forEach(col => {
+                const label = document.createElement('label');
+                label.className = 'flex items-center space-x-2 text-sm cursor-pointer';
+                const checkbox = document.createElement('input');
+                checkbox.type = 'checkbox';
+                checkbox.checked = col.visible;
+                checkbox.className = 'form-checkbox h-4 w-4 bg-gray-600 border-gray-500 rounded text-blue-500 focus:ring-blue-500';
+                checkbox.addEventListener('change', (e) => {
+                    col.visible = e.target.checked;
+                    createTableHeader();
                     applyFiltersAndRender();
                 });
+                label.appendChild(checkbox);
+                label.appendChild(document.createTextNode(` ${col.label}`));
+                ui.columnSettings.appendChild(label);
             });
-            ui.captureBtn.addEventListener('click', captureTable);
-            ui.exportBtn.addEventListener('click', exportToExcel);
-            ui.chartCloseBtn.addEventListener('click', () => ui.chartModal.classList.add('hidden'));
+        }
 
-            function getPackType(location, processTask, processPathName) {
-                if (typeof location !== 'string') return DEFAULT_PACK_TYPE;
-                if (processTask === 'PACK(PACKING)' && location.startsWith('Pack at Rebin (Test') && processPathName === '0. AGV_Multi_Autobag4.0 + 일반존 통합') return "오토백 멀티";
-                for (const [name, prefix] of Object.entries(PACK_TYPE_MAP)) { if (location.startsWith(prefix)) return name; }
-                return DEFAULT_PACK_TYPE;
+        function handleSort(key) {
+            sortState.order = (sortState.key === key && sortState.order === 'asc') ? 'desc' : 'asc';
+            sortState.key = key;
+            createTableHeader();
+            applyFiltersAndRender();
+        }
+
+        function renderTable(data) {
+            ui.tableBody.innerHTML = '';
+            if (data.length === 0) {
+                ui.tableBody.appendChild(ui.placeholderRow);
+                ui.placeholderRow.classList.remove('hidden');
+                updateStats([]); updateTicker([]); return;
             }
-            function getTargetHtp(item) {
-                if (item.processType.includes('PICK')) return targetHtpValues['PICK'];
-                const packTypeName = Object.keys(targetHtpValues).find(k => k.toLowerCase().replace(/ /g, '') === item.packType.toLowerCase().replace(/ /g, ''));
-                return targetHtpValues[packTypeName] || 100;
-            }
-
-            function aggregateData(jsonData) {
-                if (!jsonData || jsonData.length < 2) return [];
-                const headers = jsonData[0].map(h => h ? h.toString().toLowerCase().trim() : '');
-                const COLS_TO_LOAD = { workDate: 'work date', employee: 'employee', unitQty: 'unit qty', location: 'location', floor: 'floor', processPathName: 'process path name', htpStart: 'htp start', htpEnd: 'htp end', processTask: 'process(task)', contractType: 'contract type' };
-                const colIndices = {};
-                const missingCols = [];
-                for (const key in COLS_TO_LOAD) {
-                    const index = headers.indexOf(COLS_TO_LOAD[key]);
-                    if (index === -1) missingCols.push(COLS_TO_LOAD[key]);
-                    colIndices[key] = index;
-                }
-                if (missingCols.length > 0) throw new Error(`엑셀 파일에 다음 필수 컬럼이 없습니다:\n[${missingCols.join(', ')}]`);
-
-                let rawData = jsonData.slice(1).map(row => {
-                    if ((row[colIndices.employee] || '').includes('AGV_Agent')) return null;
-                    const combineDateTime = (dateValue, timeValue) => {
-                        if (!dateValue || !timeValue) return null;
-                        let datePart = (typeof dateValue === 'number') ? new Date(Date.UTC(1899, 11, 30) + dateValue * 24 * 60 * 60 * 1000) : new Date(dateValue);
-                        if (isNaN(datePart.getTime())) return null;
-                        let timePart;
-                        if (typeof timeValue === 'number') timePart = new Date(Date.UTC(1899, 11, 30) + timeValue * 24 * 60 * 60 * 1000);
-                        else if (typeof timeValue === 'string') {
-                            const parts = timeValue.split(':');
-                            timePart = new Date(0);
-                            timePart.setUTCHours(parts[0] || 0, parts[1] || 0, parts[2] || 0, 0);
-                        } else timePart = timeValue;
-                        if (isNaN(timePart.getTime())) return null;
-                        return new Date(Date.UTC(datePart.getUTCFullYear(), datePart.getUTCMonth(), datePart.getUTCDate(), timePart.getUTCHours(), timePart.getUTCMinutes(), timePart.getUTCSeconds()));
-                    };
-                    const htpStart = combineDateTime(row[colIndices.workDate], row[colIndices.htpStart]);
-                    const htpEnd = combineDateTime(row[colIndices.workDate], row[colIndices.htpEnd]);
-                    if (!htpStart || !htpEnd) return null;
-                    return {
-                        employee: row[colIndices.employee] || '', unitQty: parseInt(row[colIndices.unitQty] || 0), location: row[colIndices.location] || '',
-                        floor: row[colIndices.floor] || '', processPathName: row[colIndices.processPathName] || '', processTask: row[colIndices.processTask] || '',
-                        contractType: (row[colIndices.contractType] || '').toUpperCase(), htpStart: htpStart, htpEnd: htpEnd
-                    };
-                }).filter(item => item && item.employee && item.unitQty > 0);
+            ui.placeholderRow.classList.add('hidden');
+            data.forEach(item => {
+                const row = document.createElement('tr');
+                let rowClass = 'border-b border-gray-700 hover:bg-gray-600/50';
+                if (item.isPerm && !item.isManager) rowClass += ' bg-blue-900/30';
+                row.className = rowClass;
                 
-                if (filters.hours.size > 0) rawData = rawData.filter(item => filters.hours.has(item.htpStart.getUTCHours()));
-
-                const aggregatedData = {};
-                rawData.forEach(item => {
-                    if (item.processTask === 'REBIN(REBIN)' && item.location.startsWith('Pack at Rebin (Test')) item.processTask = 'PACK(PACKING)';
-                    if (item.processTask !== 'PICK(PICKING)' && item.processTask !== 'PACK(PACKING)') return;
-                    let key;
-                    if (item.processTask === 'PICK(PICKING)') key = `${item.employee}|${item.floor}|PICK`;
-                    else {
-                        const packType = getPackType(item.location, item.processTask, item.processPathName);
-                        key = `${item.employee}|${packType}|PACK`;
-                    }
-                    if (!aggregatedData[key]) {
-                        const empIdMatch = item.employee.match(/\((.*?)\)/);
-                        const empId = empIdMatch ? empIdMatch[1] : '';
-                        aggregatedData[key] = {
-                            processType: item.processTask.includes('PICK') ? 'PICK(집품)' : 'PACK(포장)', employee: item.employee, floor: item.floor,
-                            processPathName: item.processPathName, location: item.location,
-                            packType: item.processTask.includes('PICK') ? '집품' : getPackType(item.location, item.processTask, item.processPathName),
-                            unitQty: 0, totalSeconds: 0, isManager: MANAGERS_LIST.includes(empId), isPerm: item.contractType === 'PERM'
-                        };
-                    }
-                    aggregatedData[key].unitQty += item.unitQty;
-                    const durationSeconds = (item.htpEnd - item.htpStart) / 1000;
-                    if (durationSeconds > 0) aggregatedData[key].totalSeconds += durationSeconds;
-                });
-
-                const finalData = Object.values(aggregatedData).map(item => {
-                    const mh = item.totalSeconds > 0 ? item.totalSeconds / 3600 : 0;
-                    const htp = mh > 0 ? item.unitQty / mh : 0;
-                    return { ...item, mh: mh.toFixed(4), htp: htp.toFixed(1) };
-                });
-                return finalData;
-            }
-
-            function applyFiltersAndRender() {
-                if (!globalExcelJsonData || globalExcelJsonData.length === 0) return;
-                const aggregatedData = aggregateData(globalExcelJsonData);
-                
-                const yesterdayDate = new Date();
-                yesterdayDate.setDate(yesterdayDate.getDate() - 1);
-                const yesterdayKey = yesterdayDate.toISOString().split('T')[0];
-                const yesterdayJsonData = historicalData[yesterdayKey] || [];
-                const yesterdayAggregated = yesterdayJsonData.length > 0 ? aggregateData(yesterdayJsonData) : [];
-
-                const getRankMap = (data) => new Map([...data].sort((a,b) => parseFloat(b.htp) - parseFloat(a.htp)).map((item, i) => [item.employee, i + 1]));
-                const todayRankMap = getRankMap(aggregatedData);
-                const yesterdayRankMap = getRankMap(yesterdayAggregated);
-
-                let filteredData = aggregatedData.map(item => {
-                    const todayRank = todayRankMap.get(item.employee);
-                    const yesterdayRank = yesterdayRankMap.get(item.employee);
-                    let rankChange = 'N';
-                    if (todayRank && yesterdayRank) {
-                        if (todayRank < yesterdayRank) rankChange = '▲';
-                        else if (todayRank > yesterdayRank) rankChange = '▼';
-                        else rankChange = '-';
-                    }
-                    return { ...item, rankChange };
-                });
-
-                if (filters.process === 'pick') filteredData = filteredData.filter(item => item.processType.includes('PICK'));
-                if (filters.process === 'pack') filteredData = filteredData.filter(item => item.processType.includes('PACK'));
-                if (filters.search) filteredData = filteredData.filter(item => item.employee.toLowerCase().includes(filters.search));
-                if (filters.lowHtp) filteredData = filteredData.filter(item => parseFloat(item.htp) < getTargetHtp(item));
-                if (filters.floors.size > 0) filteredData = filteredData.filter(item => item.processType.includes('PICK') && filters.floors.has(item.floor));
-                if (filters.packTypes.size > 0) filteredData = filteredData.filter(item => item.processType.includes('PACK') && filters.packTypes.has(item.packType));
-                
-                if (sortState.key) {
-                    filteredData.sort((a, b) => {
-                        let valA = a[sortState.key], valB = b[sortState.key];
-                        if (['unitQty', 'mh', 'htp'].includes(sortState.key)) { valA = parseFloat(valA); valB = parseFloat(valB); }
-                        if (valA < valB) return sortState.order === 'asc' ? -1 : 1;
-                        if (valA > valB) return sortState.order === 'asc' ? 1 : -1;
-                        return 0;
-                    });
-                }
-                
-                renderTable(filteredData);
-                updateStats(filteredData);
-                updateTicker(filteredData);
-            }
-
-            async function handleFileUpload(event) {
-                const file = event.target.files[0];
-                if (!file) return;
-                showLoader();
-                try {
-                    const reader = new FileReader();
-                    reader.onload = async (e) => {
-                        try {
-                            const data = new Uint8Array(e.target.result);
-                            const workbook = XLSX.read(data, { type: 'array' });
-                            const sheetName = workbook.SheetNames[0];
-                            const worksheet = workbook.Sheets[sheetName];
-                            const jsonData = XLSX.utils.sheet_to_json(worksheet, { header: 1 });
-                            await saveDataToFirestore(jsonData);
-                        } catch (err) {
-                            alert(err.message || "엑셀 파일 파싱 중 오류가 발생했습니다.");
-                            hideLoader();
-                        }
-                    };
-                    reader.readAsArrayBuffer(file);
-                } catch (error) {
-                    alert(error.message || "파일 업로드 중 오류가 발생했습니다.");
-                    hideLoader();
-                }
-            }
-
-            async function saveDataToFirestore(jsonData) {
-                const today = new Date().toISOString().split('T')[0];
-                const jsonString = JSON.stringify(jsonData);
-                const compressed = pako.deflate(jsonString);
-                const compressedBase64 = btoa(String.fromCharCode.apply(null, compressed));
-
-                const payload = { compressedData: compressedBase64, uploaderId: userId, timestamp: new Date().toISOString() };
-                try { 
-                    await setDoc(doc(dataCollectionRef, today), payload);
-                    fetchLatestData();
-                } catch (error) {
-                    console.error("Firestore 저장 오류:", error);
-                    alert(`데이터를 서버에 저장하는 데 실패했습니다.\n\n오류: ${error.message}\n\nFirestore 보안 규칙이 올바르게 설정되었는지 확인해주세요.`);
-                    hideLoader();
-                }
-            }
-
-            function initializeFilters() {
-                createTableHeader();
-                createColumnSettings();
-                const allPackTypes = [...Object.keys(PACK_TYPE_MAP), DEFAULT_PACK_TYPE];
-                createFilterCheckboxes(ui.packTypeFilters, allPackTypes.sort(), 'packTypes');
-                const floors = new Set(globalExcelJsonData.flatMap(row => [row[colIndices.floor]]));
-                createFilterCheckboxes(ui.floorFilters, Array.from(floors).filter(Boolean).sort(), 'floors');
-                createTimeFilters();
-                createTargetHtpSettings();
-            }
-
-            function createTableHeader() {
-                const headerRow = document.createElement('tr');
                 ALL_COLUMNS.forEach(col => {
                     if (!col.visible) return;
-                    const th = document.createElement('th');
-                    th.scope = 'col';
-                    th.className = 'px-4 py-3';
-                    if (col.sortable) {
-                        th.classList.add('sortable');
-                        th.addEventListener('click', () => handleSort(col.key));
-                        let arrow = sortState.key === col.key ? (sortState.order === 'asc' ? '▲' : '▼') : '';
-                        th.innerHTML = `${col.label} <span class="sort-arrow">${arrow}</span>`;
-                    } else {
-                        th.textContent = col.label;
-                    }
-                    headerRow.appendChild(th);
-                });
-                ui.tableHead.innerHTML = '';
-                ui.tableHead.appendChild(headerRow);
-            }
-            
-            function createColumnSettings() {
-                ui.columnSettings.innerHTML = '';
-                ALL_COLUMNS.forEach(col => {
-                    const label = document.createElement('label');
-                    label.className = 'flex items-center space-x-2 text-sm cursor-pointer';
-                    const checkbox = document.createElement('input');
-                    checkbox.type = 'checkbox';
-                    checkbox.checked = col.visible;
-                    checkbox.className = 'form-checkbox h-4 w-4 bg-gray-600 border-gray-500 rounded text-blue-500 focus:ring-blue-500';
-                    checkbox.addEventListener('change', (e) => {
-                        col.visible = e.target.checked;
-                        createTableHeader();
-                        applyFiltersAndRender();
-                    });
-                    label.appendChild(checkbox);
-                    label.appendChild(document.createTextNode(` ${col.label}`));
-                    ui.columnSettings.appendChild(label);
-                });
-            }
-
-            function handleSort(key) {
-                sortState.order = (sortState.key === key && sortState.order === 'asc') ? 'desc' : 'asc';
-                sortState.key = key;
-                createTableHeader();
-                applyFiltersAndRender();
-            }
-
-            function renderTable(data) {
-                ui.tableBody.innerHTML = '';
-                if (data.length === 0) {
-                    ui.tableBody.appendChild(ui.placeholderRow);
-                    ui.placeholderRow.classList.remove('hidden');
-                    updateStats([]); updateTicker([]); return;
-                }
-                ui.placeholderRow.classList.add('hidden');
-                data.forEach(item => {
-                    const row = document.createElement('tr');
-                    let rowClass = 'border-b border-gray-700 hover:bg-gray-600/50';
-                    if (item.isPerm && !item.isManager) rowClass += ' bg-blue-900/30';
-                    row.className = rowClass;
+                    const cell = document.createElement('td');
+                    cell.className = 'px-4 py-3';
+                    let content = item[col.key];
                     
-                    ALL_COLUMNS.forEach(col => {
-                        if (!col.visible) return;
-                        const cell = document.createElement('td');
-                        cell.className = 'px-4 py-3';
-                        let content = item[col.key];
-                        
-                        switch(col.key) {
-                            case 'processType': cell.className += ` font-medium ${item.processType.includes('PICK') ? 'text-blue-400' : 'text-yellow-400'}`; break;
-                            case 'employee':
-                                cell.className += ` cursor-pointer hover:underline ${item.isManager ? 'text-yellow-300 font-bold' : ''}`;
-                                content = item.isManager ? `👑 ${item.employee}` : item.employee;
-                                cell.addEventListener('click', () => showPerformanceChart(item.employee));
-                                break;
-                            case 'rankChange':
-                                let color = item.rankChange === '▲' ? 'text-green-400' : (item.rankChange === '▼' ? 'text-red-400' : 'text-gray-500');
-                                content = item.rankChange === 'N' ? '-' : item.rankChange;
-                                cell.className += ` text-center font-bold ${color}`;
-                                break;
-                            case 'htp':
-                                const targetHtp = getTargetHtp(item);
-                                cell.className += ` font-bold ${parseFloat(item.htp) < targetHtp ? 'text-red-400' : 'text-green-400'}`;
-                                content = `${parseFloat(item.htp) < targetHtp ? '🚨 ' : ''}${item.htp}`;
-                                break;
-                        }
-                        cell.textContent = content;
-                        row.appendChild(cell);
-                    });
-                    ui.tableBody.appendChild(row);
+                    switch(col.key) {
+                        case 'processType': cell.className += ` font-medium ${item.processType.includes('PICK') ? 'text-blue-400' : 'text-yellow-400'}`; break;
+                        case 'employee':
+                            cell.className += ` cursor-pointer hover:underline ${item.isManager ? 'text-yellow-300 font-bold' : ''}`;
+                            content = item.isManager ? `👑 ${item.employee}` : item.employee;
+                            cell.addEventListener('click', () => showPerformanceChart(item.employee));
+                            break;
+                        case 'rankChange':
+                            let color = item.rankChange === '▲' ? 'text-green-400' : (item.rankChange === '▼' ? 'text-red-400' : 'text-gray-500');
+                            content = item.rankChange === 'N' ? '-' : item.rankChange;
+                            cell.className += ` text-center font-bold ${color}`;
+                            break;
+                        case 'htp':
+                            const targetHtp = getTargetHtp(item);
+                            cell.className += ` font-bold ${parseFloat(item.htp) < targetHtp ? 'text-red-400' : 'text-green-400'}`;
+                            content = `${parseFloat(item.htp) < targetHtp ? '🚨 ' : ''}${item.htp}`;
+                            break;
+                    }
+                    cell.textContent = content;
+                    row.appendChild(cell);
                 });
-            }
+                ui.tableBody.appendChild(row);
+            });
+        }
+        
+        function showPerformanceChart(employeeName) {
+            const chartData = { labels: [], datasets: [{ label: 'HTP', data: [], borderColor: '#3b82f6', tension: 0.1, backgroundColor: 'rgba(59, 130, 246, 0.2)', fill: true }] };
+            const dateKeys = Object.keys(historicalData).sort().slice(-7);
             
-            function showPerformanceChart(employeeName) {
-                const chartData = { labels: [], datasets: [{ label: 'HTP', data: [], borderColor: '#3b82f6', tension: 0.1, backgroundColor: 'rgba(59, 130, 246, 0.2)', fill: true }] };
-                const dateKeys = Object.keys(historicalData).sort().slice(-7);
-                
-                dateKeys.forEach(dateKey => {
-                    chartData.labels.push(dateKey.substring(5));
-                    const dayData = aggregateData(historicalData[dateKey]);
-                    const employeeData = dayData.find(d => d.employee === employeeName);
-                    chartData.datasets[0].data.push(employeeData ? parseFloat(employeeData.htp) : null);
-                });
+            dateKeys.forEach(dateKey => {
+                chartData.labels.push(dateKey.substring(5));
+                const dayData = aggregateData(historicalData[dateKey]);
+                const employeeData = dayData.find(d => d.employee === employeeName);
+                chartData.datasets[0].data.push(employeeData ? parseFloat(employeeData.htp) : null);
+            });
 
-                ui.chartTitle.textContent = `${employeeName} - 최근 7일 성과 추이`;
-                if (performanceChart) performanceChart.destroy();
-                performanceChart = new Chart(document.getElementById('performance-chart'), {
-                    type: 'line', data: chartData,
-                    options: { scales: { y: { beginAtZero: true, ticks: { color: '#9ca3af' } }, x: { ticks: { color: '#9ca3af' } } }, plugins: { legend: { labels: { color: '#9ca3af' } } } }
-                });
-                ui.chartModal.classList.remove('hidden');
-            }
+            ui.chartTitle.textContent = `${employeeName} - 최근 7일 성과 추이`;
+            if (performanceChart) performanceChart.destroy();
+            performanceChart = new Chart(document.getElementById('performance-chart'), {
+                type: 'line', data: chartData,
+                options: { scales: { y: { beginAtZero: true, ticks: { color: '#9ca3af' } }, x: { ticks: { color: '#9ca3af' } } }, plugins: { legend: { labels: { color: '#9ca3af' } } } }
+            });
+            ui.chartModal.classList.remove('hidden');
+        }
 
-            function updateStats(data){const vR=data.length;const vW=new Set(data.map(d=>d.employee)).size;const tQ=data.reduce((s,d)=>s+d.unitQty,0);const tH=data.reduce((s,d)=>s+parseFloat(d.htp),0);const aH=vR>0?(tH/vR).toFixed(1):'0.0';ui.statsDisplay.innerHTML=`표시 그룹: <span class="font-bold text-white">${vR}</span> | 작업자 수: <span class="font-bold text-white">${vW}</span> | 총 작업량: <span class="font-bold text-white">${tQ.toLocaleString()}</span> | 평균 HTP: <span class="font-bold text-white">${aH}</span>`}
-            function updateTicker(d){if(d.length===0){ui.tickerText.textContent="데이터를 업로드해주세요.";return}const s=d.sort((a,b)=>b.htp-a.htp);const t=s.slice(0,3);const l=s.filter(i=>i.htp>0).slice(-3).reverse();const f=i=>`${i.employee.split("(")[0].trim()}(${i.htp})`;const tS="🏆Top3: "+(t.length>0?t.map(f).join(", "):"-");const lS="🚨Low3: "+(l.length>0?l.map(f).join(", "):"-");ui.tickerText.textContent=`${tS}      ${lS}`}
-            function captureTable(){html2canvas(ui.tableContainer).then(c=>{c.toBlob(b=>{navigator.clipboard.write([new ClipboardItem({'image/png':b})]).then(()=>alert('클립보드에 복사되었습니다.')).catch(e=>console.error(e))})})}
-            function exportToExcel(){const d=Array.from(ui.tableBody.querySelectorAll('tr')).filter(r=>!r.id.includes('placeholder'));if(d.length===0){alert('내보낼 데이터가 없습니다.');return}const pD=[],aD=[];d.forEach(r=>{const c=r.querySelectorAll('td');const rD={};ALL_COLUMNS.forEach((col,i)=>{if(col.visible)rD[col.label]=c[i].textContent.replace('👑 ','').replace('🚨 ','')});if(rD['집품/포장'].includes('PICK'))pD.push(rD);else aD.push(rD)});const w=XLSX.utils.book_new();if(pD.length>0)XLSX.utils.book_append_sheet(w,XLSX.utils.json_to_sheet(pD),"PICK(집품)");if(aD.length>0)XLSX.utils.book_append_sheet(w,XLSX.utils.json_to_sheet(aD),"PACK(포장)");XLSX.writeFile(w,"HTP_Data_Export.xlsx")}
-            function updateStatus(s,m){const d=ui.statusIndicator.querySelector('.status-dot'),t=ui.statusIndicator.querySelector('span');d.className='status-dot';if(s==='connected')d.classList.add('status-connected');else if(s==='disconnected')d.classList.add('status-disconnected');else if(s==='loading')d.classList.add('status-loading');t.textContent=m}
-            function showLoader(){ui.loaderContainer.classList.remove('hidden');ui.tableContainer.classList.add('hidden')}
-            function hideLoader(){ui.loaderContainer.classList.add('hidden');ui.tableContainer.classList.remove('hidden')}
-            
-            initializeFilters();
+        function updateStats(data){const vR=data.length;const vW=new Set(data.map(d=>d.employee)).size;const tQ=data.reduce((s,d)=>s+d.unitQty,0);const tH=data.reduce((s,d)=>s+parseFloat(d.htp),0);const aH=vR>0?(tH/vR).toFixed(1):'0.0';ui.statsDisplay.innerHTML=`표시 그룹: <span class="font-bold text-white">${vR}</span> | 작업자 수: <span class="font-bold text-white">${vW}</span> | 총 작업량: <span class="font-bold text-white">${tQ.toLocaleString()}</span> | 평균 HTP: <span class="font-bold text-white">${aH}</span>`}
+        function updateTicker(d){if(d.length===0){ui.tickerText.textContent="데이터를 업로드해주세요.";return}const s=d.sort((a,b)=>b.htp-a.htp);const t=s.slice(0,3);const l=s.filter(i=>i.htp>0).slice(-3).reverse();const f=i=>`${i.employee.split("(")[0].trim()}(${i.htp})`;const tS="🏆Top3: "+(t.length>0?t.map(f).join(", "):"-");const lS="🚨Low3: "+(l.length>0?l.map(f).join(", "):"-");ui.tickerText.textContent=`${tS}      ${lS}`}
+        function captureTable(){html2canvas(ui.tableContainer).then(c=>{c.toBlob(b=>{navigator.clipboard.write([new ClipboardItem({'image/png':b})]).then(()=>alert('클립보드에 복사되었습니다.')).catch(e=>console.error(e))})})}
+        function exportToExcel(){const d=Array.from(ui.tableBody.querySelectorAll('tr')).filter(r=>!r.id.includes('placeholder'));if(d.length===0){alert('내보낼 데이터가 없습니다.');return}const pD=[],aD=[];d.forEach(r=>{const c=r.querySelectorAll('td');const rD={};ALL_COLUMNS.forEach((col,i)=>{if(col.visible)rD[col.label]=c[i].textContent.replace('👑 ','').replace('🚨 ','')});if(rD['집품/포장'].includes('PICK'))pD.push(rD);else aD.push(rD)});const w=XLSX.utils.book_new();if(pD.length>0)XLSX.utils.book_append_sheet(w,XLSX.utils.json_to_sheet(pD),"PICK(집품)");if(aD.length>0)XLSX.utils.book_append_sheet(w,XLSX.utils.json_to_sheet(aD),"PACK(포장)");XLSX.writeFile(w,"HTP_Data_Export.xlsx")}
+        function updateStatus(s,m){const d=ui.statusIndicator.querySelector('.status-dot'),t=ui.statusIndicator.querySelector('span');d.className='status-dot';if(s==='connected')d.classList.add('status-connected');else if(s==='disconnected')d.classList.add('status-disconnected');else if(s==='loading')d.classList.add('status-loading');t.textContent=m}
+        function showLoader(){ui.loaderContainer.classList.remove('hidden');ui.tableContainer.classList.add('hidden')}
+        function hideLoader(){ui.loaderContainer.classList.add('hidden');ui.tableContainer.classList.remove('hidden')}
+        
+        initializeFilters();
         });
     </script>
 </body>
