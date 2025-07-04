@@ -223,12 +223,12 @@
         function processExcelData(data) {
             if (data.length < 2) return [];
 
-            const headers = data[0].map(h => h ? h.toString().trim() : '');
+            const headers = data[0].map(h => h ? h.toString().toLowerCase().trim() : '');
             
             const COLS_TO_LOAD = {
-                workDate: 'Work Date', employee: 'Employee', unitQty: 'Unit Qty', 
-                location: 'Location', floor: 'Floor', processPathName: 'Process Path Name', 
-                htpStart: 'HTP Start', htpEnd: 'HTP End', processTask: 'Process(Task)'
+                workDate: 'work date', employee: 'employee', unitQty: 'unit qty', 
+                location: 'location', floor: 'floor', processPathName: 'process path name', 
+                htpStart: 'htp start', htpEnd: 'htp end', processTask: 'process(task)'
             };
 
             const colIndices = {};
@@ -237,13 +237,13 @@
                 const expectedHeader = COLS_TO_LOAD[key];
                 const index = headers.indexOf(expectedHeader);
                 if (index === -1) {
-                    missingCols.push(expectedHeader);
+                    missingCols.push(COLS_TO_LOAD[key]);
                 }
                 colIndices[key] = index;
             }
 
             if (missingCols.length > 0) {
-                throw new Error(`엑셀 파일에 다음 필수 컬럼이 없습니다:\n[${missingCols.join(', ')}]\n\n엑셀 파일의 첫 번째 행에 있는 헤더 이름이 정확한지 확인해주세요.`);
+                throw new Error(`엑셀 파일에 다음 필수 컬럼이 없습니다:\n[${missingCols.join(', ')}]\n\n엑셀 파일의 첫 번째 행 헤더 이름과 공백 등을 정확히 확인해주세요.`);
             }
             
             let rawData;
@@ -253,7 +253,6 @@
                     const htpStartVal = row[colIndices.htpStart];
                     const htpEndVal = row[colIndices.htpEnd];
                     
-                    // --- 날짜와 시간 조합 로직 ---
                     const combineDateTime = (dateValue, timeValue) => {
                         if (!dateValue || !timeValue) return null;
                         
@@ -261,13 +260,13 @@
                         if (isNaN(datePart.getTime())) return null;
 
                         let timePart;
-                        if (typeof timeValue === 'number') { // 엑셀 시간 형식 (0.xxxx)
+                        if (typeof timeValue === 'number') {
                              timePart = new Date(Date.UTC(1899, 11, 30) + timeValue * 24 * 60 * 60 * 1000);
                         } else if (typeof timeValue === 'string') {
                             const parts = timeValue.split(':');
-                            timePart = new Date();
+                            timePart = new Date(0);
                             timePart.setUTCHours(parts[0] || 0, parts[1] || 0, parts[2] || 0, 0);
-                        } else { // 이미 Date 객체일 경우
+                        } else {
                             timePart = timeValue;
                         }
                         if (isNaN(timePart.getTime())) return null;
