@@ -4,14 +4,13 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>실시간 HTP 데이터 공유 (v3.2)</title>
+    <title>실시간 HTP 데이터 공유 (v3.3)</title>
     <!-- Favicon Add -->
     <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>🚀</text></svg>">
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
-    <!-- Add pako.js for Gzip compression -->
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/pako/2.1.0/pako.min.js"></script>
+    <!-- pako.js is no longer needed -->
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
     <style>
         body { font-family: 'Inter', sans-serif; scrollbar-width: thin; scrollbar-color: #4a5568 #2d3748; }
@@ -201,7 +200,9 @@
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
         import { getAuth, signInAnonymously, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
-        import { getFirestore, doc, setDoc, onSnapshot, Bytes } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
+        import { getFirestore, doc, setDoc, onSnapshot } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
+        // Import Firebase Storage modules
+        import { getStorage, ref, uploadBytes, getDownloadURL } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-storage.js";
 
         // --- UI Elements ---
         const ui = {
@@ -245,13 +246,14 @@
             appId: "1:913661158847:web:ebaf60d2afbeadda452d0a",
             measurementId: "G-77DRPC5F58"
         };
-        let db, auth, userId, dataDocRef;
+        let db, auth, storage, userId, dataDocRef;
         try {
             const app = initializeApp(firebaseConfig);
             db = getFirestore(app);
             auth = getAuth(app);
-            // Changed document path to store compressed data, avoiding conflicts with old format.
-            dataDocRef = doc(db, 'artifacts', firebaseConfig.projectId, 'public', 'data', 'htpData', 'latestCompressed');
+            storage = getStorage(app); // Initialize Firebase Storage
+            // This document will now only store the URL to the file in Storage
+            dataDocRef = doc(db, 'artifacts', firebaseConfig.projectId, 'public', 'data', 'htpData', 'latestFileReference');
         } catch(e) {
             console.error("Firebase 초기화 오류:", e);
             updateStatus('disconnected', 'Firebase 초기화에 실패했습니다.');
@@ -273,39 +275,47 @@
 
         // --- Realtime Listener ---
         function setupRealtimeListener() {
-            onSnapshot(dataDocRef, (docSnap) => {
+            onSnapshot(dataDocRef, async (docSnap) => {
                 if (docSnap.exists()) {
                     const dataPayload = docSnap.data();
+                    const downloadURL = dataPayload.downloadURL;
+
+                    if (!downloadURL) {
+                        console.log("No download URL found.");
+                        hideLoader();
+                        return;
+                    }
+                    
+                    showLoader();
                     try {
-                        // **DECOMPRESSION LOGIC**
-                        // 1. Get the compressed data (as Bytes) from Firestore.
-                        const compressedBytes = dataPayload.compressedData;
-                        if (!compressedBytes) throw new Error("압축된 데이터가 없습니다.");
-
-                        // 2. Convert Firestore Bytes to Uint8Array.
-                        const compressedUint8Array = compressedBytes.toUint8Array();
+                        // Fetch the Excel file from Firebase Storage
+                        const response = await fetch(downloadURL);
+                        if (!response.ok) {
+                            throw new Error(`Storage 파일 다운로드 실패: ${response.statusText}`);
+                        }
+                        const fileArrayBuffer = await response.arrayBuffer();
                         
-                        // 3. Decompress using pako.
-                        const decompressedString = pako.ungzip(compressedUint8Array, { to: 'string' });
-
-                        // 4. Parse the JSON string.
-                        globalRawData = JSON.parse(decompressedString); 
-
-                        // 5. Convert date strings back to Date objects.
-                        globalRawData.forEach(item => {
-                            item.htpStart = new Date(item.htpStart);
-                            item.htpEnd = new Date(item.htpEnd);
-                        });
+                        // Process the downloaded Excel file
+                        const data = new Uint8Array(fileArrayBuffer);
+                        const workbook = XLSX.read(data, { type: 'array', cellDates: true });
+                        const sheetName = workbook.SheetNames[0];
+                        const worksheet = workbook.Sheets[sheetName];
+                        const jsonData = XLSX.utils.sheet_to_json(worksheet, { header: 1 });
+                        
+                        globalRawData = parseExcelData(jsonData);
 
                         ui.lastUploaderEl.textContent = dataPayload.uploaderId.substring(0, 8) + '...';
                         ui.lastUpdatedEl.textContent = new Date(dataPayload.timestamp).toLocaleString('ko-KR');
                         
                         initializeFiltersFromData(globalRawData);
                         applyFiltersAndRender();
+
                     } catch (error) {
-                        console.error("데이터 압축 해제 또는 파싱 오류:", error);
-                        alert("서버로부터 받은 데이터를 처리하는 데 실패했습니다. 데이터가 손상되었을 수 있습니다.");
+                        console.error("Storage 파일 처리 오류:", error);
+                        alert("서버로부터 파일을 가져오거나 처리하는 데 실패했습니다.");
                         globalRawData = [];
+                    } finally {
+                        hideLoader();
                     }
                 } else {
                     globalRawData = [];
@@ -313,11 +323,12 @@
                     ui.tableBody.innerHTML = '';
                     ui.tableBody.appendChild(ui.placeholderRow);
                     ui.placeholderRow.classList.remove('hidden');
+                    hideLoader();
                 }
-                hideLoader();
             }, (error) => {
                 console.error("실시간 데이터 수신 오류:", error);
                 updateStatus('disconnected', '데이터 수신 중 오류 발생');
+                hideLoader();
             });
         }
         
@@ -591,56 +602,44 @@
             }
         }
         
-        function handleFileUpload(event) {
+        async function handleFileUpload(event) {
             const file = event.target.files[0];
             if (!file) return;
 
             showLoader();
-            const reader = new FileReader();
-            reader.onload = async (e) => {
-                try {
-                    const data = new Uint8Array(e.target.result);
-                    const workbook = XLSX.read(data, { type: 'array', cellDates: true });
-                    const sheetName = workbook.SheetNames[0];
-                    const worksheet = workbook.Sheets[sheetName];
-                    const jsonData = XLSX.utils.sheet_to_json(worksheet, { header: 1 });
-                    
-                    const parsedData = parseExcelData(jsonData);
-                    await saveDataToFirestore(parsedData);
+            try {
+                // Create a reference to the file in Firebase Storage.
+                // This will overwrite the previous file, which is desired.
+                const storageRef = ref(storage, 'htp-data/latest-upload.xlsx');
 
-                } catch (error) {
-                    console.error("파일 처리 오류:", error);
-                    alert(error.message || "파일을 처리하는 중 오류가 발생했습니다. 파일 형식을 확인해주세요.");
-                    hideLoader();
-                }
-            };
-            reader.onerror = (error) => { console.error("파일 읽기 오류:", error); alert("파일을 읽을 수 없습니다."); hideLoader(); };
-            reader.readAsArrayBuffer(file);
+                // Upload the file.
+                const snapshot = await uploadBytes(storageRef, file);
+                
+                // Get the download URL.
+                const downloadURL = await getDownloadURL(snapshot.ref);
+
+                // Save the file reference (URL) to Firestore.
+                await saveDataReferenceToFirestore(downloadURL);
+
+            } catch (error) {
+                console.error("파일 업로드 또는 처리 오류:", error);
+                alert("파일을 업로드하는 중 오류가 발생했습니다.");
+                hideLoader();
+            }
         }
 
-        async function saveDataToFirestore(data) {
+        async function saveDataReferenceToFirestore(downloadURL) {
+            const payload = { 
+                downloadURL: downloadURL, 
+                uploaderId: userId, 
+                timestamp: new Date().toISOString() 
+            };
             try {
-                // **COMPRESSION LOGIC**
-                // 1. Stringify the data object.
-                const jsonString = JSON.stringify(data);
-                
-                // 2. Compress the string using pako's Gzip.
-                const compressedData = pako.gzip(jsonString);
-
-                // 3. Convert the compressed Uint8Array to Firestore's Bytes format for storage.
-                const compressedBytes = Bytes.fromUint8Array(compressedData);
-
-                // 4. Create the payload with the compressed data.
-                const payload = { 
-                    compressedData: compressedBytes, 
-                    uploaderId: userId, 
-                    timestamp: new Date().toISOString() 
-                };
-                
                 await setDoc(dataDocRef, payload);
+                // The onSnapshot listener will handle the rest.
             } catch (error) {
-                console.error("Firestore 저장 오류:", error);
-                alert("데이터를 서버에 저장하는 데 실패했습니다. 파일이 너무 크거나 네트워크 문제가 있을 수 있습니다.");
+                console.error("Firestore 참조 저장 오류:", error);
+                alert("파일 참조를 서버에 저장하는 데 실패했습니다.");
                 hideLoader();
             }
         }
