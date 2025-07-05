@@ -4,7 +4,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>GWJ2 PICK & PACK HTP TOOL_Bennett (v1.1.0)</title>
+    <title>GWJ2 PICK & PACK HTP TOOL_Bennett (v1.2.0)</title>
     
     <!-- Favicon -->
     <link rel="icon" href="https://raw.githubusercontent.com/qogmlwo000/gwj2pickpackhtp/main/Bennett.ico" type="image/x-icon">
@@ -96,6 +96,7 @@
         .table-container { 
             flex-grow: 1; /* Take up remaining vertical space */
             overflow: auto; /* Enable both vertical and horizontal scrolling */
+            -webkit-overflow-scrolling: touch; /* Momentum-based scrolling on iOS */
         }
         
         /* Table Border Styles */
@@ -236,7 +237,7 @@
         <!-- Table -->
         <div id="loader-container" class="flex-1 flex justify-center items-center hidden"><div class="loader"></div></div>
         <div class="table-container px-4 pb-4">
-            <table id="data-table" class="w-full text-sm text-left text-gray-400">
+            <table id="data-table" class="min-w-full text-sm text-left text-gray-400">
                 <thead class="text-xs text-gray-300 uppercase bg-gray-700 sticky top-0 z-10">
                     <tr>
                         <th scope="col" class="px-4 py-3 sortable" data-sort-key="processType">집품/포장<span class="sort-indicator"></span></th>
