@@ -898,7 +898,7 @@
                     <td class="px-4 py-3">${item.processPathName || '-'}</td>
                     <td class="px-4 py-3">${item.packType}</td>
                     <td class="px-4 py-3">${item.mh}</td>
-                    <td class="px-4 py-3 font-bold ${htpColor}">${parseFloat(item.htp) < targetHtp && targetHtp > 0 ? '🚨 ' : ''}${item.htp}</td>
+                    <td class="px-4 py-3 font-bold ${htpColor}">${parseFloat(item.htp) < targetHtp && targetHtp > 0 ? '� ' : ''}${item.htp}</td>
                 `;
                 ui.tableBody.appendChild(row);
             });
@@ -983,29 +983,96 @@
 
         function exportToExcel() {
             const dataToExport = Array.from(ui.tableBody.querySelectorAll('tr')).filter(tr => !tr.id.includes('placeholder'));
-            if (dataToExport.length === 0) { showModal('내보낼 데이터가 없습니다.'); return; }
+            if (dataToExport.length === 0) {
+                showModal('내보낼 데이터가 없습니다.');
+                return;
+            }
+
             const pickData = [];
             const packData = [];
+
             dataToExport.forEach(row => {
                 const cells = row.querySelectorAll('td');
                 const rowData = {
                     '집품/포장': cells[0].textContent,
                     '이름(원바코드)': cells[1].textContent.replace(/[👑📝]\s|\[계약직\]\s/g, ''),
-                    '작업량': cells[2].textContent,
+                    '작업량': Number(cells[2].textContent),
                     '로케이션 및 작업대': cells[3].textContent,
                     'PP': cells[4].textContent,
                     '팩 종류': cells[5].textContent,
-                    'M/H': cells[6].textContent,
-                    'HTP': cells[7].textContent.replace('🚨 ', '')
+                    'M/H': parseFloat(cells[6].textContent),
+                    'HTP': parseFloat(cells[7].textContent.replace('🚨 ', ''))
                 };
-                if (rowData['집품/포장'].includes('PICK')) pickData.push(rowData);
-                else packData.push(rowData);
+                if (rowData['집품/포장'].includes('PICK')) {
+                    pickData.push(rowData);
+                } else {
+                    packData.push(rowData);
+                }
             });
+
             const wb = XLSX.utils.book_new();
-            if (pickData.length > 0) XLSX.utils.book_append_sheet(wb, XLSX.utils.json_to_sheet(pickData), "PICK(집품)");
-            if (packData.length > 0) XLSX.utils.book_append_sheet(wb, XLSX.utils.json_to_sheet(packData), "PACK(포장)");
-            XLSX.writeFile(wb, "HTP_Data_Export.xlsx");
+
+            const createStyledSheet = (data, sheetName) => {
+                if (!data || data.length === 0) return;
+
+                const headers = Object.keys(data[0]);
+                const ws_data = [headers, ...data.map(row => headers.map(header => row[header]))];
+                const ws = XLSX.utils.aoa_to_sheet(ws_data);
+
+                const headerStyle = {
+                    font: { bold: true, color: { rgb: "FFFFFF" } },
+                    fill: { fgColor: { rgb: "4F81BD" } },
+                    alignment: { horizontal: "center", vertical: "center" },
+                    border: { top: { style: "thin" }, bottom: { style: "thin" }, left: { style: "thin" }, right: { style: "thin" } }
+                };
+                const cellStyle = {
+                    alignment: { horizontal: "center", vertical: "center" },
+                    border: { top: { style: "thin" }, bottom: { style: "thin" }, left: { style: "thin" }, right: { style: "thin" } }
+                };
+
+                const range = XLSX.utils.decode_range(ws['!ref']);
+                for (let C = range.s.c; C <= range.e.c; ++C) {
+                    const headerAddr = XLSX.utils.encode_cell({ c: C, r: 0 });
+                    if (ws[headerAddr]) ws[headerAddr].s = headerStyle;
+
+                    for (let R = 1; R <= range.e.r; ++R) {
+                        const cellAddr = XLSX.utils.encode_cell({ c: C, r: R });
+                        if (ws[cellAddr]) {
+                            if (!ws[cellAddr].s) ws[cellAddr].s = {};
+                            Object.assign(ws[cellAddr].s, cellStyle);
+                            if (typeof ws[cellAddr].v === 'number') {
+                                if (headers[C] === 'M/H') ws[cellAddr].z = '0.0000';
+                                else if (headers[C] === 'HTP') ws[cellAddr].z = '0.0';
+                                else if (headers[C] === '작업량') ws[cellAddr].z = '0';
+                            }
+                        }
+                    }
+                }
+
+                const colWidths = headers.map((header, i) => {
+                    const maxLength = Math.max(
+                        header.length,
+                        ...ws_data.slice(1).map(row => (row[i] ? row[i].toString().length : 0))
+                    );
+                    return { wch: maxLength + 2 };
+                });
+                ws['!cols'] = colWidths;
+                ws['!autofilter'] = { ref: ws['!ref'] };
+                ws['!freeze'] = { ySplit: 1 };
+
+                XLSX.utils.book_append_sheet(wb, ws, sheetName);
+            };
+
+            createStyledSheet(pickData, "PICK(집품)");
+            createStyledSheet(packData, "PACK(포장)");
+
+            if (wb.SheetNames.length > 0) {
+                XLSX.writeFile(wb, "HTP_Data_Export_Styled.xlsx");
+            } else {
+                showModal('내보낼 데이터가 없습니다.');
+            }
         }
+
 
         function updateStatus(status, message) {
             const dot = ui.statusIndicator.querySelector('.status-dot');
