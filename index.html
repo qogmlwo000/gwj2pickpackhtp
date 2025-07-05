@@ -4,7 +4,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>GWJ2 PICK & PACK HTP TOOL_Bennett (v1.3.2)</title>
+    <title>GWJ2 PICK & PACK HTP TOOL_Bennett (v1.3.3)</title>
     
     <!-- Favicon -->
     <link rel="icon" href="https://raw.githubusercontent.com/qogmlwo000/gwj2pickpackhtp/main/Bennett.ico" type="image/x-icon">
@@ -732,7 +732,7 @@
                     packType = '집품';
                 } else { // PACK(PACKING)
                     packType = getPackType(item.location, item.processTask, item.processPathName);
-                    key = `${item.employee}|${packType}|PACK`;
+                    key = `${item.employee}|${packType}|${item.processPathName}|PACK`;
                 }
 
                 const durationSeconds = (item.htpEnd - item.htpStart) / 1000;
@@ -762,7 +762,6 @@
                 
                 // Update with the last seen location/path for representative display
                 group.location = item.location;
-                group.processPathName = item.processPathName;
             });
 
             const finalData = [];
