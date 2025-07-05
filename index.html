@@ -4,7 +4,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>GWJ2 PICK & PACK HTP TOOL_Bennett (v1.3.5)</title>
+    <title>GWJ2 PICK & PACK HTP TOOL_Bennett (v1.3.4)</title>
     
     <!-- Favicon -->
     <link rel="icon" href="https://raw.githubusercontent.com/qogmlwo000/gwj2pickpackhtp/main/Bennett.ico" type="image/x-icon">
@@ -1277,9 +1277,24 @@
         }
         
         // --- Charting Functions ---
+        Chart.register(ChartDataLabels); // **IMPORTANT: Register the plugin**
+
         function updateDashboardCharts(data) {
             updateFloorHtpChart(data);
             updatePackTypeChart(data);
+        }
+
+        function generateColors(numColors) {
+            const colors = [
+                'rgba(59, 130, 246, 0.7)', 'rgba(239, 68, 68, 0.7)', 'rgba(34, 197, 94, 0.7)',
+                'rgba(245, 158, 11, 0.7)', 'rgba(139, 92, 246, 0.7)', 'rgba(236, 72, 153, 0.7)',
+                'rgba(16, 185, 129, 0.7)', 'rgba(249, 115, 22, 0.7)', 'rgba(99, 102, 241, 0.7)'
+            ];
+            const result = [];
+            for (let i = 0; i < numColors; i++) {
+                result.push(colors[i % colors.length]);
+            }
+            return result;
         }
 
         function updateFloorHtpChart(data) {
@@ -1299,7 +1314,7 @@
             const avgHtps = [];
             for (const [floor, d] of floorData.entries()) {
                 labels.push(floor);
-                avgHtps.push(d.count > 0 ? d.totalHtp / d.count : 0);
+                avgHtps.push(d.count > 0 ? (d.totalHtp / d.count).toFixed(1) : 0);
             }
 
             const ctx = document.getElementById('floor-htp-chart').getContext('2d');
@@ -1313,8 +1328,8 @@
                     datasets: [{
                         label: '평균 HTP',
                         data: avgHtps,
-                        backgroundColor: 'rgba(59, 130, 246, 0.7)',
-                        borderColor: 'rgba(59, 130, 246, 1)',
+                        backgroundColor: generateColors(labels.length),
+                        borderColor: '#4b5563',
                         borderWidth: 1
                     }]
                 },
@@ -1325,7 +1340,16 @@
                         y: { beginAtZero: true, ticks: { color: '#d1d5db' } },
                         x: { ticks: { color: '#d1d5db' } }
                     },
-                    plugins: { legend: { labels: { color: '#d1d5db' } } }
+                    plugins: {
+                        legend: { display: false },
+                        datalabels: {
+                            anchor: 'end',
+                            align: 'top',
+                            color: '#FFFFFF',
+                            font: { weight: 'bold' },
+                            formatter: (value) => value > 0 ? value : ''
+                        }
+                    }
                 }
             });
         }
@@ -1333,12 +1357,15 @@
         function updatePackTypeChart(data) {
             const packData = data.filter(d => d.processType.includes('PACK'));
             const packTypeData = new Map();
+            let totalQuantity = 0;
 
             packData.forEach(item => {
                 if (!packTypeData.has(item.packType)) {
                     packTypeData.set(item.packType, 0);
                 }
-                packTypeData.set(item.packType, packTypeData.get(item.packType) + item.unitQty);
+                const currentQty = packTypeData.get(item.packType);
+                packTypeData.set(item.packType, currentQty + item.unitQty);
+                totalQuantity += item.unitQty;
             });
 
             const labels = Array.from(packTypeData.keys());
@@ -1355,19 +1382,27 @@
                     datasets: [{
                         label: '작업량',
                         data: quantities,
-                        backgroundColor: [
-                            'rgba(239, 68, 68, 0.7)', 'rgba(245, 158, 11, 0.7)', 'rgba(234, 179, 8, 0.7)',
-                            'rgba(34, 197, 94, 0.7)', 'rgba(59, 130, 246, 0.7)', 'rgba(139, 92, 246, 0.7)',
-                            'rgba(236, 72, 153, 0.7)'
-                        ],
-                        borderColor: '#4b5563',
-                        borderWidth: 1
+                        backgroundColor: generateColors(labels.length),
+                        borderColor: '#374151',
+                        borderWidth: 2
                     }]
                 },
                 options: {
                     responsive: true,
                     maintainAspectRatio: false,
-                    plugins: { legend: { position: 'top', labels: { color: '#d1d5db' } } }
+                    plugins: {
+                        legend: { position: 'top', labels: { color: '#d1d5db' } },
+                        datalabels: {
+                            color: '#FFFFFF',
+                            textAlign: 'center',
+                            font: { weight: 'bold' },
+                            formatter: (value, context) => {
+                                const percentage = totalQuantity > 0 ? (value / totalQuantity * 100).toFixed(1) : 0;
+                                const label = context.chart.data.labels[context.dataIndex];
+                                return `${label}\n${percentage}%\n(${value.toLocaleString()})`;
+                            }
+                        }
+                    }
                 }
             });
         }
@@ -1425,7 +1460,13 @@
                         y: { beginAtZero: true, ticks: { color: '#d1d5db' } },
                         x: { ticks: { color: '#d1d5db' } }
                     },
-                    plugins: { legend: { labels: { color: '#d1d5db' } } }
+                    plugins: { 
+                        legend: { labels: { color: '#d1d5db' } },
+                        datalabels: {
+                            align: 'top',
+                            color: '#FFFFFF'
+                        }
+                    }
                 }
             });
 
