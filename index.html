@@ -4,7 +4,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>실시간 HTP 데이터 공유 (v3.12)</title>
+    <title>실시간 HTP 데이터 공유 (v3.13)</title>
     
     <!-- Favicon -->
     <link rel="icon" href="https://raw.githubusercontent.com/qogmlwo000/gwj2pickpackhtp/main/Bennett.ico" type="image/x-icon">
@@ -93,6 +93,14 @@
         .sortable:hover .sort-indicator { opacity: 1; }
         .sort-indicator.asc, .sort-indicator.desc { opacity: 1; color: #60a5fa; }
 
+        /* Table Border Styles */
+        #table-header th, #data-table-body td {
+            border-right: 1px solid #374151;
+        }
+        #table-header th:last-child, #data-table-body td:last-child {
+            border-right: none;
+        }
+
         /* Mobile Card View Styles */
         @media (max-width: 768px) {
             #table-header { display: none; }
@@ -110,6 +118,7 @@
                 align-items: center;
                 padding: 0.5rem 0;
                 border-bottom: 1px solid #4a5568;
+                border-right: none !important; /* Remove right border on mobile */
             }
             #data-table-body td:last-child {
                 border-bottom: none;
