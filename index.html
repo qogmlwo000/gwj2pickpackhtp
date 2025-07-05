@@ -4,7 +4,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>실시간 HTP 데이터 공유 (v3.8)</title>
+    <title>실시간 HTP 데이터 공유 (v3.9)</title>
     <!-- Favicon Add -->
     <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>🚀</text></svg>">
     <script src="https://cdn.tailwindcss.com"></script>
@@ -389,8 +389,6 @@
             const isOpen = ui.sidebar.classList.toggle('open');
             if (window.innerWidth < 1024) {
                  ui.sidebarOverlay.classList.toggle('hidden', !isOpen);
-            } else {
-                 document.getElementById('main-content').classList.toggle('lg:ml-[300px]', isOpen);
             }
         }
         ui.sidebarToggle.addEventListener('click', toggleSidebar);
