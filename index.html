@@ -4,7 +4,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>실시간 HTP 데이터 공유 (v3.9)</title>
+    <title>실시간 HTP 데이터 공유 (v3.10)</title>
     <!-- Favicon Add -->
     <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>🚀</text></svg>">
     <script src="https://cdn.tailwindcss.com"></script>
@@ -246,17 +246,16 @@
                     <tr>
                         <th scope="col" class="px-4 py-3 sortable" data-sort-key="processType">집품/포장<span class="sort-indicator"></span></th>
                         <th scope="col" class="px-4 py-3 sortable" data-sort-key="employee">이름(원바코드)<span class="sort-indicator"></span></th>
-                        <th scope="col" class="px-4 py-3 sortable" data-sort-key="floor">층<span class="sort-indicator"></span></th>
-                        <th scope="col" class="px-4 py-3 sortable" data-sort-key="processPathName">PP<span class="sort-indicator"></span></th>
-                        <th scope="col" class="px-4 py-3 sortable" data-sort-key="location">Location<span class="sort-indicator"></span></th>
                         <th scope="col" class="px-4 py-3 sortable" data-sort-key="unitQty">작업량<span class="sort-indicator"></span></th>
+                        <th scope="col" class="px-4 py-3 sortable" data-sort-key="location">로케이션 및 작업대<span class="sort-indicator"></span></th>
+                        <th scope="col" class="px-4 py-3 sortable" data-sort-key="processPathName">PP<span class="sort-indicator"></span></th>
+                        <th scope="col" class="px-4 py-3 sortable" data-sort-key="packType">팩 종류<span class="sort-indicator"></span></th>
                         <th scope="col" class="px-4 py-3 sortable" data-sort-key="mh">M/H<span class="sort-indicator"></span></th>
                         <th scope="col" class="px-4 py-3 sortable" data-sort-key="htp">HTP<span class="sort-indicator"></span></th>
-                        <th scope="col" class="px-4 py-3 sortable" data-sort-key="packType">팩 종류<span class="sort-indicator"></span></th>
                     </tr>
                 </thead>
                 <tbody id="data-table-body" class="bg-gray-800">
-                    <tr id="placeholder-row"><td colspan="9" class="text-center py-10 text-gray-500">엑셀 파일을 업로드하여 데이터를 확인하세요.</td></tr>
+                    <tr id="placeholder-row"><td colspan="8" class="text-center py-10 text-gray-500">엑셀 파일을 업로드하여 데이터를 확인하세요.</td></tr>
                 </tbody>
             </table>
         </div>
@@ -423,8 +422,8 @@
                 if (state.sort.direction === 'asc') {
                     state.sort.direction = 'desc';
                 } else if (state.sort.direction === 'desc') {
-                    state.sort.direction = null; // Reset sort
-                    state.sort.key = 'htp'; // Default back to htp
+                    state.sort.direction = null; 
+                    state.sort.key = 'htp'; 
                     state.sort.direction = 'asc';
                 }
             } else {
@@ -836,26 +835,31 @@
 
             data.forEach(item => {
                 const row = document.createElement('tr');
-                let rowClass = 'border-b border-gray-700';
-                if (item.isPerm && !item.isManager) rowClass += ' bg-blue-900/30';
-                row.className = rowClass;
                 
                 let processTypeColor = item.processType.includes('PICK') ? 'text-blue-400' : 'text-yellow-400';
                 const targetHtp = getTargetHtp(item);
                 let htpColor = parseFloat(item.htp) < targetHtp ? 'text-red-400' : 'text-green-400';
-                let empName = item.isManager ? `👑 ${item.employee}` : item.employee;
-                let empColor = item.isManager ? 'text-yellow-300 font-bold' : '';
+                
+                let empDisplay = item.employee;
+                let empColor = '';
+                if (item.isManager) {
+                    empDisplay = `👑 ${item.employee}`;
+                    empColor = 'text-yellow-300 font-bold';
+                } else if (item.isPerm) {
+                    empDisplay = `📝 ${item.employee}`;
+                    empColor = 'text-cyan-400';
+                }
+
 
                 row.innerHTML = `
                     <td class="px-4 py-3 font-medium ${processTypeColor}" data-label="집품/포장">${item.processType}</td>
-                    <td class="px-4 py-3 ${empColor}" data-label="이름(원바코드)">${empName}</td>
-                    <td class="px-4 py-3" data-label="층">${item.floor || '-'}</td>
-                    <td class="px-4 py-3" data-label="PP">${item.processPathName || '-'}</td>
-                    <td class="px-4 py-3" data-label="Location">${item.location || '-'}</td>
+                    <td class="px-4 py-3 ${empColor}" data-label="이름(원바코드)">${empDisplay}</td>
                     <td class="px-4 py-3" data-label="작업량">${item.unitQty}</td>
+                    <td class="px-4 py-3" data-label="로케이션 및 작업대">${item.location || '-'}</td>
+                    <td class="px-4 py-3" data-label="PP">${item.processPathName || '-'}</td>
+                    <td class="px-4 py-3" data-label="팩 종류">${item.packType}</td>
                     <td class="px-4 py-3" data-label="M/H">${item.mh}</td>
                     <td class="px-4 py-3 font-bold ${htpColor}" data-label="HTP">${parseFloat(item.htp) < targetHtp && targetHtp > 0 ? '🚨 ' : ''}${item.htp}</td>
-                    <td class="px-4 py-3" data-label="팩 종류">${item.packType}</td>
                 `;
                 ui.tableBody.appendChild(row);
             });
@@ -931,10 +935,14 @@
             dataToExport.forEach(row => {
                 const cells = row.querySelectorAll('td');
                 const rowData = {
-                    '집품/포장': cells[0].textContent, '이름(원바코드)': cells[1].textContent.replace('👑 ', ''),
-                    '층': cells[2].textContent, 'PP': cells[3].textContent, 'Location': cells[4].textContent,
-                    '작업량': cells[5].textContent, 'M/H': cells[6].textContent,
-                    'HTP': cells[7].textContent.replace('🚨 ', ''), '팩 종류': cells[8].textContent
+                    '집품/포장': cells[0].textContent,
+                    '이름(원바코드)': cells[1].textContent.replace(/[👑📝]\s/g, ''),
+                    '작업량': cells[2].textContent,
+                    '로케이션 및 작업대': cells[3].textContent,
+                    'PP': cells[4].textContent,
+                    '팩 종류': cells[5].textContent,
+                    'M/H': cells[6].textContent,
+                    'HTP': cells[7].textContent.replace('🚨 ', '')
                 };
                 if (rowData['집품/포장'].includes('PICK')) pickData.push(rowData);
                 else packData.push(rowData);
