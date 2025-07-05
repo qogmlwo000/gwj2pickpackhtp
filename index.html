@@ -4,7 +4,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>GWJ2 PICK & PACK HTP TOOL_Bennett (v1.3.0)</title>
+    <title>GWJ2 PICK & PACK HTP TOOL_Bennett (v1.3.1)</title>
     
     <!-- Favicon -->
     <link rel="icon" href="https://raw.githubusercontent.com/qogmlwo000/gwj2pickpackhtp/main/Bennett.ico" type="image/x-icon">
@@ -563,9 +563,11 @@
             const row = e.target.closest('tr');
             if (!row || row.id === 'placeholder-row') return;
             const employeeCell = row.querySelector('td:nth-child(2)');
-            if(employeeCell) {
+            const processCell = row.querySelector('td:nth-child(1)');
+            if(employeeCell && processCell) {
                 const employeeName = employeeCell.textContent.replace(/[👑]\s*/g, '');
-                showIndividualTrend(employeeName);
+                const processType = processCell.textContent; // "PICK(집품)" or "PACK(포장)"
+                showIndividualTrend(employeeName, processType);
             }
         });
 
@@ -1048,7 +1050,7 @@
                     <td class="px-4 py-3 text-gray-200">${item.processPathName || '-'}</td>
                     <td class="px-4 py-3 text-gray-200">${item.packType}</td>
                     <td class="px-4 py-3 text-gray-200">${item.mh}</td>
-                    <td class="px-4 py-3 font-bold ${htpColor}">${parseFloat(item.htp) < targetHtp && targetHtp > 0 ? '🚨 ' : ''}${item.htp}</td>
+                    <td class="px-4 py-3 font-bold ${htpColor}">${parseFloat(item.htp) < targetHtp && targetHtp > 0 ? '� ' : ''}${item.htp}</td>
                 `;
                 ui.tableBody.appendChild(row);
             });
@@ -1145,7 +1147,7 @@
                 const cells = row.querySelectorAll('td');
                 const rowData = {
                     '집품/포장': cells[0].textContent,
-                    '이름(원바코드)': cells[1].textContent.replace(/[👑�🐕]\s*|\[계약직\]\s*/g, ''),
+                    '이름(원바코드)': cells[1].textContent.replace(/[👑📝🐕]\s*|\[계약직\]\s*/g, ''),
                     '작업량': Number(cells[2].textContent),
                     '로케이션 및 작업대': cells[3].textContent,
                     'PP': cells[4].textContent,
@@ -1364,23 +1366,36 @@
             });
         }
 
-        function showIndividualTrend(employeeName) {
-            const employeeData = globalRawData.filter(d => d.employee === employeeName && d.processTask.includes('PICK'));
+        function showIndividualTrend(employeeName, processType) {
+            const targetProcessTask = processType.includes('PICK') ? 'PICK(PICKING)' : 'PACK(PACKING)';
+            const employeeData = globalRawData.filter(d => d.employee === employeeName && d.processTask === targetProcessTask);
+            
             if (employeeData.length === 0) {
-                showModal(`${employeeName.split('(')[0]} 님의 집품(PICK) 데이터가 없습니다.`);
+                showModal(`${employeeName.split('(')[0]} 님의 해당 공정 데이터가 없습니다.`);
                 return;
             }
 
-            employeeData.sort((a, b) => a.htpStart - b.htpStart);
-
-            const labels = employeeData.map(d => d.htpStart.toLocaleTimeString('ko-KR'));
-            const htpValues = employeeData.map(d => {
-                const durationSeconds = (d.htpEnd - d.htpStart) / 1000;
-                const mh = durationSeconds / 3600;
-                return mh > 0 ? (d.unitQty / mh).toFixed(1) : 0;
+            const hourlyData = new Map();
+            employeeData.forEach(item => {
+                const hour = item.htpStart.getHours();
+                if (!hourlyData.has(hour)) {
+                    hourlyData.set(hour, { unitQty: 0, totalSeconds: 0 });
+                }
+                const hourStats = hourlyData.get(hour);
+                hourStats.unitQty += item.unitQty;
+                hourStats.totalSeconds += (item.htpEnd - item.htpStart) / 1000;
             });
 
-            ui.chartModalTitle.textContent = `${employeeName} 님의 HTP 추이`;
+            const sortedHours = Array.from(hourlyData.keys()).sort((a, b) => a - b);
+            
+            const labels = sortedHours.map(hour => `${hour}시`);
+            const htpValues = sortedHours.map(hour => {
+                const stats = hourlyData.get(hour);
+                const mh = stats.totalSeconds / 3600;
+                return mh > 0 ? (stats.unitQty / mh).toFixed(1) : 0;
+            });
+
+            ui.chartModalTitle.textContent = `${employeeName} 님의 시간대별 HTP (${processType.split('(')[0]})`;
             const ctx = document.getElementById('individual-htp-chart').getContext('2d');
             if (state.charts.individualHtp) {
                 state.charts.individualHtp.destroy();
