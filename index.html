@@ -4,7 +4,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>GWJ2 PICK & PACK HTP TOOL_Bennett (v1.2.2)</title>
+    <title>GWJ2 PICK & PACK HTP TOOL_Bennett (v1.2.3)</title>
     
     <!-- Favicon -->
     <link rel="icon" href="https://raw.githubusercontent.com/qogmlwo000/gwj2pickpackhtp/main/Bennett.ico" type="image/x-icon">
@@ -533,6 +533,10 @@
                 const htpEnd = combineDateTime(row[colIndices.workDate], row[colIndices.htpEnd]);
                 if (!htpStart || !htpEnd) return null;
                 
+                // *** FIX: Exclude data with 0 or negative duration ***
+                const durationSeconds = (htpEnd - htpStart) / 1000;
+                if (durationSeconds <= 0) return null;
+
                 let processTask = row[colIndices.processTask] || '';
                 const location = row[colIndices.location] || '';
                 const processPathName = row[colIndices.processPathName] || '';
@@ -578,7 +582,8 @@
                 }
 
                 const durationSeconds = (item.htpEnd - item.htpStart) / 1000;
-                if (durationSeconds < 0) return; // Ignore invalid time ranges
+                // This check is now redundant due to the fix in parseExcelData, but kept for safety.
+                if (durationSeconds <= 0) return; 
 
                 if (!aggregatedMap.has(key)) {
                     const empIdMatch = item.employee.match(/\((.*?)\)/);
@@ -985,7 +990,7 @@
                 const cells = row.querySelectorAll('td');
                 const rowData = {
                     '집품/포장': cells[0].textContent,
-                    '이름(원바코드)': cells[1].textContent.replace(/[👑�]\s|\[계약직\]\s/g, ''),
+                    '이름(원바코드)': cells[1].textContent.replace(/[👑📝]\s|\[계약직\]\s/g, ''),
                     '작업량': cells[2].textContent,
                     '로케이션 및 작업대': cells[3].textContent,
                     'PP': cells[4].textContent,
