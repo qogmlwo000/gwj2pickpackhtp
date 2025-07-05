@@ -1056,7 +1056,7 @@
                     <td class="px-4 py-3 text-gray-200">${item.processPathName || '-'}</td>
                     <td class="px-4 py-3 text-gray-200">${item.packType}</td>
                     <td class="px-4 py-3 text-gray-200">${item.mh}</td>
-                    <td class="px-4 py-3 font-bold ${htpColor}">${parseFloat(item.htp) < targetHtp && targetHtp > 0 ? '� ' : ''}${item.htp}</td>
+                    <td class="px-4 py-3 font-bold ${htpColor}">${parseFloat(item.htp) < targetHtp && targetHtp > 0 ? '🚨 ' : ''}${item.htp}</td>
                 `;
                 ui.tableBody.appendChild(row);
             });
