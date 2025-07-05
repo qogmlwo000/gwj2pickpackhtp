@@ -4,7 +4,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>GWJ2 PICK & PACK HTP TOOL_Bennett (v1.0.0)</title>
+    <title>GWJ2 PICK & PACK HTP TOOL_Bennett (v1.1.0)</title>
     
     <!-- Favicon -->
     <link rel="icon" href="https://raw.githubusercontent.com/qogmlwo000/gwj2pickpackhtp/main/Bennett.ico" type="image/x-icon">
@@ -23,18 +23,15 @@
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
     <style>
         body { font-family: 'Inter', sans-serif; scrollbar-width: thin; scrollbar-color: #4a5568 #2d3748; }
-        ::-webkit-scrollbar { width: 8px; }
+        ::-webkit-scrollbar { width: 8px; height: 8px; }
         ::-webkit-scrollbar-track { background: #2d3748; }
         ::-webkit-scrollbar-thumb { background-color: #4a5568; border-radius: 4px; }
         
-        .table-container { max-height: calc(100vh - 380px); }
-        @media (min-width: 768px) {
-            .table-container { max-height: calc(100vh - 360px); }
-        }
-
-        .sidebar { 
-            width: 300px; 
-            transition: transform 0.3s ease-in-out;
+        /* Layout adjustments for sidebar */
+        .app-container { display: flex; }
+        #sidebar {
+            width: 300px;
+            transition: margin-left 0.3s ease-in-out, transform 0.3s ease-in-out;
             position: fixed;
             top: 0;
             left: 0;
@@ -42,27 +39,31 @@
             z-index: 40;
             transform: translateX(-100%);
         }
-        .sidebar.open {
-            transform: translateX(0);
-        }
+        #sidebar.open { transform: translateX(0); }
         #main-content {
             transition: margin-left 0.3s ease-in-out;
+            width: 100%;
         }
 
         @media (min-width: 1024px) {
-            .sidebar {
+            #sidebar {
                 position: static;
                 transform: translateX(0);
             }
             #main-content {
-                margin-left: 0;
+                flex: 1;
+                min-width: 0; /* Prevents content from overflowing */
             }
-            .sidebar.collapsed {
+            .app-container.sidebar-collapsed #sidebar {
                 margin-left: -300px;
-                position: absolute;
             }
+            #sidebar-toggle-desktop { display: block; }
+            #sidebar-toggle-mobile { display: none; }
         }
-
+        @media (max-width: 1023px) {
+            #sidebar-toggle-desktop { display: none; }
+            #sidebar-toggle-mobile { display: block; }
+        }
 
         .status-dot { width: 10px; height: 10px; border-radius: 50%; display: inline-block; margin-right: 8px; }
         .status-connected { background-color: #22c55e; }
@@ -72,9 +73,7 @@
         .filter-btn.active { background-color: #2563eb; color: white; }
         .filter-group-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(50px, 1fr)); gap: 0.5rem; }
         
-        #main-title {
-            animation: color-cycle 10s infinite linear;
-        }
+        #main-title { animation: color-cycle 10s infinite linear; }
         @keyframes color-cycle {
             0%   { color: #FF0000; } 14%  { color: #FF7F00; } 28%  { color: #FFFF00; }
             42%  { color: #00FF00; } 57%  { color: #0000FF; } 71%  { color: #4B0082; }
@@ -93,56 +92,32 @@
         .sortable:hover .sort-indicator { opacity: 1; }
         .sort-indicator.asc, .sort-indicator.desc { opacity: 1; color: #60a5fa; }
 
-        /* Table Border Styles */
-        #table-header th, #data-table-body td {
-            border-right: 1px solid #374151;
+        /* Table Container: Full height with horizontal scroll */
+        .table-container { 
+            flex-grow: 1; /* Take up remaining vertical space */
+            overflow: auto; /* Enable both vertical and horizontal scrolling */
         }
-        #table-header th:last-child, #data-table-body td:last-child {
+        
+        /* Table Border Styles */
+        #data-table th, #data-table td {
+            border-right: 1px solid #374151;
+            white-space: nowrap; /* Prevent text wrapping in cells */
+        }
+        #data-table th:last-child, #data-table td:last-child {
             border-right: none;
         }
 
-        /* Mobile Card View Styles */
-        @media (max-width: 768px) {
-            #table-header { display: none; }
-            #data-table-body tr {
-                display: block;
-                border: 1px solid #4a5568;
-                border-radius: 0.5rem;
-                margin-bottom: 1rem;
-                padding: 1rem;
-                background-color: #2d3748;
-            }
-            #data-table-body td {
-                display: flex;
-                justify-content: space-between;
-                align-items: center;
-                padding: 0.5rem 0;
-                border-bottom: 1px solid #4a5568;
-                border-right: none !important; /* Remove right border on mobile */
-            }
-            #data-table-body td:last-child {
-                border-bottom: none;
-            }
-            #data-table-body td::before {
-                content: attr(data-label);
-                font-weight: 600;
-                margin-right: 1rem;
-                color: #a0aec0;
-            }
-            #data-table-body td[data-label="이름(원바코드)"] {
-                font-size: 1.1rem;
-                font-weight: bold;
-            }
-             #data-table-body td[data-label="HTP"] {
-                font-size: 1.1rem;
-            }
+        /* Hide column if it has this class */
+        .hidden-col {
+            display: none;
         }
     </style>
 </head>
-<body class="bg-gray-900 text-gray-200 flex h-screen overflow-hidden relative">
+<body class="bg-gray-900 text-gray-200 h-screen overflow-hidden">
 
+<div id="app-container" class="app-container">
     <!-- Sidebar -->
-    <aside id="sidebar" class="sidebar bg-gray-800 p-4 flex-shrink-0 flex flex-col space-y-4 overflow-y-auto">
+    <aside id="sidebar" class="bg-gray-800 p-4 flex-shrink-0 flex flex-col space-y-4 overflow-y-auto">
         <h2 class="text-xl font-bold text-white border-b border-gray-700 pb-2">⚙️ 필터 및 설정</h2>
         
         <!-- Time Filters -->
@@ -185,14 +160,17 @@
         </div>
     </aside>
     
-    <div id="sidebar-overlay" class="fixed inset-0 bg-black bg-opacity-50 z-30 hidden"></div>
+    <div id="sidebar-overlay" class="fixed inset-0 bg-black bg-opacity-50 z-30 hidden lg:hidden"></div>
 
     <!-- Main Content -->
     <main id="main-content" class="flex-1 flex flex-col overflow-hidden">
         <div class="w-full bg-gray-800 shadow-lg p-4">
             <div class="flex justify-between items-center">
                 <div class="flex items-center">
-                    <button id="sidebar-toggle" class="p-2 rounded-md hover:bg-gray-700 mr-4">
+                    <button id="sidebar-toggle-desktop" class="p-2 rounded-md hover:bg-gray-700 mr-4">
+                        <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16"></path></svg>
+                    </button>
+                    <button id="sidebar-toggle-mobile" class="p-2 rounded-md hover:bg-gray-700 mr-4">
                         <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16"></path></svg>
                     </button>
                     <div>
@@ -207,7 +185,7 @@
             </div>
         </div>
 
-        <div class="p-4 space-y-4">
+        <div class="p-4 space-y-4 flex flex-col">
             <!-- Controls -->
             <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
                 <div class="bg-gray-800 p-3 rounded-lg flex items-center space-x-2">
@@ -257,9 +235,9 @@
 
         <!-- Table -->
         <div id="loader-container" class="flex-1 flex justify-center items-center hidden"><div class="loader"></div></div>
-        <div id="table-container" class="flex-1 table-container overflow-auto px-4 pb-4">
-            <table class="w-full text-sm text-left text-gray-400">
-                <thead id="table-header" class="text-xs text-gray-300 uppercase bg-gray-700 sticky top-0 z-10">
+        <div class="table-container px-4 pb-4">
+            <table id="data-table" class="w-full text-sm text-left text-gray-400">
+                <thead class="text-xs text-gray-300 uppercase bg-gray-700 sticky top-0 z-10">
                     <tr>
                         <th scope="col" class="px-4 py-3 sortable" data-sort-key="processType">집품/포장<span class="sort-indicator"></span></th>
                         <th scope="col" class="px-4 py-3 sortable" data-sort-key="employee">이름(원바코드)<span class="sort-indicator"></span></th>
@@ -277,6 +255,7 @@
             </table>
         </div>
     </main>
+</div>
 
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
@@ -285,17 +264,19 @@
 
         // --- UI Elements ---
         const ui = {
+            appContainer: document.getElementById('app-container'),
             fileUpload: document.getElementById('file-upload'),
             tableBody: document.getElementById('data-table-body'),
-            tableHeader: document.getElementById('table-header'),
+            tableHeader: document.querySelector('#data-table thead'),
             placeholderRow: document.getElementById('placeholder-row'),
             loaderContainer: document.getElementById('loader-container'),
-            tableContainer: document.getElementById('table-container'),
+            tableContainer: document.querySelector('.table-container'),
             statusIndicator: document.getElementById('status-indicator'),
             lastUpdatedEl: document.getElementById('last-updated'),
             lastUploaderEl: document.getElementById('last-uploader'),
             sidebar: document.getElementById('sidebar'),
-            sidebarToggle: document.getElementById('sidebar-toggle'),
+            sidebarToggleDesktop: document.getElementById('sidebar-toggle-desktop'),
+            sidebarToggleMobile: document.getElementById('sidebar-toggle-mobile'),
             sidebarOverlay: document.getElementById('sidebar-overlay'),
             floorFilters: document.getElementById('floor-filters'),
             packTypeFilters: document.getElementById('pack-type-filters'),
@@ -361,6 +342,7 @@
         // --- Realtime Listener ---
         function setupRealtimeListener() {
             onSnapshot(dataDocRef, (docSnap) => {
+                showLoader();
                 if (docSnap.exists()) {
                     const dataPayload = docSnap.data();
                     try {
@@ -369,12 +351,14 @@
 
                         const compressedUint8Array = compressedBytes.toUint8Array();
                         const decompressedString = pako.ungzip(compressedUint8Array, { to: 'string' });
-                        globalRawData = JSON.parse(decompressedString); 
+                        const parsedData = JSON.parse(decompressedString); 
 
-                        globalRawData.forEach(item => {
-                            item.htpStart = new Date(item.htpStart);
-                            item.htpEnd = new Date(item.htpEnd);
-                        });
+                        // Convert date strings back to Date objects
+                        globalRawData = parsedData.map(item => ({
+                            ...item,
+                            htpStart: new Date(item.htpStart),
+                            htpEnd: new Date(item.htpEnd),
+                        }));
 
                         ui.lastUploaderEl.textContent = dataPayload.uploaderId.substring(0, 8) + '...';
                         ui.lastUpdatedEl.textContent = new Date(dataPayload.timestamp).toLocaleString('ko-KR');
@@ -383,32 +367,35 @@
                         applyFiltersAndRender();
                     } catch (error) {
                         console.error("데이터 압축 해제 또는 파싱 오류:", error);
-                        alert("서버로부터 받은 데이터를 처리하는 데 실패했습니다. 데이터가 손상되었을 수 있습니다.");
+                        showModal("서버로부터 받은 데이터를 처리하는 데 실패했습니다. 데이터가 손상되었을 수 있습니다.");
                         globalRawData = [];
+                        applyFiltersAndRender();
                     }
                 } else {
                     globalRawData = [];
                     initializeFiltersFromData([]);
-                    ui.tableBody.innerHTML = '';
-                    ui.tableBody.appendChild(ui.placeholderRow);
-                    ui.placeholderRow.classList.remove('hidden');
+                    applyFiltersAndRender();
                 }
                 hideLoader();
             }, (error) => {
                 console.error("실시간 데이터 수신 오류:", error);
                 updateStatus('disconnected', '데이터 수신 중 오류 발생');
+                hideLoader();
             });
         }
         
         // --- Event Listeners ---
-        function toggleSidebar() {
+        function toggleMobileSidebar() {
             const isOpen = ui.sidebar.classList.toggle('open');
-            if (window.innerWidth < 1024) {
-                 ui.sidebarOverlay.classList.toggle('hidden', !isOpen);
-            }
+            ui.sidebarOverlay.classList.toggle('hidden', !isOpen);
         }
-        ui.sidebarToggle.addEventListener('click', toggleSidebar);
-        ui.sidebarOverlay.addEventListener('click', toggleSidebar);
+        function toggleDesktopSidebar() {
+            ui.appContainer.classList.toggle('sidebar-collapsed');
+        }
+
+        ui.sidebarToggleMobile.addEventListener('click', toggleMobileSidebar);
+        ui.sidebarToggleDesktop.addEventListener('click', toggleDesktopSidebar);
+        ui.sidebarOverlay.addEventListener('click', toggleMobileSidebar);
 
         ui.fileUpload.addEventListener('change', handleFileUpload);
         ui.searchInput.addEventListener('input', (e) => {
@@ -436,10 +423,8 @@
 
             const sortKey = headerCell.dataset.sortKey;
             if (state.sort.key === sortKey) {
-                if (state.sort.direction === 'asc') {
-                    state.sort.direction = 'desc';
-                } else if (state.sort.direction === 'desc') {
-                    state.sort.direction = null; 
+                if (state.sort.direction === 'asc') state.sort.direction = 'desc';
+                else if (state.sort.direction === 'desc') {
                     state.sort.key = 'htp'; 
                     state.sort.direction = 'asc';
                 }
@@ -481,7 +466,6 @@
             targetHtpValues[key] = TARGET_HTP_DEFAULTS[key].value;
         }
 
-
         // --- Data Processing & Filtering ---
         function getPackType(location, processTask, processPathName) {
             if (typeof location !== 'string') return DEFAULT_PACK_TYPE;
@@ -510,7 +494,6 @@
             return 0;
         }
 
-
         function parseExcelData(data) {
             if (data.length < 2) return [];
             const headers = data[0].map(h => h ? h.toString().toLowerCase().trim() : '');
@@ -523,7 +506,7 @@
             const missingCols = [];
             for (const key in COLS_TO_LOAD) {
                 const index = headers.indexOf(COLS_TO_LOAD[key]);
-                if (index === -1 && key !== 'contractType') {
+                if (index === -1 && key !== 'contractType') { // contractType is optional
                     missingCols.push(COLS_TO_LOAD[key]);
                 }
                 colIndices[key] = index;
@@ -553,6 +536,7 @@
                 const location = row[colIndices.location] || '';
                 const processPathName = row[colIndices.processPathName] || '';
 
+                // Remap REBIN to PACK for new Autobag Multi format
                 if (processTask === 'REBIN(REBIN)' && location.startsWith('Pack at Rebin (Test') && processPathName === '0. AGV_Multi_Autobag4.0 + 일반존 통합') {
                     processTask = 'PACK(PACKING)';
                 }
@@ -574,48 +558,68 @@
         }
 
         function aggregateData(rawData) {
-            const aggregatedData = {};
-            rawData.forEach(item => {
-                let key;
-                if (item.processTask === 'PICK(PICKING)') {
-                    key = `${item.employee}|${item.floor}|PICK`;
-                } else {
-                    const packType = getPackType(item.location, item.processTask, item.processPathName);
-                    key = `${item.employee}|${packType}|PACK`;
-                }
-                
-                if (!aggregatedData[key]) {
-                    const empIdMatch = item.employee.match(/\((.*?)\)/);
-                    const empId = empIdMatch ? empIdMatch[1] : '';
-                    aggregatedData[key] = {
-                        processType: item.processTask.includes('PICK') ? 'PICK(집품)' : 'PACK(포장)',
-                        employee: item.employee,
-                        floor: item.floor,
-                        processPathName: item.processPathName,
-                        location: item.location,
-                        packType: item.processTask.includes('PICK') ? '집품' : getPackType(item.location, item.processTask, item.processPathName),
-                        unitQty: 0,
-                        totalSeconds: 0,
-                        isManager: MANAGERS_LIST.includes(empId),
-                        isPerm: item.contractType === 'PERM'
-                    };
-                }
-                
-                aggregatedData[key].unitQty += item.unitQty;
-                const durationSeconds = (item.htpEnd - item.htpStart) / 1000;
-                if (durationSeconds > 0) {
-                    aggregatedData[key].totalSeconds += durationSeconds;
-                }
+            const pickData = rawData.filter(item => item.processTask === 'PICK(PICKING)');
+            const packData = rawData.filter(item => item.processTask === 'PACK(PACKING)');
 
-                aggregatedData[key].location = item.location;
-                aggregatedData[key].processPathName = item.processPathName;
-                aggregatedData[key].floor = item.floor;
+            const aggregatedPick = {};
+            pickData.forEach(item => {
+                const key = `${item.employee}|${item.floor}|PICK`;
+                if (!aggregatedPick[key]) {
+                    aggregatedPick[key] = { ...item, unitQty: 0, totalSeconds: 0 };
+                }
+                aggregatedPick[key].unitQty += item.unitQty;
+                aggregatedPick[key].totalSeconds += (item.htpEnd - item.htpStart) / 1000;
+            });
+            
+            const aggregatedPack = {};
+            packData.forEach(item => {
+                const packType = getPackType(item.location, item.processTask, item.processPathName);
+                const key = `${item.employee}|${packType}|PACK`;
+                if (!aggregatedPack[key]) {
+                    aggregatedPack[key] = { ...item, unitQty: 0, totalSeconds: 0, packType: packType };
+                }
+                aggregatedPack[key].unitQty += item.unitQty;
+                aggregatedPack[key].totalSeconds += (item.htpEnd - item.htpStart) / 1000;
             });
 
-            const finalData = Object.values(aggregatedData).map(item => {
+            const finalData = [];
+            
+            Object.values(aggregatedPick).forEach(item => {
+                const empIdMatch = item.employee.match(/\((.*?)\)/);
+                const empId = empIdMatch ? empIdMatch[1] : '';
                 const mh = item.totalSeconds > 0 ? item.totalSeconds / 3600 : 0;
-                const htp = mh > 0 ? item.unitQty / mh : 0;
-                return { ...item, mh: mh.toFixed(4), htp: htp.toFixed(1) };
+                finalData.push({
+                    processType: 'PICK(집품)',
+                    employee: item.employee,
+                    floor: item.floor,
+                    unitQty: item.unitQty,
+                    location: item.location,
+                    processPathName: item.processPathName,
+                    packType: '집품',
+                    mh: mh.toFixed(4),
+                    htp: (mh > 0 ? item.unitQty / mh : 0).toFixed(1),
+                    isManager: MANAGERS_LIST.includes(empId),
+                    isPerm: item.contractType === 'PERM'
+                });
+            });
+
+            Object.values(aggregatedPack).forEach(item => {
+                const empIdMatch = item.employee.match(/\((.*?)\)/);
+                const empId = empIdMatch ? empIdMatch[1] : '';
+                const mh = item.totalSeconds > 0 ? item.totalSeconds / 3600 : 0;
+                finalData.push({
+                    processType: 'PACK(포장)',
+                    employee: item.employee,
+                    floor: item.floor,
+                    unitQty: item.unitQty,
+                    location: item.location,
+                    processPathName: item.processPathName,
+                    packType: item.packType,
+                    mh: mh.toFixed(4),
+                    htp: (mh > 0 ? item.unitQty / mh : 0).toFixed(1),
+                    isManager: MANAGERS_LIST.includes(empId),
+                    isPerm: item.contractType === 'PERM'
+                });
             });
 
             return finalData;
@@ -627,7 +631,7 @@
 
             rawData.forEach(item => {
                 if(item.processTask.includes('PICK')) {
-                    floors.add(item.floor);
+                    if(item.floor) floors.add(item.floor);
                 } else if (item.processTask.includes('PACK')) {
                     allPackTypes.add(getPackType(item.location, item.processTask, item.processPathName));
                 }
@@ -708,14 +712,20 @@
                 label.appendChild(document.createTextNode(` ${item}`));
                 container.appendChild(label);
             });
-            document.getElementById(`select-all-${type}`).addEventListener('click', () => {
-                container.querySelectorAll('input').forEach(cb => { cb.checked = true; state.filters[filterType].add(cb.value); });
-                applyFiltersAndRender();
-            });
-            document.getElementById(`deselect-all-${type}`).addEventListener('click', () => {
-                container.querySelectorAll('input').forEach(cb => { cb.checked = false; state.filters[filterType].delete(cb.value); });
-                applyFiltersAndRender();
-            });
+            
+            const selectAllBtn = document.getElementById(`select-all-${type}`);
+            const deselectAllBtn = document.getElementById(`deselect-all-${type}`);
+
+            if (selectAllBtn && deselectAllBtn) {
+                selectAllBtn.onclick = () => {
+                    container.querySelectorAll('input').forEach(cb => { cb.checked = true; state.filters[filterType].add(cb.value); });
+                    applyFiltersAndRender();
+                };
+                deselectAllBtn.onclick = () => {
+                    container.querySelectorAll('input').forEach(cb => { cb.checked = false; state.filters[filterType].delete(cb.value); });
+                    applyFiltersAndRender();
+                };
+            }
         }
 
         function createTargetHtpSettings() {
@@ -758,17 +768,23 @@
 
                 } catch (error) {
                     console.error("파일 처리 오류:", error);
-                    alert(error.message || "파일을 처리하는 중 오류가 발생했습니다. 파일 형식을 확인해주세요.");
+                    showModal(error.message || "파일을 처리하는 중 오류가 발생했습니다. 파일 형식을 확인해주세요.");
                     hideLoader();
                 }
             };
-            reader.onerror = (error) => { console.error("파일 읽기 오류:", error); alert("파일을 읽을 수 없습니다."); hideLoader(); };
+            reader.onerror = (error) => { console.error("파일 읽기 오류:", error); showModal("파일을 읽을 수 없습니다."); hideLoader(); };
             reader.readAsArrayBuffer(file);
         }
 
         async function saveDataToFirestore(data) {
             try {
-                const jsonString = JSON.stringify(data);
+                // To store Date objects in Firestore, they must be converted to a serializable format like ISO strings.
+                const serializableData = data.map(item => ({
+                    ...item,
+                    htpStart: item.htpStart.toISOString(),
+                    htpEnd: item.htpEnd.toISOString(),
+                }));
+                const jsonString = JSON.stringify(serializableData);
                 const compressedData = pako.gzip(jsonString);
                 const compressedBytes = Bytes.fromUint8Array(compressedData);
 
@@ -781,7 +797,7 @@
                 await setDoc(dataDocRef, payload);
             } catch (error) {
                 console.error("Firestore 저장 오류:", error);
-                alert("데이터를 서버에 저장하는 데 실패했습니다. 파일이 너무 크거나 네트워크 문제가 있을 수 있습니다.");
+                showModal("데이터를 서버에 저장하는 데 실패했습니다. 파일이 너무 크거나 네트워크 문제가 있을 수 있습니다.");
                 hideLoader();
             }
         }
@@ -792,8 +808,7 @@
                 return;
             };
 
-            // **FIX**: Re-ordered the entire data processing pipeline to match Python logic
-            // 1. Filter raw data by time and process
+            // 1. Filter raw data by time and process (pre-aggregation)
             let preFilteredData = [...globalRawData];
             if (state.filters.hours.size > 0) {
                 preFilteredData = preFilteredData.filter(item => {
@@ -814,8 +829,12 @@
             let displayFilteredData = aggregatedData;
             if (state.filters.search) displayFilteredData = displayFilteredData.filter(item => item.employee.toLowerCase().includes(state.filters.search));
             if (state.filters.lowHtp) displayFilteredData = displayFilteredData.filter(item => parseFloat(item.htp) < getTargetHtp(item));
-            if (state.filters.floors.size > 0) displayFilteredData = displayFilteredData.filter(item => item.processType.includes('PICK') && state.filters.floors.has(item.floor));
-            if (state.filters.packTypes.size > 0) displayFilteredData = displayFilteredData.filter(item => item.processType.includes('PACK') && state.filters.packTypes.has(item.packType));
+            if (state.filters.floors.size > 0) {
+                 displayFilteredData = displayFilteredData.filter(item => item.processType.includes('PICK') && state.filters.floors.has(item.floor));
+            }
+            if (state.filters.packTypes.size > 0) {
+                displayFilteredData = displayFilteredData.filter(item => item.processType.includes('PACK') && state.filters.packTypes.has(item.packType));
+            }
             
             // 4. Sort the final data
             if (state.sort.key && state.sort.direction) {
@@ -838,6 +857,7 @@
 
             // 5. Render
             renderTable(displayFilteredData);
+            updateColumnVisibility(displayFilteredData);
             updateStats(displayFilteredData);
             updateTicker(displayFilteredData);
             updateSortIndicators();
@@ -871,19 +891,31 @@
                     empColor = 'text-cyan-400';
                 }
 
-
                 row.innerHTML = `
-                    <td class="px-4 py-3 font-medium ${processTypeColor}" data-label="집품/포장">${item.processType}</td>
-                    <td class="px-4 py-3 ${empColor}" data-label="이름(원바코드)">${empDisplay}</td>
-                    <td class="px-4 py-3" data-label="작업량">${item.unitQty}</td>
-                    <td class="px-4 py-3" data-label="로케이션 및 작업대">${item.location || '-'}</td>
-                    <td class="px-4 py-3" data-label="PP">${item.processPathName || '-'}</td>
-                    <td class="px-4 py-3" data-label="팩 종류">${item.packType}</td>
-                    <td class="px-4 py-3" data-label="M/H">${item.mh}</td>
-                    <td class="px-4 py-3 font-bold ${htpColor}" data-label="HTP">${parseFloat(item.htp) < targetHtp && targetHtp > 0 ? '🚨 ' : ''}${item.htp}</td>
+                    <td class="px-4 py-3 font-medium ${processTypeColor}">${item.processType}</td>
+                    <td class="px-4 py-3 ${empColor}">${empDisplay}</td>
+                    <td class="px-4 py-3">${item.unitQty}</td>
+                    <td class="px-4 py-3">${item.location || '-'}</td>
+                    <td class="px-4 py-3">${item.processPathName || '-'}</td>
+                    <td class="px-4 py-3">${item.packType}</td>
+                    <td class="px-4 py-3">${item.mh}</td>
+                    <td class="px-4 py-3 font-bold ${htpColor}">${parseFloat(item.htp) < targetHtp && targetHtp > 0 ? '🚨 ' : ''}${item.htp}</td>
                 `;
                 ui.tableBody.appendChild(row);
             });
+        }
+
+        function updateColumnVisibility(data) {
+            const locationColHeader = ui.tableHeader.querySelector('th[data-sort-key="location"]');
+            if (!locationColHeader) return;
+            
+            const locationColIndex = Array.from(locationColHeader.parentNode.children).indexOf(locationColHeader);
+            const isLocationEmpty = data.length > 0 && data.every(item => !item.location);
+            
+            document.querySelectorAll(`#data-table th:nth-child(${locationColIndex + 1}), #data-table td:nth-child(${locationColIndex + 1})`)
+                .forEach(cell => {
+                    cell.classList.toggle('hidden-col', isLocationEmpty);
+                });
         }
 
         function updateSortIndicators() {
@@ -927,22 +959,24 @@
             const topStr = "🏆Top3: " + (top3.length > 0 ? top3.map(formatTickerItem).join(', ') : '-');
             const lowStr = "🚨Low3: " + (low3.length > 0 ? low3.map(formatTickerItem).join(', ') : '-');
             
-            ui.tickerText.textContent = `${topStr}       ${lowStr}`;
+            ui.tickerText.textContent = `${topStr}        ${lowStr}`;
         }
 
         function captureTable() {
-            html2canvas(document.getElementById('table-container')).then(canvas => {
+            const tableEl = document.getElementById('data-table');
+            showModal('캡처 중...', 1500);
+            html2canvas(tableEl).then(canvas => {
                 canvas.toBlob(blob => {
                     try {
                         navigator.clipboard.write([new ClipboardItem({'image/png': blob})])
-                            .then(() => alert('테이블이 클립보드에 복사되었습니다.'))
+                            .then(() => showModal('테이블이 클립보드에 복사되었습니다.'))
                             .catch(err => {
                                 console.error('클립보드 복사 실패:', err);
-                                alert('클립보드 복사에 실패했습니다. 브라우저 설정을 확인해주세요.');
+                                showModal('클립보드 복사에 실패했습니다. 브라우저 설정을 확인해주세요.');
                             });
                     } catch (error) {
                          console.error('클립보드 API 오류:', error);
-                         alert('클립보드 API를 사용할 수 없는 환경입니다.');
+                         showModal('클립보드 API를 사용할 수 없는 환경입니다.');
                     }
                 });
             });
@@ -950,14 +984,14 @@
 
         function exportToExcel() {
             const dataToExport = Array.from(ui.tableBody.querySelectorAll('tr')).filter(tr => !tr.id.includes('placeholder'));
-            if (dataToExport.length === 0) { alert('내보낼 데이터가 없습니다.'); return; }
+            if (dataToExport.length === 0) { showModal('내보낼 데이터가 없습니다.'); return; }
             const pickData = [];
             const packData = [];
             dataToExport.forEach(row => {
                 const cells = row.querySelectorAll('td');
                 const rowData = {
                     '집품/포장': cells[0].textContent,
-                    '이름(원바코드)': cells[1].textContent.replace(/[👑📝]\s/g, ''),
+                    '이름(원바코드)': cells[1].textContent.replace(/[👑📝]\s|\[계약직\]\s/g, ''),
                     '작업량': cells[2].textContent,
                     '로케이션 및 작업대': cells[3].textContent,
                     'PP': cells[4].textContent,
@@ -987,6 +1021,33 @@
         function showLoader() { ui.loaderContainer.classList.remove('hidden'); ui.tableContainer.classList.add('hidden'); }
         function hideLoader() { ui.loaderContainer.classList.add('hidden'); ui.tableContainer.classList.remove('hidden'); }
         
+        // Custom Modal instead of alert()
+        function showModal(message, duration = 3000) {
+            const modal = document.createElement('div');
+            modal.className = 'fixed top-5 right-5 bg-blue-500 text-white py-2 px-4 rounded-lg shadow-lg z-50 animate-fade-in-out';
+            modal.textContent = message;
+            
+            const style = document.createElement('style');
+            style.textContent = `
+                @keyframes fade-in-out {
+                    0% { opacity: 0; transform: translateY(-20px); }
+                    10% { opacity: 1; transform: translateY(0); }
+                    90% { opacity: 1; transform: translateY(0); }
+                    100% { opacity: 0; transform: translateY(-20px); }
+                }
+                .animate-fade-in-out {
+                    animation: fade-in-out ${duration / 1000}s ease-in-out forwards;
+                }
+            `;
+            document.head.appendChild(style);
+            document.body.appendChild(modal);
+
+            setTimeout(() => {
+                modal.remove();
+                style.remove();
+            }, duration);
+        }
+
         // Initialize on page load
         initializeFiltersFromData([]);
 
