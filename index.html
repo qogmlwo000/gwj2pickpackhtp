@@ -4,7 +4,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>GWJ2 PICK & PACK HTP TOOL_Bennett (v1.2.4)</title>
+    <title>GWJ2 PICK & PACK HTP TOOL_Bennett (v1.0.0)</title>
     
     <!-- Favicon -->
     <link rel="icon" href="https://raw.githubusercontent.com/qogmlwo000/gwj2pickpackhtp/main/Bennett.ico" type="image/x-icon">
@@ -202,7 +202,7 @@
                     <label class="flex items-center cursor-pointer">
                         <input type="checkbox" id="low-htp-toggle" class="sr-only peer">
                         <div class="relative w-11 h-6 bg-gray-600 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-0.5 after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-red-500"></div>
-                        <span class="ml-3 text-sm font-medium">� 저조자만 보기</span>
+                        <span class="ml-3 text-sm font-medium">🚨 저조자만 보기</span>
                     </label>
                     <button id="capture-btn" class="py-2 px-3 text-sm font-semibold rounded-md hover:bg-gray-600">📷 캡처</button>
                     <button id="export-btn" class="py-2 px-3 text-sm font-semibold rounded-md hover:bg-gray-600">📊 엑셀</button>
@@ -996,7 +996,7 @@
                 const cells = row.querySelectorAll('td');
                 const rowData = {
                     '집품/포장': cells[0].textContent,
-                    '이름(원바코드)': cells[1].textContent.replace(/[👑📝]\s|\[계약직\]\s/g, ''),
+                    '이름(원바코드)': cells[1].textContent.replace(/[👑📝🐕]\s*|\[계약직\]\s*/g, ''),
                     '작업량': Number(cells[2].textContent),
                     '로케이션 및 작업대': cells[3].textContent,
                     'PP': cells[4].textContent,
