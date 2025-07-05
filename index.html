@@ -4,7 +4,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>GWJ2 PICK & PACK HTP TOOL_Bennett (v1.2.0)</title>
+    <title>GWJ2 PICK & PACK HTP TOOL_Bennett (v1.2.1)</title>
     
     <!-- Favicon -->
     <link rel="icon" href="https://raw.githubusercontent.com/qogmlwo000/gwj2pickpackhtp/main/Bennett.ico" type="image/x-icon">
@@ -28,7 +28,7 @@
         ::-webkit-scrollbar-thumb { background-color: #4a5568; border-radius: 4px; }
         
         /* Layout adjustments for sidebar */
-        .app-container { display: flex; }
+        .app-container { display: flex; height: 100vh; }
         #sidebar {
             width: 300px;
             transition: margin-left 0.3s ease-in-out, transform 0.3s ease-in-out;
@@ -114,7 +114,7 @@
         }
     </style>
 </head>
-<body class="bg-gray-900 text-gray-200 h-screen overflow-hidden">
+<body class="bg-gray-900 text-gray-200">
 
 <div id="app-container" class="app-container">
     <!-- Sidebar -->
@@ -146,7 +146,7 @@
 
         <!-- Pack Type Filters -->
         <div class="bg-gray-700 p-3 rounded-lg">
-            <h3 class="font-semibold mb-2 text-white">📦 팩 종류 필터 (포장)</h3>
+            <h3 class="font-semibold mb-2 text-white">� 팩 종류 필터 (포장)</h3>
             <div id="pack-type-filters" class="space-y-2"></div>
              <div class="flex space-x-2 pt-2 mt-2 border-t border-gray-600">
                 <button id="select-all-packtypes" class="text-xs py-1 px-2 rounded bg-gray-600 hover:bg-gray-500 w-full">모두 선택</button>
@@ -164,8 +164,8 @@
     <div id="sidebar-overlay" class="fixed inset-0 bg-black bg-opacity-50 z-30 hidden lg:hidden"></div>
 
     <!-- Main Content -->
-    <main id="main-content" class="flex-1 flex flex-col overflow-hidden">
-        <div class="w-full bg-gray-800 shadow-lg p-4">
+    <main id="main-content" class="flex-1 flex flex-col">
+        <div class="w-full bg-gray-800 shadow-lg p-4 flex-shrink-0">
             <div class="flex justify-between items-center">
                 <div class="flex items-center">
                     <button id="sidebar-toggle-desktop" class="p-2 rounded-md hover:bg-gray-700 mr-4">
@@ -186,7 +186,7 @@
             </div>
         </div>
 
-        <div class="p-4 space-y-4 flex flex-col">
+        <div class="p-4 space-y-4 flex flex-col flex-shrink-0">
             <!-- Controls -->
             <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
                 <div class="bg-gray-800 p-3 rounded-lg flex items-center space-x-2">
