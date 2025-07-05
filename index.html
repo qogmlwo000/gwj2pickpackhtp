@@ -4,7 +4,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>GWJ2 PICK & PACK HTP TOOL_Bennett (v1.3.4)</title>
+    <title>GWJ2 PICK & PACK HTP TOOL_Bennett (v1.3.5)</title>
     
     <!-- Favicon -->
     <link rel="icon" href="https://raw.githubusercontent.com/qogmlwo000/gwj2pickpackhtp/main/Bennett.ico" type="image/x-icon">
@@ -623,7 +623,7 @@
 
         // --- Data Processing & Filtering ---
         function getPackType(location, processTask, processPathName) {
-            if (processTask === 'PACK(PACKING)' && processPathName.includes('AGV_Multi_Autobag4.0')) {
+            if (processTask === 'PACK(PACKING)' && processPathName.includes('AGV_Multi_Autobag4.0') && location.startsWith('Pack at Rebin (Test')) {
                 return "오토백 멀티";
             }
             if (typeof location !== 'string') return DEFAULT_PACK_TYPE;
@@ -734,11 +734,10 @@
                     packType = '집품';
                 } else { // PACK(PACKING)
                     packType = getPackType(item.location, item.processTask, item.processPathName);
-                    key = `${item.employee}|${packType}|${item.processPathName}|PACK`;
+                    key = `${item.employee}|${packType}|PACK`;
                 }
 
                 const durationSeconds = (item.htpEnd - item.htpStart) / 1000;
-                // This check is now redundant due to the fix in parseExcelData, but kept for safety.
                 if (durationSeconds <= 0) return; 
 
                 if (!aggregatedMap.has(key)) {
@@ -764,6 +763,8 @@
                 
                 // Update with the last seen location/path for representative display
                 group.location = item.location;
+                group.processPathName = item.processPathName;
+                group.floor = item.floor;
             });
 
             const finalData = [];
