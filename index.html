@@ -4,7 +4,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>실시간 HTP 데이터 공유 (v3.7)</title>
+    <title>실시간 HTP 데이터 공유 (v3.8)</title>
     <!-- Favicon Add -->
     <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>🚀</text></svg>">
     <script src="https://cdn.tailwindcss.com"></script>
@@ -18,9 +18,44 @@
         ::-webkit-scrollbar { width: 8px; }
         ::-webkit-scrollbar-track { background: #2d3748; }
         ::-webkit-scrollbar-thumb { background-color: #4a5568; border-radius: 4px; }
-        .table-container { max-height: calc(100vh - 360px); }
-        .sidebar { width: 300px; transition: margin-left 0.3s ease-in-out; }
-        .sidebar.collapsed { margin-left: -300px; }
+        
+        .table-container { max-height: calc(100vh - 380px); }
+        @media (min-width: 768px) {
+            .table-container { max-height: calc(100vh - 360px); }
+        }
+
+        .sidebar { 
+            width: 300px; 
+            transition: transform 0.3s ease-in-out;
+            position: fixed;
+            top: 0;
+            left: 0;
+            height: 100%;
+            z-index: 40;
+            transform: translateX(-100%);
+        }
+        .sidebar.open {
+            transform: translateX(0);
+        }
+        #main-content {
+            transition: margin-left 0.3s ease-in-out;
+        }
+
+        @media (min-width: 1024px) {
+            .sidebar {
+                position: static;
+                transform: translateX(0);
+            }
+            #main-content {
+                margin-left: 0;
+            }
+            .sidebar.collapsed {
+                margin-left: -300px;
+                position: absolute;
+            }
+        }
+
+
         .status-dot { width: 10px; height: 10px; border-radius: 50%; display: inline-block; margin-right: 8px; }
         .status-connected { background-color: #22c55e; }
         .status-disconnected { background-color: #ef4444; }
@@ -33,56 +68,61 @@
             animation: color-cycle 10s infinite linear;
         }
         @keyframes color-cycle {
-            0%   { color: #FF0000; }
-            14%  { color: #FF7F00; }
-            28%  { color: #FFFF00; }
-            42%  { color: #00FF00; }
-            57%  { color: #0000FF; }
-            71%  { color: #4B0082; }
-            85%  { color: #9400D3; }
-            100% { color: #FF0000; }
+            0%   { color: #FF0000; } 14%  { color: #FF7F00; } 28%  { color: #FFFF00; }
+            42%  { color: #00FF00; } 57%  { color: #0000FF; } 71%  { color: #4B0082; }
+            85%  { color: #9400D3; } 100% { color: #FF0000; }
         }
         
-        #ticker-container {
-            overflow: hidden;
-            white-space: nowrap;
-            position: relative;
-        }
-        #ticker-text {
-            position: absolute;
-            animation: ticker-scroll 20s linear infinite;
-            color: #FFD700;
-            font-weight: bold;
-        }
+        #ticker-container { overflow: hidden; white-space: nowrap; position: relative; }
+        #ticker-text { position: absolute; animation: ticker-scroll 20s linear infinite; color: #FFD700; font-weight: bold; }
         @keyframes ticker-scroll {
             0%   { transform: translateX(100%); }
             100% { transform: translateX(-100%); }
         }
 
-        /* Sort Indicator Styles */
-        .sortable {
-            cursor: pointer;
-            position: relative;
-        }
-        .sort-indicator {
-            display: inline-block;
-            width: 1em;
-            height: 1em;
-            margin-left: 4px;
-            vertical-align: middle;
-            opacity: 0.5;
-            transition: opacity 0.2s;
-        }
-        .sortable:hover .sort-indicator {
-            opacity: 1;
-        }
-        .sort-indicator.asc, .sort-indicator.desc {
-            opacity: 1;
-            color: #60a5fa; /* light blue */
+        .sortable { cursor: pointer; position: relative; }
+        .sort-indicator { display: inline-block; width: 1em; height: 1em; margin-left: 4px; vertical-align: middle; opacity: 0.5; transition: opacity 0.2s; }
+        .sortable:hover .sort-indicator { opacity: 1; }
+        .sort-indicator.asc, .sort-indicator.desc { opacity: 1; color: #60a5fa; }
+
+        /* Mobile Card View Styles */
+        @media (max-width: 768px) {
+            #table-header { display: none; }
+            #data-table-body tr {
+                display: block;
+                border: 1px solid #4a5568;
+                border-radius: 0.5rem;
+                margin-bottom: 1rem;
+                padding: 1rem;
+                background-color: #2d3748;
+            }
+            #data-table-body td {
+                display: flex;
+                justify-content: space-between;
+                align-items: center;
+                padding: 0.5rem 0;
+                border-bottom: 1px solid #4a5568;
+            }
+            #data-table-body td:last-child {
+                border-bottom: none;
+            }
+            #data-table-body td::before {
+                content: attr(data-label);
+                font-weight: 600;
+                margin-right: 1rem;
+                color: #a0aec0;
+            }
+            #data-table-body td[data-label="이름(원바코드)"] {
+                font-size: 1.1rem;
+                font-weight: bold;
+            }
+             #data-table-body td[data-label="HTP"] {
+                font-size: 1.1rem;
+            }
         }
     </style>
 </head>
-<body class="bg-gray-900 text-gray-200 flex h-screen overflow-hidden">
+<body class="bg-gray-900 text-gray-200 flex h-screen overflow-hidden relative">
 
     <!-- Sidebar -->
     <aside id="sidebar" class="sidebar bg-gray-800 p-4 flex-shrink-0 flex flex-col space-y-4 overflow-y-auto">
@@ -127,9 +167,11 @@
             <div id="target-htp-settings" class="space-y-2 text-sm"></div>
         </div>
     </aside>
+    
+    <div id="sidebar-overlay" class="fixed inset-0 bg-black bg-opacity-50 z-30 hidden"></div>
 
     <!-- Main Content -->
-    <main class="flex-1 flex flex-col overflow-hidden">
+    <main id="main-content" class="flex-1 flex flex-col overflow-hidden">
         <div class="w-full bg-gray-800 shadow-lg p-4">
             <div class="flex justify-between items-center">
                 <div class="flex items-center">
@@ -179,7 +221,7 @@
 
             <!-- Stats & Upload -->
             <div class="bg-gray-800 p-3 rounded-lg flex flex-col md:flex-row justify-between items-center text-sm">
-                 <div id="stats-display" class="text-gray-300 mb-2 md:mb-0">
+                 <div id="stats-display" class="text-gray-300 mb-2 md:mb-0 text-center md:text-left">
                     표시 그룹: <span class="font-bold text-white">-</span> | 
                     작업자 수: <span class="font-bold text-white">-</span> | 
                     총 작업량: <span class="font-bold text-white">-</span> | 
@@ -238,6 +280,7 @@
             lastUploaderEl: document.getElementById('last-uploader'),
             sidebar: document.getElementById('sidebar'),
             sidebarToggle: document.getElementById('sidebar-toggle'),
+            sidebarOverlay: document.getElementById('sidebar-overlay'),
             floorFilters: document.getElementById('floor-filters'),
             packTypeFilters: document.getElementById('pack-type-filters'),
             hourFilters: document.getElementById('hour-filters'),
@@ -342,7 +385,17 @@
         }
         
         // --- Event Listeners ---
-        ui.sidebarToggle.addEventListener('click', () => ui.sidebar.classList.toggle('collapsed'));
+        function toggleSidebar() {
+            const isOpen = ui.sidebar.classList.toggle('open');
+            if (window.innerWidth < 1024) {
+                 ui.sidebarOverlay.classList.toggle('hidden', !isOpen);
+            } else {
+                 document.getElementById('main-content').classList.toggle('lg:ml-[300px]', isOpen);
+            }
+        }
+        ui.sidebarToggle.addEventListener('click', toggleSidebar);
+        ui.sidebarOverlay.addEventListener('click', toggleSidebar);
+
         ui.fileUpload.addEventListener('change', handleFileUpload);
         ui.searchInput.addEventListener('input', (e) => {
             state.filters.search = e.target.value.toLowerCase();
@@ -394,7 +447,6 @@
         const DEFAULT_PACK_TYPE = "기타";
         const MANAGERS_LIST = ['98659377', '31629728', '26485305', '94354606', '66476877', '21284456', '24856615', '87406548', '57101574', '39104550', '23761528', '29801698', '27407697', '30997520', '26152514', '42103385', '47548283', '92816677', '55540763', '39678603', '29787775', '88463987', '65712250', '37005613', '88031159', '24304330', '58548628', '58728654', '27507426', '92733138', '41310393', '21220693', '38876677', '53909931', '77358628', '95383395', '86473941', '28996527', '36148186', '96358817', '64118293', '50908038', '30049374', '68100618', '29229926', '66536830', '25657753', '47848283', '46802436', '93246435', '83689729', '92718820', '87935445', '97224272', '39359504'];
         
-        // **FIX**: Replicated Python's TARGET_HTP_DEFAULTS structure for accurate matching
         const TARGET_HTP_DEFAULTS = {
             "Manual SINGULATION": { value: 100, keywords: ['ManualPack', '179_1.3F_MA_S_OG_'] },
             "Manual MULTI":       { value: 120, keywords: ['7F_Multi_AGV', '179_1.3F_MA_M_OG_'] },
@@ -411,7 +463,6 @@
             "CFC Autobag RTPB":   { value: 150, keywords: ['190_6.2G_AB_T1_OG_'] },
             "PICK":               { value: 90, keywords: [] }
         };
-        // Initialize targetHtpValues from the new structure
         for(const key in TARGET_HTP_DEFAULTS) {
             targetHtpValues[key] = TARGET_HTP_DEFAULTS[key].value;
         }
@@ -427,7 +478,6 @@
             return DEFAULT_PACK_TYPE;
         }
 
-        // **FIX**: Rewrote getTargetHtp to match Python logic
         function getTargetHtp(item) {
             if (item.processType.includes('PICK')) {
                 return targetHtpValues['PICK'] || 0;
@@ -441,10 +491,9 @@
                         return targetHtpValues[name] || 0;
                     }
                 }
-                // Fallback for PACK types not matching any specific keyword
                 return targetHtpValues["Manual SINGULATION"] || 0;
             }
-            return 0; // Default fallback
+            return 0;
         }
 
 
@@ -460,7 +509,7 @@
             const missingCols = [];
             for (const key in COLS_TO_LOAD) {
                 const index = headers.indexOf(COLS_TO_LOAD[key]);
-                if (index === -1 && key !== 'contractType') { // contractType is optional
+                if (index === -1 && key !== 'contractType') {
                     missingCols.push(COLS_TO_LOAD[key]);
                 }
                 colIndices[key] = index;
@@ -800,15 +849,15 @@
                 let empColor = item.isManager ? 'text-yellow-300 font-bold' : '';
 
                 row.innerHTML = `
-                    <td class="px-4 py-3 font-medium ${processTypeColor}">${item.processType}</td>
-                    <td class="px-4 py-3 ${empColor}">${empName}</td>
-                    <td class="px-4 py-3">${item.floor || '-'}</td>
-                    <td class="px-4 py-3">${item.processPathName || '-'}</td>
-                    <td class="px-4 py-3">${item.location || '-'}</td>
-                    <td class="px-4 py-3">${item.unitQty}</td>
-                    <td class="px-4 py-3">${item.mh}</td>
-                    <td class="px-4 py-3 font-bold ${htpColor}">${parseFloat(item.htp) < targetHtp && targetHtp > 0 ? '🚨 ' : ''}${item.htp}</td>
-                    <td class="px-4 py-3">${item.packType}</td>
+                    <td class="px-4 py-3 font-medium ${processTypeColor}" data-label="집품/포장">${item.processType}</td>
+                    <td class="px-4 py-3 ${empColor}" data-label="이름(원바코드)">${empName}</td>
+                    <td class="px-4 py-3" data-label="층">${item.floor || '-'}</td>
+                    <td class="px-4 py-3" data-label="PP">${item.processPathName || '-'}</td>
+                    <td class="px-4 py-3" data-label="Location">${item.location || '-'}</td>
+                    <td class="px-4 py-3" data-label="작업량">${item.unitQty}</td>
+                    <td class="px-4 py-3" data-label="M/H">${item.mh}</td>
+                    <td class="px-4 py-3 font-bold ${htpColor}" data-label="HTP">${parseFloat(item.htp) < targetHtp && targetHtp > 0 ? '🚨 ' : ''}${item.htp}</td>
+                    <td class="px-4 py-3" data-label="팩 종류">${item.packType}</td>
                 `;
                 ui.tableBody.appendChild(row);
             });
