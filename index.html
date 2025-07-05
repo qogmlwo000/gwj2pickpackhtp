@@ -4,7 +4,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>GWJ2 PICK & PACK HTP TOOL_Bennett (v1.0.0)</title>
+    <title>GWJ2 PICK & PACK HTP TOOL_Bennett (v1.2.5)</title>
     
     <!-- Favicon -->
     <link rel="icon" href="https://raw.githubusercontent.com/qogmlwo000/gwj2pickpackhtp/main/Bennett.ico" type="image/x-icon">
@@ -882,23 +882,24 @@
                 let htpColor = parseFloat(item.htp) < targetHtp ? 'text-red-400' : 'text-green-400';
                 
                 let empDisplay = item.employee;
-                let empColor = '';
+                let empColor = 'text-gray-200'; // Default to white
+
                 if (item.isManager) {
                     empDisplay = `👑 ${item.employee}`;
                     empColor = 'text-yellow-300 font-bold';
                 } else if (item.isPerm) {
-                    empDisplay = `[계약직] ${item.employee}`;
-                    empColor = 'text-cyan-400';
+                    // No text prefix, just change color to lime green.
+                    empColor = 'text-lime-400'; 
                 }
 
                 row.innerHTML = `
                     <td class="px-4 py-3 font-medium ${processTypeColor}">${item.processType}</td>
                     <td class="px-4 py-3 ${empColor}">${empDisplay}</td>
-                    <td class="px-4 py-3">${item.unitQty}</td>
-                    <td class="px-4 py-3">${item.location || '-'}</td>
-                    <td class="px-4 py-3">${item.processPathName || '-'}</td>
-                    <td class="px-4 py-3">${item.packType}</td>
-                    <td class="px-4 py-3">${item.mh}</td>
+                    <td class="px-4 py-3 text-gray-200">${item.unitQty}</td>
+                    <td class="px-4 py-3 text-gray-200">${item.location || '-'}</td>
+                    <td class="px-4 py-3 text-gray-200">${item.processPathName || '-'}</td>
+                    <td class="px-4 py-3 text-gray-200">${item.packType}</td>
+                    <td class="px-4 py-3 text-gray-200">${item.mh}</td>
                     <td class="px-4 py-3 font-bold ${htpColor}">${parseFloat(item.htp) < targetHtp && targetHtp > 0 ? '🚨 ' : ''}${item.htp}</td>
                 `;
                 ui.tableBody.appendChild(row);
