@@ -4,7 +4,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>GWJ2 PICK & PACK HTP TOOL_Bennett (v1.2.5)</title>
+    <title>GWJ2 PICK & PACK HTP TOOL_Bennett (v1.2.6)</title>
     
     <!-- Favicon -->
     <link rel="icon" href="https://raw.githubusercontent.com/qogmlwo000/gwj2pickpackhtp/main/Bennett.ico" type="image/x-icon">
@@ -113,6 +113,42 @@
         .hidden-col {
             display: none;
         }
+
+        /* --- Custom Checkbox Styles --- */
+        .form-checkbox {
+            -webkit-appearance: none;
+            -moz-appearance: none;
+            appearance: none;
+            width: 1.1rem;
+            height: 1.1rem;
+            border: 1px solid #6b7280; /* gray-500 */
+            border-radius: 0.25rem;
+            background-color: #4b5563; /* gray-600 */
+            transition: background-color 0.2s, border-color 0.2s;
+            cursor: pointer;
+            position: relative;
+            vertical-align: middle;
+            flex-shrink: 0;
+        }
+        .form-checkbox:checked {
+            background-color: #3b82f6; /* blue-500 */
+            border-color: #3b82f6;
+        }
+        .form-checkbox:checked::after {
+            content: '✔';
+            font-size: 0.8rem;
+            font-weight: bold;
+            color: white;
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            line-height: 1;
+        }
+        .form-checkbox:focus {
+            outline: none;
+            box-shadow: 0 0 0 2px rgba(59, 130, 246, 0.4);
+        }
     </style>
 </head>
 <body class="bg-gray-900 text-gray-200">
@@ -126,7 +162,7 @@
         <div class="bg-gray-700 p-3 rounded-lg">
             <h3 class="font-semibold mb-2 text-white">⏰ 시간대별 필터</h3>
             <div class="space-y-2">
-                <label class="flex items-center space-x-2 text-sm cursor-pointer"><input type="checkbox" id="all-hours-checkbox" class="form-checkbox h-4 w-4 bg-gray-600 border-gray-500 rounded text-blue-500 focus:ring-blue-500" checked><span>전체 시간</span></label>
+                <label class="flex items-center space-x-2 text-sm cursor-pointer"><input type="checkbox" id="all-hours-checkbox" class="form-checkbox" checked><span>전체 시간</span></label>
                 <div id="hour-filters" class="filter-group-grid pt-2 border-t border-gray-600"></div>
                 <div class="flex space-x-2 pt-2 border-t border-gray-600">
                     <button id="select-all-hours" class="text-xs py-1 px-2 rounded bg-gray-600 hover:bg-gray-500 w-full">모두 선택</button>
@@ -652,7 +688,7 @@
                 label.className = 'flex items-center space-x-2 text-sm cursor-pointer';
                 const checkbox = document.createElement('input');
                 checkbox.type = 'checkbox'; checkbox.value = i;
-                checkbox.className = 'hour-checkbox form-checkbox h-4 w-4 bg-gray-600 border-gray-500 rounded text-blue-500 focus:ring-blue-500';
+                checkbox.className = 'form-checkbox';
                 checkbox.addEventListener('change', (e) => {
                     const hourVal = parseInt(e.target.value);
                     if (e.target.checked) {
@@ -702,7 +738,7 @@
                 label.className = 'flex items-center space-x-2 text-sm cursor-pointer';
                 const checkbox = document.createElement('input');
                 checkbox.type = 'checkbox'; checkbox.value = item;
-                checkbox.className = `form-checkbox h-4 w-4 bg-gray-600 border-gray-500 rounded text-blue-500 focus:ring-blue-500 ${type}-checkbox`;
+                checkbox.className = `form-checkbox ${type}-checkbox`;
                 checkbox.addEventListener('change', (e) => {
                     if (e.target.checked) state.filters[filterType].add(item);
                     else state.filters[filterType].delete(item);
@@ -888,8 +924,7 @@
                     empDisplay = `👑 ${item.employee}`;
                     empColor = 'text-yellow-300 font-bold';
                 } else if (item.isPerm) {
-                    // No text prefix, just change color to lime green.
-                    empColor = 'text-lime-400'; 
+                    empColor = 'text-lime-400'; // Lime green for contract workers
                 }
 
                 row.innerHTML = `
