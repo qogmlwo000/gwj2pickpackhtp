@@ -4,7 +4,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>실시간 HTP 데이터 공유 (v3.10)</title>
+    <title>실시간 HTP 데이터 공유 (v3.11)</title>
     <!-- Favicon Add -->
     <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>🚀</text></svg>">
     <script src="https://cdn.tailwindcss.com"></script>
@@ -547,7 +547,11 @@
                     contractType: colIndices.contractType !== -1 ? (row[colIndices.contractType] || '').toUpperCase() : '',
                     htpStart: htpStart, htpEnd: htpEnd
                 };
-            }).filter(item => item && item.employee && item.unitQty > 0 && (item.processTask === 'PICK(PICKING)' || item.processTask === 'PACK(PACKING)'));
+            }).filter(item => {
+                if (!item || !item.employee || item.unitQty <= 0) return false;
+                if (item.employee === 'AGV_Agent') return false;
+                return item.processTask === 'PICK(PICKING)' || item.processTask === 'PACK(PACKING)';
+            });
             
             return rawData;
         }
