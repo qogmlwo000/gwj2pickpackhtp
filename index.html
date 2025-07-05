@@ -4,12 +4,14 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>실시간 HTP 데이터 공유 (v3.4)</title>
+    <title>실시간 HTP 데이터 공유 (v3.5)</title>
     <!-- Favicon Add -->
     <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>🚀</text></svg>">
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+    <!-- Add pako.js for Gzip compression to handle large data -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/pako/2.1.0/pako.min.js"></script>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
     <style>
         body { font-family: 'Inter', sans-serif; scrollbar-width: thin; scrollbar-color: #4a5568 #2d3748; }
@@ -199,9 +201,7 @@
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
         import { getAuth, signInAnonymously, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
-        import { getFirestore, doc, setDoc, onSnapshot } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
-        // Import Firebase Storage modules
-        import { getStorage, ref, uploadBytes, getDownloadURL } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-storage.js";
+        import { getFirestore, doc, setDoc, onSnapshot, Bytes } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
 
         // --- UI Elements ---
         const ui = {
@@ -228,7 +228,7 @@
         };
 
         // --- Global State ---
-        let globalRawData = []; // Store for un-aggregated data from Firestore
+        let globalRawData = []; 
         let filters = {
             process: 'all', search: '', lowHtp: false,
             hours: new Set(), floors: new Set(), packTypes: new Set()
@@ -245,13 +245,12 @@
             appId: "1:913661158847:web:ebaf60d2afbeadda452d0a",
             measurementId: "G-77DRPC5F58"
         };
-        let db, auth, storage, userId, dataDocRef;
+        let db, auth, userId, dataDocRef;
         try {
             const app = initializeApp(firebaseConfig);
             db = getFirestore(app);
             auth = getAuth(app);
-            storage = getStorage(app); // Initialize Firebase Storage
-            dataDocRef = doc(db, 'artifacts', firebaseConfig.projectId, 'public', 'data', 'htpData', 'latestFileReference');
+            dataDocRef = doc(db, 'artifacts', firebaseConfig.projectId, 'public', 'data', 'htpData', 'latestCompressed');
         } catch(e) {
             console.error("Firebase 초기화 오류:", e);
             updateStatus('disconnected', 'Firebase 초기화에 실패했습니다.');
@@ -273,45 +272,31 @@
 
         // --- Realtime Listener ---
         function setupRealtimeListener() {
-            onSnapshot(dataDocRef, async (docSnap) => {
+            onSnapshot(dataDocRef, (docSnap) => {
                 if (docSnap.exists()) {
                     const dataPayload = docSnap.data();
-                    const downloadURL = dataPayload.downloadURL;
-
-                    if (!downloadURL) {
-                        console.log("No download URL found.");
-                        hideLoader();
-                        return;
-                    }
-                    
-                    showLoader();
                     try {
-                        const response = await fetch(downloadURL);
-                        if (!response.ok) {
-                            throw new Error(`Storage 파일 다운로드 실패: ${response.statusText}`);
-                        }
-                        const fileArrayBuffer = await response.arrayBuffer();
-                        
-                        const data = new Uint8Array(fileArrayBuffer);
-                        const workbook = XLSX.read(data, { type: 'array', cellDates: true });
-                        const sheetName = workbook.SheetNames[0];
-                        const worksheet = workbook.Sheets[sheetName];
-                        const jsonData = XLSX.utils.sheet_to_json(worksheet, { header: 1 });
-                        
-                        globalRawData = parseExcelData(jsonData);
+                        const compressedBytes = dataPayload.compressedData;
+                        if (!compressedBytes) throw new Error("압축된 데이터가 없습니다.");
+
+                        const compressedUint8Array = compressedBytes.toUint8Array();
+                        const decompressedString = pako.ungzip(compressedUint8Array, { to: 'string' });
+                        globalRawData = JSON.parse(decompressedString); 
+
+                        globalRawData.forEach(item => {
+                            item.htpStart = new Date(item.htpStart);
+                            item.htpEnd = new Date(item.htpEnd);
+                        });
 
                         ui.lastUploaderEl.textContent = dataPayload.uploaderId.substring(0, 8) + '...';
                         ui.lastUpdatedEl.textContent = new Date(dataPayload.timestamp).toLocaleString('ko-KR');
                         
                         initializeFiltersFromData(globalRawData);
                         applyFiltersAndRender();
-
                     } catch (error) {
-                        console.error("Storage 파일 처리 오류:", error);
-                        alert("서버로부터 파일을 가져오거나 처리하는 데 실패했습니다.");
+                        console.error("데이터 압축 해제 또는 파싱 오류:", error);
+                        alert("서버로부터 받은 데이터를 처리하는 데 실패했습니다. 데이터가 손상되었을 수 있습니다.");
                         globalRawData = [];
-                    } finally {
-                        hideLoader();
                     }
                 } else {
                     globalRawData = [];
@@ -319,12 +304,11 @@
                     ui.tableBody.innerHTML = '';
                     ui.tableBody.appendChild(ui.placeholderRow);
                     ui.placeholderRow.classList.remove('hidden');
-                    hideLoader();
                 }
+                hideLoader();
             }, (error) => {
                 console.error("실시간 데이터 수신 오류:", error);
                 updateStatus('disconnected', '데이터 수신 중 오류 발생');
-                hideLoader();
             });
         }
         
@@ -469,7 +453,6 @@
                     aggregatedData[key].totalSeconds += durationSeconds;
                 }
 
-                // *** FIX: Always update these fields to get the 'last' value for the group ***
                 aggregatedData[key].location = item.location;
                 aggregatedData[key].processPathName = item.processPathName;
                 aggregatedData[key].floor = item.floor;
@@ -608,29 +591,44 @@
             if (!file) return;
 
             showLoader();
-            try {
-                const storageRef = ref(storage, 'htp-data/latest-upload.xlsx');
-                const snapshot = await uploadBytes(storageRef, file);
-                const downloadURL = await getDownloadURL(snapshot.ref);
-                await saveDataReferenceToFirestore(downloadURL);
-            } catch (error) {
-                console.error("파일 업로드 또는 처리 오류:", error);
-                alert("파일을 업로드하는 중 오류가 발생했습니다.");
-                hideLoader();
-            }
+            const reader = new FileReader();
+            reader.onload = async (e) => {
+                try {
+                    const data = new Uint8Array(e.target.result);
+                    const workbook = XLSX.read(data, { type: 'array', cellDates: true });
+                    const sheetName = workbook.SheetNames[0];
+                    const worksheet = workbook.Sheets[sheetName];
+                    const jsonData = XLSX.utils.sheet_to_json(worksheet, { header: 1 });
+                    
+                    const parsedData = parseExcelData(jsonData);
+                    await saveDataToFirestore(parsedData);
+
+                } catch (error) {
+                    console.error("파일 처리 오류:", error);
+                    alert(error.message || "파일을 처리하는 중 오류가 발생했습니다. 파일 형식을 확인해주세요.");
+                    hideLoader();
+                }
+            };
+            reader.onerror = (error) => { console.error("파일 읽기 오류:", error); alert("파일을 읽을 수 없습니다."); hideLoader(); };
+            reader.readAsArrayBuffer(file);
         }
 
-        async function saveDataReferenceToFirestore(downloadURL) {
-            const payload = { 
-                downloadURL: downloadURL, 
-                uploaderId: userId, 
-                timestamp: new Date().toISOString() 
-            };
+        async function saveDataToFirestore(data) {
             try {
+                const jsonString = JSON.stringify(data);
+                const compressedData = pako.gzip(jsonString);
+                const compressedBytes = Bytes.fromUint8Array(compressedData);
+
+                const payload = { 
+                    compressedData: compressedBytes, 
+                    uploaderId: userId, 
+                    timestamp: new Date().toISOString() 
+                };
+                
                 await setDoc(dataDocRef, payload);
             } catch (error) {
-                console.error("Firestore 참조 저장 오류:", error);
-                alert("파일 참조를 서버에 저장하는 데 실패했습니다.");
+                console.error("Firestore 저장 오류:", error);
+                alert("데이터를 서버에 저장하는 데 실패했습니다. 파일이 너무 크거나 네트워크 문제가 있을 수 있습니다.");
                 hideLoader();
             }
         }
@@ -643,7 +641,10 @@
 
             let timeFilteredData = [...globalRawData];
             if (filters.hours.size > 0) {
-                timeFilteredData = timeFilteredData.filter(item => filters.hours.has(item.htpStart.getUTCHours()));
+                timeFilteredData = timeFilteredData.filter(item => {
+                    const itemHour = item.htpStart.getUTCHours();
+                    return filters.hours.has(itemHour);
+                });
             }
 
             let aggregatedData = aggregateData(timeFilteredData);
