@@ -4,7 +4,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>실시간 HTP 데이터 공유 (v3.5)</title>
+    <title>실시간 HTP 데이터 공유 (v3.7)</title>
     <!-- Favicon Add -->
     <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>🚀</text></svg>">
     <script src="https://cdn.tailwindcss.com"></script>
@@ -57,6 +57,28 @@
         @keyframes ticker-scroll {
             0%   { transform: translateX(100%); }
             100% { transform: translateX(-100%); }
+        }
+
+        /* Sort Indicator Styles */
+        .sortable {
+            cursor: pointer;
+            position: relative;
+        }
+        .sort-indicator {
+            display: inline-block;
+            width: 1em;
+            height: 1em;
+            margin-left: 4px;
+            vertical-align: middle;
+            opacity: 0.5;
+            transition: opacity 0.2s;
+        }
+        .sortable:hover .sort-indicator {
+            opacity: 1;
+        }
+        .sort-indicator.asc, .sort-indicator.desc {
+            opacity: 1;
+            color: #60a5fa; /* light blue */
         }
     </style>
 </head>
@@ -178,17 +200,17 @@
         <div id="loader-container" class="flex-1 flex justify-center items-center hidden"><div class="loader"></div></div>
         <div id="table-container" class="flex-1 table-container overflow-auto px-4 pb-4">
             <table class="w-full text-sm text-left text-gray-400">
-                <thead class="text-xs text-gray-300 uppercase bg-gray-700 sticky top-0 z-10">
+                <thead id="table-header" class="text-xs text-gray-300 uppercase bg-gray-700 sticky top-0 z-10">
                     <tr>
-                        <th scope="col" class="px-4 py-3">집품/포장</th>
-                        <th scope="col" class="px-4 py-3">이름(원바코드)</th>
-                        <th scope="col" class="px-4 py-3">층</th>
-                        <th scope="col" class="px-4 py-3">PP</th>
-                        <th scope="col" class="px-4 py-3">Location</th>
-                        <th scope="col" class="px-4 py-3">작업량</th>
-                        <th scope="col" class="px-4 py-3">M/H</th>
-                        <th scope="col" class="px-4 py-3">HTP</th>
-                        <th scope="col" class="px-4 py-3">팩 종류</th>
+                        <th scope="col" class="px-4 py-3 sortable" data-sort-key="processType">집품/포장<span class="sort-indicator"></span></th>
+                        <th scope="col" class="px-4 py-3 sortable" data-sort-key="employee">이름(원바코드)<span class="sort-indicator"></span></th>
+                        <th scope="col" class="px-4 py-3 sortable" data-sort-key="floor">층<span class="sort-indicator"></span></th>
+                        <th scope="col" class="px-4 py-3 sortable" data-sort-key="processPathName">PP<span class="sort-indicator"></span></th>
+                        <th scope="col" class="px-4 py-3 sortable" data-sort-key="location">Location<span class="sort-indicator"></span></th>
+                        <th scope="col" class="px-4 py-3 sortable" data-sort-key="unitQty">작업량<span class="sort-indicator"></span></th>
+                        <th scope="col" class="px-4 py-3 sortable" data-sort-key="mh">M/H<span class="sort-indicator"></span></th>
+                        <th scope="col" class="px-4 py-3 sortable" data-sort-key="htp">HTP<span class="sort-indicator"></span></th>
+                        <th scope="col" class="px-4 py-3 sortable" data-sort-key="packType">팩 종류<span class="sort-indicator"></span></th>
                     </tr>
                 </thead>
                 <tbody id="data-table-body" class="bg-gray-800">
@@ -207,6 +229,7 @@
         const ui = {
             fileUpload: document.getElementById('file-upload'),
             tableBody: document.getElementById('data-table-body'),
+            tableHeader: document.getElementById('table-header'),
             placeholderRow: document.getElementById('placeholder-row'),
             loaderContainer: document.getElementById('loader-container'),
             tableContainer: document.getElementById('table-container'),
@@ -229,9 +252,15 @@
 
         // --- Global State ---
         let globalRawData = []; 
-        let filters = {
-            process: 'all', search: '', lowHtp: false,
-            hours: new Set(), floors: new Set(), packTypes: new Set()
+        let state = {
+            filters: {
+                process: 'all', search: '', lowHtp: false,
+                hours: new Set(), floors: new Set(), packTypes: new Set()
+            },
+            sort: {
+                key: 'htp', // Default sort key
+                direction: 'asc' // 'asc', 'desc', or null
+            }
         };
         let targetHtpValues = {};
 
@@ -316,23 +345,43 @@
         ui.sidebarToggle.addEventListener('click', () => ui.sidebar.classList.toggle('collapsed'));
         ui.fileUpload.addEventListener('change', handleFileUpload);
         ui.searchInput.addEventListener('input', (e) => {
-            filters.search = e.target.value.toLowerCase();
+            state.filters.search = e.target.value.toLowerCase();
             applyFiltersAndRender();
         });
         ui.lowHtpToggle.addEventListener('change', (e) => {
-            filters.lowHtp = e.target.checked;
+            state.filters.lowHtp = e.target.checked;
             applyFiltersAndRender();
         });
         document.querySelectorAll('.filter-btn').forEach(btn => {
             btn.addEventListener('click', (e) => {
                 document.querySelectorAll('.filter-btn').forEach(b => b.classList.remove('active'));
                 e.currentTarget.classList.add('active');
-                filters.process = e.currentTarget.id.replace('filter-', '');
+                state.filters.process = e.currentTarget.id.replace('filter-', '');
                 applyFiltersAndRender();
             });
         });
         ui.captureBtn.addEventListener('click', captureTable);
         ui.exportBtn.addEventListener('click', exportToExcel);
+
+        ui.tableHeader.addEventListener('click', (e) => {
+            const headerCell = e.target.closest('.sortable');
+            if (!headerCell) return;
+
+            const sortKey = headerCell.dataset.sortKey;
+            if (state.sort.key === sortKey) {
+                if (state.sort.direction === 'asc') {
+                    state.sort.direction = 'desc';
+                } else if (state.sort.direction === 'desc') {
+                    state.sort.direction = null; // Reset sort
+                    state.sort.key = 'htp'; // Default back to htp
+                    state.sort.direction = 'asc';
+                }
+            } else {
+                state.sort.key = sortKey;
+                state.sort.direction = 'asc';
+            }
+            applyFiltersAndRender();
+        });
 
         // --- Data Processing Constants ---
         const PACK_TYPE_MAP = {
@@ -344,8 +393,29 @@
         };
         const DEFAULT_PACK_TYPE = "기타";
         const MANAGERS_LIST = ['98659377', '31629728', '26485305', '94354606', '66476877', '21284456', '24856615', '87406548', '57101574', '39104550', '23761528', '29801698', '27407697', '30997520', '26152514', '42103385', '47548283', '92816677', '55540763', '39678603', '29787775', '88463987', '65712250', '37005613', '88031159', '24304330', '58548628', '58728654', '27507426', '92733138', '41310393', '21220693', '38876677', '53909931', '77358628', '95383395', '86473941', '28996527', '36148186', '96358817', '64118293', '50908038', '30049374', '68100618', '29229926', '66536830', '25657753', '47848283', '46802436', '93246435', '83689729', '92718820', '87935445', '97224272', '39359504'];
-        const TARGET_HTP_DEFAULTS = { "Manual SINGULATION": 100, "Manual MULTI": 120, "ACE LINE": 150, "Autobagger 1.2": 380, "Autobagger 2.5": 350, "Autobagger 4.0": 280, "Autobagger RTPB": 150, "Auto MULTI": 250, "CFC Manual S": 100, "CFC Manual M": 120, "CFC Autobag 2.5": 350, "CFC Autobag 4.0": 280, "CFC Autobag RTPB": 150, "PICK": 90 };
-        Object.assign(targetHtpValues, TARGET_HTP_DEFAULTS);
+        
+        // **FIX**: Replicated Python's TARGET_HTP_DEFAULTS structure for accurate matching
+        const TARGET_HTP_DEFAULTS = {
+            "Manual SINGULATION": { value: 100, keywords: ['ManualPack', '179_1.3F_MA_S_OG_'] },
+            "Manual MULTI":       { value: 120, keywords: ['7F_Multi_AGV', '179_1.3F_MA_M_OG_'] },
+            "ACE LINE":           { value: 150, keywords: ['ACE', '179-1.2F-MA-ACE-OG-'] },
+            "Autobagger 1.2":     { value: 380, keywords: ['Autobag1.2', '179_1.3F_AB_R1.2_OG_', 'AGV_Autobag1.2DW'] },
+            "Autobagger 2.5":     { value: 350, keywords: ['Autobag2.5', '179_1.3F_AB_R2.5_OG_'] },
+            "Autobagger 4.0":     { value: 280, keywords: ['Autobag4.0', '179_1.3F_AB_R4.0_OG_'] },
+            "Autobagger RTPB":    { value: 150, keywords: ['Autobag_RTPB1', '179_1.3F_AB_T1_OG_'] },
+            "Auto MULTI":         { value: 250, keywords: ['AGV_Multi_Autobag4.0', '179_1.3F_AB_M_OG_'] },
+            "CFC Manual S":       { value: 100, keywords: ['190_6.2F_MA_S_OG_'] },
+            "CFC Manual M":       { value: 120, keywords: ['190_6.2F_MA_M_OG_'] },
+            "CFC Autobag 2.5":    { value: 350, keywords: ['190_6.2F_AB_R2.5_OG_'] },
+            "CFC Autobag 4.0":    { value: 280, keywords: ['190_6.2F_AB_R4.0_OG_'] },
+            "CFC Autobag RTPB":   { value: 150, keywords: ['190_6.2G_AB_T1_OG_'] },
+            "PICK":               { value: 90, keywords: [] }
+        };
+        // Initialize targetHtpValues from the new structure
+        for(const key in TARGET_HTP_DEFAULTS) {
+            targetHtpValues[key] = TARGET_HTP_DEFAULTS[key].value;
+        }
+
 
         // --- Data Processing & Filtering ---
         function getPackType(location, processTask, processPathName) {
@@ -357,11 +427,26 @@
             return DEFAULT_PACK_TYPE;
         }
 
+        // **FIX**: Rewrote getTargetHtp to match Python logic
         function getTargetHtp(item) {
-            if (item.processType.includes('PICK')) return targetHtpValues['PICK'];
-            const packTypeName = Object.keys(targetHtpValues).find(k => k.toLowerCase().replace(/ /g, '') === item.packType.toLowerCase().replace(/ /g, ''));
-            return targetHtpValues[packTypeName] || 100;
+            if (item.processType.includes('PICK')) {
+                return targetHtpValues['PICK'] || 0;
+            }
+            if (item.processType.includes('PACK')) {
+                const processPathName = item.processPathName || "";
+                for (const name in TARGET_HTP_DEFAULTS) {
+                    if (name === "PICK") continue;
+                    const config = TARGET_HTP_DEFAULTS[name];
+                    if (config.keywords.some(keyword => processPathName.includes(keyword))) {
+                        return targetHtpValues[name] || 0;
+                    }
+                }
+                // Fallback for PACK types not matching any specific keyword
+                return targetHtpValues["Manual SINGULATION"] || 0;
+            }
+            return 0; // Default fallback
         }
+
 
         function parseExcelData(data) {
             if (data.length < 2) return [];
@@ -375,7 +460,9 @@
             const missingCols = [];
             for (const key in COLS_TO_LOAD) {
                 const index = headers.indexOf(COLS_TO_LOAD[key]);
-                if (index === -1) missingCols.push(COLS_TO_LOAD[key]);
+                if (index === -1 && key !== 'contractType') { // contractType is optional
+                    missingCols.push(COLS_TO_LOAD[key]);
+                }
                 colIndices[key] = index;
             }
             if (missingCols.length > 0) throw new Error(`엑셀 파일에 다음 필수 컬럼이 없습니다:\n[${missingCols.join(', ')}]`);
@@ -411,7 +498,7 @@
                     employee: row[colIndices.employee] || '', unitQty: parseInt(row[colIndices.unitQty] || 0),
                     location: location, floor: row[colIndices.floor] || '',
                     processPathName: processPathName, processTask: processTask,
-                    contractType: (row[colIndices.contractType] || '').toUpperCase(),
+                    contractType: colIndices.contractType !== -1 ? (row[colIndices.contractType] || '').toUpperCase() : '',
                     htpStart: htpStart, htpEnd: htpEnd
                 };
             }).filter(item => item && item.employee && item.unitQty > 0 && (item.processTask === 'PICK(PICKING)' || item.processTask === 'PACK(PACKING)'));
@@ -464,7 +551,6 @@
                 return { ...item, mh: mh.toFixed(4), htp: htp.toFixed(1) };
             });
 
-            finalData.sort((a, b) => parseFloat(a.htp) - parseFloat(b.htp));
             return finalData;
         }
         
@@ -499,12 +585,12 @@
                 checkbox.addEventListener('change', (e) => {
                     const hourVal = parseInt(e.target.value);
                     if (e.target.checked) {
-                        filters.hours.add(hourVal);
+                        state.filters.hours.add(hourVal);
                         allHoursCheckbox.checked = false;
                     } else {
-                        filters.hours.delete(hourVal);
+                        state.filters.hours.delete(hourVal);
                     }
-                    if (filters.hours.size === 0) {
+                    if (state.filters.hours.size === 0) {
                         allHoursCheckbox.checked = true;
                     }
                     applyFiltersAndRender();
@@ -518,7 +604,7 @@
             allHoursCheckbox.addEventListener('change', (e) => {
                 if (e.target.checked) {
                     document.querySelectorAll('.hour-checkbox').forEach(cb => cb.checked = false);
-                    filters.hours.clear();
+                    state.filters.hours.clear();
                     applyFiltersAndRender();
                 }
             });
@@ -526,14 +612,14 @@
                 allHoursCheckbox.checked = false;
                 document.querySelectorAll('.hour-checkbox').forEach(cb => {
                     cb.checked = true;
-                    filters.hours.add(parseInt(cb.value));
+                    state.filters.hours.add(parseInt(cb.value));
                 });
                 applyFiltersAndRender();
             });
             document.getElementById('deselect-all-hours').addEventListener('click', () => {
                 allHoursCheckbox.checked = true;
                 document.querySelectorAll('.hour-checkbox').forEach(cb => cb.checked = false);
-                filters.hours.clear();
+                state.filters.hours.clear();
                 applyFiltersAndRender();
             });
         }
@@ -547,8 +633,8 @@
                 checkbox.type = 'checkbox'; checkbox.value = item;
                 checkbox.className = `form-checkbox h-4 w-4 bg-gray-600 border-gray-500 rounded text-blue-500 focus:ring-blue-500 ${type}-checkbox`;
                 checkbox.addEventListener('change', (e) => {
-                    if (e.target.checked) filters[filterType].add(item);
-                    else filters[filterType].delete(item);
+                    if (e.target.checked) state.filters[filterType].add(item);
+                    else state.filters[filterType].delete(item);
                     applyFiltersAndRender();
                 });
                 label.appendChild(checkbox);
@@ -556,11 +642,11 @@
                 container.appendChild(label);
             });
             document.getElementById(`select-all-${type}`).addEventListener('click', () => {
-                container.querySelectorAll('input').forEach(cb => { cb.checked = true; filters[filterType].add(cb.value); });
+                container.querySelectorAll('input').forEach(cb => { cb.checked = true; state.filters[filterType].add(cb.value); });
                 applyFiltersAndRender();
             });
             document.getElementById(`deselect-all-${type}`).addEventListener('click', () => {
-                container.querySelectorAll('input').forEach(cb => { cb.checked = false; filters[filterType].delete(cb.value); });
+                container.querySelectorAll('input').forEach(cb => { cb.checked = false; state.filters[filterType].delete(cb.value); });
                 applyFiltersAndRender();
             });
         }
@@ -639,27 +725,55 @@
                 return;
             };
 
-            let timeFilteredData = [...globalRawData];
-            if (filters.hours.size > 0) {
-                timeFilteredData = timeFilteredData.filter(item => {
+            // **FIX**: Re-ordered the entire data processing pipeline to match Python logic
+            // 1. Filter raw data by time and process
+            let preFilteredData = [...globalRawData];
+            if (state.filters.hours.size > 0) {
+                preFilteredData = preFilteredData.filter(item => {
                     const itemHour = item.htpStart.getUTCHours();
-                    return filters.hours.has(itemHour);
+                    return state.filters.hours.has(itemHour);
+                });
+            }
+            if (state.filters.process === 'pick') {
+                preFilteredData = preFilteredData.filter(item => item.processTask === 'PICK(PICKING)');
+            } else if (state.filters.process === 'pack') {
+                preFilteredData = preFilteredData.filter(item => item.processTask === 'PACK(PACKING)');
+            }
+
+            // 2. Aggregate the pre-filtered data
+            let aggregatedData = aggregateData(preFilteredData);
+
+            // 3. Apply display filters (search, lowHtp, floor, packType) to the aggregated data
+            let displayFilteredData = aggregatedData;
+            if (state.filters.search) displayFilteredData = displayFilteredData.filter(item => item.employee.toLowerCase().includes(state.filters.search));
+            if (state.filters.lowHtp) displayFilteredData = displayFilteredData.filter(item => parseFloat(item.htp) < getTargetHtp(item));
+            if (state.filters.floors.size > 0) displayFilteredData = displayFilteredData.filter(item => item.processType.includes('PICK') && state.filters.floors.has(item.floor));
+            if (state.filters.packTypes.size > 0) displayFilteredData = displayFilteredData.filter(item => item.processType.includes('PACK') && state.filters.packTypes.has(item.packType));
+            
+            // 4. Sort the final data
+            if (state.sort.key && state.sort.direction) {
+                const numericKeys = ['unitQty', 'mh', 'htp'];
+                displayFilteredData.sort((a, b) => {
+                    const key = state.sort.key;
+                    const valA = a[key];
+                    const valB = b[key];
+
+                    let compareResult;
+                    if (numericKeys.includes(key)) {
+                        compareResult = parseFloat(valA) - parseFloat(valB);
+                    } else {
+                        compareResult = (valA || '').toString().localeCompare((valB || '').toString());
+                    }
+
+                    return state.sort.direction === 'asc' ? compareResult : -compareResult;
                 });
             }
 
-            let aggregatedData = aggregateData(timeFilteredData);
-
-            let displayFilteredData = aggregatedData;
-            if (filters.process === 'pick') displayFilteredData = displayFilteredData.filter(item => item.processType.includes('PICK'));
-            if (filters.process === 'pack') displayFilteredData = displayFilteredData.filter(item => item.processType.includes('PACK'));
-            if (filters.search) displayFilteredData = displayFilteredData.filter(item => item.employee.toLowerCase().includes(filters.search));
-            if (filters.lowHtp) displayFilteredData = displayFilteredData.filter(item => parseFloat(item.htp) < getTargetHtp(item));
-            if (filters.floors.size > 0) displayFilteredData = displayFilteredData.filter(item => item.processType.includes('PICK') && filters.floors.has(item.floor));
-            if (filters.packTypes.size > 0) displayFilteredData = displayFilteredData.filter(item => item.processType.includes('PACK') && filters.packTypes.has(item.packType));
-            
+            // 5. Render
             renderTable(displayFilteredData);
             updateStats(displayFilteredData);
             updateTicker(displayFilteredData);
+            updateSortIndicators();
         }
 
         function renderTable(data) {
@@ -693,10 +807,23 @@
                     <td class="px-4 py-3">${item.location || '-'}</td>
                     <td class="px-4 py-3">${item.unitQty}</td>
                     <td class="px-4 py-3">${item.mh}</td>
-                    <td class="px-4 py-3 font-bold ${htpColor}">${parseFloat(item.htp) < targetHtp ? '🚨 ' : ''}${item.htp}</td>
+                    <td class="px-4 py-3 font-bold ${htpColor}">${parseFloat(item.htp) < targetHtp && targetHtp > 0 ? '🚨 ' : ''}${item.htp}</td>
                     <td class="px-4 py-3">${item.packType}</td>
                 `;
                 ui.tableBody.appendChild(row);
+            });
+        }
+
+        function updateSortIndicators() {
+            ui.tableHeader.querySelectorAll('.sortable').forEach(th => {
+                const indicator = th.querySelector('.sort-indicator');
+                const key = th.dataset.sortKey;
+                indicator.classList.remove('asc', 'desc');
+                indicator.textContent = '';
+                if (key === state.sort.key && state.sort.direction) {
+                    indicator.classList.add(state.sort.direction);
+                    indicator.textContent = state.sort.direction === 'asc' ? '▲' : '▼';
+                }
             });
         }
 
@@ -704,8 +831,9 @@
             const visibleRows = data.length;
             const visibleWorkers = new Set(data.map(d => d.employee)).size;
             const totalQty = data.reduce((sum, d) => sum + d.unitQty, 0);
-            const totalHtp = data.reduce((sum, d) => sum + parseFloat(d.htp), 0);
-            const avgHtp = visibleRows > 0 ? (totalHtp / visibleRows).toFixed(1) : '0.0';
+            const totalMh = data.reduce((sum, d) => sum + parseFloat(d.mh), 0);
+            const avgHtp = totalMh > 0 ? (totalQty / totalMh).toFixed(2) : '0.00';
+
             ui.statsDisplay.innerHTML = `
                 표시 그룹: <span class="font-bold text-white">${visibleRows}</span> | 
                 작업자 수: <span class="font-bold text-white">${visibleWorkers}</span> | 
