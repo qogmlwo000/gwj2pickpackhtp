@@ -4,7 +4,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>GWJ2 PICK & PACK HTP TOOL_Bennett (v1.2.1)</title>
+    <title>GWJ2 PICK & PACK HTP TOOL_Bennett (v1.2.2)</title>
     
     <!-- Favicon -->
     <link rel="icon" href="https://raw.githubusercontent.com/qogmlwo000/gwj2pickpackhtp/main/Bennett.ico" type="image/x-icon">
@@ -146,7 +146,7 @@
 
         <!-- Pack Type Filters -->
         <div class="bg-gray-700 p-3 rounded-lg">
-            <h3 class="font-semibold mb-2 text-white">� 팩 종류 필터 (포장)</h3>
+            <h3 class="font-semibold mb-2 text-white">📦 팩 종류 필터 (포장)</h3>
             <div id="pack-type-filters" class="space-y-2"></div>
              <div class="flex space-x-2 pt-2 mt-2 border-t border-gray-600">
                 <button id="select-all-packtypes" class="text-xs py-1 px-2 rounded bg-gray-600 hover:bg-gray-500 w-full">모두 선택</button>
@@ -558,70 +558,63 @@
             return rawData;
         }
 
+        /**
+         * Aggregates raw data into groups for display.
+         * This function is updated to ensure M/H calculation is accurate.
+         */
         function aggregateData(rawData) {
-            const pickData = rawData.filter(item => item.processTask === 'PICK(PICKING)');
-            const packData = rawData.filter(item => item.processTask === 'PACK(PACKING)');
+            const aggregatedMap = new Map();
 
-            const aggregatedPick = {};
-            pickData.forEach(item => {
-                const key = `${item.employee}|${item.floor}|PICK`;
-                if (!aggregatedPick[key]) {
-                    aggregatedPick[key] = { ...item, unitQty: 0, totalSeconds: 0 };
+            rawData.forEach(item => {
+                let key;
+                let packType = null;
+
+                if (item.processTask === 'PICK(PICKING)') {
+                    key = `${item.employee}|${item.floor}|PICK`;
+                    packType = '집품';
+                } else { // PACK(PACKING)
+                    packType = getPackType(item.location, item.processTask, item.processPathName);
+                    key = `${item.employee}|${packType}|PACK`;
                 }
-                aggregatedPick[key].unitQty += item.unitQty;
-                aggregatedPick[key].totalSeconds += (item.htpEnd - item.htpStart) / 1000;
-            });
-            
-            const aggregatedPack = {};
-            packData.forEach(item => {
-                const packType = getPackType(item.location, item.processTask, item.processPathName);
-                const key = `${item.employee}|${packType}|PACK`;
-                if (!aggregatedPack[key]) {
-                    aggregatedPack[key] = { ...item, unitQty: 0, totalSeconds: 0, packType: packType };
+
+                const durationSeconds = (item.htpEnd - item.htpStart) / 1000;
+                if (durationSeconds < 0) return; // Ignore invalid time ranges
+
+                if (!aggregatedMap.has(key)) {
+                    const empIdMatch = item.employee.match(/\((.*?)\)/);
+                    const empId = empIdMatch ? empIdMatch[1] : '';
+                    aggregatedMap.set(key, {
+                        processType: item.processTask.includes('PICK') ? 'PICK(집품)' : 'PACK(포장)',
+                        employee: item.employee,
+                        floor: item.floor,
+                        unitQty: 0,
+                        totalSeconds: 0,
+                        location: item.location,
+                        processPathName: item.processPathName,
+                        packType: packType,
+                        isManager: MANAGERS_LIST.includes(empId),
+                        isPerm: item.contractType === 'PERM'
+                    });
                 }
-                aggregatedPack[key].unitQty += item.unitQty;
-                aggregatedPack[key].totalSeconds += (item.htpEnd - item.htpStart) / 1000;
+
+                const group = aggregatedMap.get(key);
+                group.unitQty += item.unitQty;
+                group.totalSeconds += durationSeconds;
+                
+                // Update with the last seen location/path for representative display
+                group.location = item.location;
+                group.processPathName = item.processPathName;
             });
 
             const finalData = [];
-            
-            Object.values(aggregatedPick).forEach(item => {
-                const empIdMatch = item.employee.match(/\((.*?)\)/);
-                const empId = empIdMatch ? empIdMatch[1] : '';
-                const mh = item.totalSeconds > 0 ? item.totalSeconds / 3600 : 0;
+            for (const group of aggregatedMap.values()) {
+                const mh = group.totalSeconds > 0 ? group.totalSeconds / 3600 : 0;
                 finalData.push({
-                    processType: 'PICK(집품)',
-                    employee: item.employee,
-                    floor: item.floor,
-                    unitQty: item.unitQty,
-                    location: item.location,
-                    processPathName: item.processPathName,
-                    packType: '집품',
+                    ...group,
                     mh: mh.toFixed(4),
-                    htp: (mh > 0 ? item.unitQty / mh : 0).toFixed(1),
-                    isManager: MANAGERS_LIST.includes(empId),
-                    isPerm: item.contractType === 'PERM'
+                    htp: (mh > 0 ? group.unitQty / mh : 0).toFixed(1),
                 });
-            });
-
-            Object.values(aggregatedPack).forEach(item => {
-                const empIdMatch = item.employee.match(/\((.*?)\)/);
-                const empId = empIdMatch ? empIdMatch[1] : '';
-                const mh = item.totalSeconds > 0 ? item.totalSeconds / 3600 : 0;
-                finalData.push({
-                    processType: 'PACK(포장)',
-                    employee: item.employee,
-                    floor: item.floor,
-                    unitQty: item.unitQty,
-                    location: item.location,
-                    processPathName: item.processPathName,
-                    packType: item.packType,
-                    mh: mh.toFixed(4),
-                    htp: (mh > 0 ? item.unitQty / mh : 0).toFixed(1),
-                    isManager: MANAGERS_LIST.includes(empId),
-                    isPerm: item.contractType === 'PERM'
-                });
-            });
+            }
 
             return finalData;
         }
@@ -992,7 +985,7 @@
                 const cells = row.querySelectorAll('td');
                 const rowData = {
                     '집품/포장': cells[0].textContent,
-                    '이름(원바코드)': cells[1].textContent.replace(/[👑📝]\s|\[계약직\]\s/g, ''),
+                    '이름(원바코드)': cells[1].textContent.replace(/[👑�]\s|\[계약직\]\s/g, ''),
                     '작업량': cells[2].textContent,
                     '로케이션 및 작업대': cells[3].textContent,
                     'PP': cells[4].textContent,
