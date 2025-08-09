@@ -672,20 +672,20 @@
         const MANAGERS_LIST = ['98659377', '31629728', '26485305', '94354606', '66476877', '21284456', '24856615', '87406548', '57101574', '39104550', '23761528', '29801698', '27407697', '30997520', '26152514', '42103385', '47548283', '92816677', '55540763', '39678603', '29787775', '88463987', '65712250', '37005613', '88031159', '24304330', '58548628', '58728654', '27507426', '92733138', '41310393', '21220693', '38876677', '53909931', '77358628', '95383395', '86473941', '28996527', '36148186', '96358817', '64118293', '50908038', '30049374', '68100618', '29229926', '66536830', '25657753', '47848283', '46802436', '93246435', '83689729', '92718820', '87935445', '97224272', '39359504'];
         
         const TARGET_HTP_DEFAULTS = {
-            "Manual SINGULATION": { value: 100, keywords: ['ManualPack', '179_1.3F_MA_S_OG_'] },
-            "Manual MULTI":       { value: 120, keywords: ['7F_Multi_AGV', '179_1.3F_MA_M_OG_'] },
+            "메뉴얼팩 싱귤": { value: 100, keywords: ['ManualPack', '179_1.3F_MA_S_OG_'] },
+            "메뉴얼팩 멀티":       { value: 120, keywords: ['7F_Multi_AGV', '179_1.3F_MA_M_OG_'] },
             "ACE LINE":           { value: 150, keywords: ['ACE', '179-1.2F-MA-ACE-OG-'] },
-            "Autobagger 1.2":     { value: 380, keywords: ['Autobag1.2', '179_1.3F_AB_R1.2_OG_', 'AGV_Autobag1.2DW'] },
-            "Autobagger 2.5":     { value: 350, keywords: ['Autobag2.5', '179_1.3F_AB_R2.5_OG_'] },
-            "Autobagger 4.0":     { value: 280, keywords: ['Autobag4.0', '179_1.3F_AB_R4.0_OG_'] },
-            "Autobagger RTPB":    { value: 150, keywords: ['Autobag_RTPB1', '179_1.3F_AB_T1_OG_'] },
-            "Auto MULTI":         { value: 250, keywords: ['AGV_Multi_Autobag4.0', '179_1.3F_AB_M_OG_'] },
-            "CFC Manual S":       { value: 100, keywords: ['190_6.2F_MA_S_OG_'] },
-            "CFC Manual M":       { value: 120, keywords: ['190_6.2F_MA_M_OG_'] },
-            "CFC Autobag 2.5":    { value: 350, keywords: ['190_6.2F_AB_R2.5_OG_'] },
-            "CFC Autobag 4.0":    { value: 280, keywords: ['190_6.2F_AB_R4.0_OG_'] },
-            "CFC Autobag RTPB":   { value: 150, keywords: ['190_6.2G_AB_T1_OG_'] },
-            "PICK":               { value: 90, keywords: [] }
+            "오토백 1.2":     { value: 380, keywords: ['Autobag1.2', '179_1.3F_AB_R1.2_OG_', 'AGV_Autobag1.2DW'] },
+            "오토백 2.5":     { value: 350, keywords: ['Autobag2.5', '179_1.3F_AB_R2.5_OG_'] },
+            "오토백 4.0":     { value: 280, keywords: ['Autobag4.0', '179_1.3F_AB_R4.0_OG_'] },
+            "오토백 RTPB":    { value: 150, keywords: ['Autobag_RTPB1', '179_1.3F_AB_T1_OG_'] },
+            "오토백 멀티":         { value: 250, keywords: ['AGV_Multi_Autobag4.0', '179_1.3F_AB_M_OG_'] },
+            //"CFC Manual S":       { value: 100, keywords: ['190_6.2F_MA_S_OG_'] },
+            //"CFC Manual M":       { value: 120, keywords: ['190_6.2F_MA_M_OG_'] },
+            //"CFC Autobag 2.5":    { value: 350, keywords: ['190_6.2F_AB_R2.5_OG_'] },
+            //"CFC Autobag 4.0":    { value: 280, keywords: ['190_6.2F_AB_R4.0_OG_'] },
+            //"CFC Autobag RTPB":   { value: 150, keywords: ['190_6.2G_AB_T1_OG_'] },
+            "집품":               { value: 90, keywords: [] }
         };
         for(const key in TARGET_HTP_DEFAULTS) {
             targetHtpValues[key] = TARGET_HTP_DEFAULTS[key].value;
