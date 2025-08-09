@@ -4,7 +4,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>GWJ2 PICK & PACK HTP TOOL_Bennett (v2.0.0)</title>
+    <title>GWJ2 PICK & PACK HTP TOOL_Bennett (v2.1.0)</title>
     
     <!-- Favicon -->
     <link rel="icon" href="https://raw.githubusercontent.com/qogmlwo000/gwj2pickpackhtp/main/Bennett.ico" type="image/x-icon">
@@ -387,14 +387,14 @@
                 <div class="bg-gray-800 p-4 rounded-lg lg:col-span-2 xl:col-span-1">
                      <div class="grid grid-cols-1 sm:grid-cols-2 gap-4 h-full">
                         <div>
-                            <h3 class="text-lg font-semibold mb-3 text-white">🏆 Top 5 Performers</h3>
-                            <ul id="top-performers-list" class="space-y-2 text-sm">
+                            <h3 class="text-lg font-semibold mb-3 text-white">🏆 Top 5 PICK</h3>
+                            <ul id="top-pick-performers-list" class="space-y-2 text-sm">
                                 <!-- JS will populate this -->
                             </ul>
                         </div>
                         <div>
-                            <h3 class="text-lg font-semibold mb-3 text-white">🚨 Low 5 Performers</h3>
-                            <ul id="low-performers-list" class="space-y-2 text-sm">
+                            <h3 class="text-lg font-semibold mb-3 text-white">🏆 Top 5 PACK</h3>
+                            <ul id="top-pack-performers-list" class="space-y-2 text-sm">
                                 <!-- JS will populate this -->
                             </ul>
                         </div>
@@ -456,15 +456,15 @@
             chartModalBackdrop: document.getElementById('chart-modal-backdrop'),
             chartModalTitle: document.getElementById('chart-modal-title'),
             chartModalClose: document.getElementById('chart-modal-close'),
-            // New Dashboard UI Elements
+            // Dashboard UI Elements
             kpi: {
                 totalWorkers: document.getElementById('kpi-total-workers'),
                 totalQty: document.getElementById('kpi-total-qty'),
                 avgHtp: document.getElementById('kpi-avg-htp'),
                 lowPerformers: document.getElementById('kpi-low-performers'),
             },
-            topPerformersList: document.getElementById('top-performers-list'),
-            lowPerformersList: document.getElementById('low-performers-list'),
+            topPickPerformersList: document.getElementById('top-pick-performers-list'),
+            topPackPerformersList: document.getElementById('top-pack-performers-list'),
         };
 
         // --- Global State ---
@@ -759,7 +759,6 @@
                 const htpEnd = combineDateTime(row[colIndices.workDate], row[colIndices.htpEnd]);
                 if (!htpStart || !htpEnd) return null;
                 
-                // *** FIX: Exclude data with 0 or negative duration ***
                 const durationSeconds = (htpEnd - htpStart) / 1000;
                 if (durationSeconds <= 0) return null;
 
@@ -767,7 +766,6 @@
                 const location = row[colIndices.location] || '';
                 const processPathName = row[colIndices.processPathName] || '';
 
-                // Remap REBIN to PACK for new Autobag Multi format
                 if (processTask === 'REBIN(REBIN)' && location.startsWith('Pack at Rebin (Test') && processPathName === '0. AGV_Multi_Autobag4.0 + 일반존 통합') {
                     processTask = 'PACK(PACKING)';
                 }
@@ -788,10 +786,6 @@
             return rawData;
         }
 
-        /**
-         * Aggregates raw data into groups for display.
-         * This function is updated to ensure M/H calculation is accurate.
-         */
         function aggregateData(rawData) {
             const aggregatedMap = new Map();
 
@@ -831,7 +825,6 @@
                 group.unitQty += item.unitQty;
                 group.totalSeconds += durationSeconds;
                 
-                // Update with the last seen location/path for representative display
                 group.location = item.location;
                 group.processPathName = item.processPathName;
                 group.floor = item.floor;
@@ -1003,7 +996,6 @@
 
         async function saveDataToFirestore(data) {
             try {
-                // To store Date objects in Firestore, they must be converted to a serializable format like ISO strings.
                 const serializableData = data.map(item => ({
                     ...item,
                     htpStart: item.htpStart.toISOString(),
@@ -1030,11 +1022,10 @@
         function applyFiltersAndRender() {
             if (globalRawData.length === 0) {
                 renderTable([]);
-                updateDashboard([]);
+                updateDashboard([], []);
                 return;
             };
 
-            // 1. Filter raw data by time (pre-aggregation)
             let timeFilteredRawData = [...globalRawData];
             if (state.filters.hours.size > 0) {
                 timeFilteredRawData = timeFilteredRawData.filter(item => {
@@ -1043,10 +1034,8 @@
                 });
             }
             
-            // 2. Aggregate the time-filtered raw data
             let aggregatedData = aggregateData(timeFilteredRawData);
 
-            // 3. Apply display filters (process, search, lowHtp, floor, packType) to the aggregated data
             let displayFilteredData = aggregatedData;
             if (state.filters.process === 'pick') {
                 displayFilteredData = displayFilteredData.filter(item => item.processType === 'PICK(집품)');
@@ -1056,7 +1045,6 @@
             if (state.filters.search) displayFilteredData = displayFilteredData.filter(item => item.employee.toLowerCase().includes(state.filters.search));
             if (state.filters.lowHtp) displayFilteredData = displayFilteredData.filter(item => parseFloat(item.htp) < getTargetHtp(item));
             
-            // Apply floor and pack type filters post-aggregation
             let finalDisplayData = displayFilteredData;
             if (state.filters.floors.size > 0 && state.filters.packTypes.size > 0) {
                  finalDisplayData = displayFilteredData.filter(item => 
@@ -1069,7 +1057,6 @@
                 finalDisplayData = displayFilteredData.filter(item => item.processType.includes('PACK') && state.filters.packTypes.has(item.packType));
             }
             
-            // 4. Sort the final data
             if (state.sort.key && state.sort.direction) {
                 const numericKeys = ['unitQty', 'mh', 'htp'];
                 finalDisplayData.sort((a, b) => {
@@ -1088,9 +1075,8 @@
                 });
             }
 
-            // 5. Render all components
             renderTable(finalDisplayData);
-            updateDashboard(finalDisplayData, timeFilteredRawData); // Pass raw data for hourly trend
+            updateDashboard(finalDisplayData, timeFilteredRawData);
             updateColumnVisibility(finalDisplayData);
             updateStats(finalDisplayData);
             updateTicker(finalDisplayData);
@@ -1117,13 +1103,13 @@
                 let htpColor = parseFloat(item.htp) < targetHtp ? 'text-red-400' : 'text-green-400';
                 
                 let empDisplay = item.employee;
-                let empColor = 'text-gray-200'; // Default to white
+                let empColor = 'text-gray-200';
 
                 if (item.isManager) {
                     empDisplay = `👑 ${item.employee}`;
                     empColor = 'text-yellow-300 font-bold';
                 } else if (item.isPerm) {
-                    empColor = 'text-lime-400'; // Lime green for contract workers
+                    empColor = 'text-lime-400';
                 }
 
                 row.innerHTML = `
@@ -1246,7 +1232,6 @@
                 }
             });
 
-            // Sort data by HTP (ascending) before exporting
             pickData.sort((a, b) => a.HTP - b.HTP);
             packData.sort((a, b) => a.HTP - b.HTP);
 
@@ -1279,7 +1264,6 @@
                         if (ws[cellAddr]) {
                             if (!ws[cellAddr].s) ws[cellAddr].s = {};
                             Object.assign(ws[cellAddr].s, cellStyle);
-                            // Apply number formats
                             if (typeof ws[cellAddr].v === 'number') {
                                 if (headers[C] === 'M/H') ws[cellAddr].z = '0.0000';
                                 else if (headers[C] === 'HTP') ws[cellAddr].z = '0.0';
@@ -1327,7 +1311,6 @@
         function showLoader() { ui.loaderContainer.classList.remove('hidden'); ui.tableView.classList.add('hidden'); }
         function hideLoader() { ui.loaderContainer.classList.add('hidden'); ui.tableView.classList.remove('hidden'); }
         
-        // Custom Modal instead of alert()
         function showModal(message, duration = 3000) {
             const modal = document.createElement('div');
             modal.className = 'fixed top-5 right-5 bg-blue-500 text-white py-2 px-4 rounded-lg shadow-lg z-50 animate-fade-in-out';
@@ -1355,7 +1338,7 @@
         }
         
         // --- Charting & Dashboard Functions ---
-        Chart.register(ChartDataLabels); // **IMPORTANT: Register the plugin**
+        Chart.register(ChartDataLabels);
 
         function updateDashboard(filteredAggregatedData, timeFilteredRawData) {
             updateKpiCards(filteredAggregatedData);
@@ -1363,7 +1346,7 @@
             updateFloorHtpChart(filteredAggregatedData);
             updatePackTypeChart(filteredAggregatedData);
             updateProcessComparisonChart(filteredAggregatedData);
-            updateHourlyTrendChart(timeFilteredRawData); // Use raw data for this
+            updateHourlyTrendChart(timeFilteredRawData);
         }
         
         function generateColors(numColors) {
@@ -1393,32 +1376,42 @@
         }
 
         function updatePerformersLists(data) {
-            ui.topPerformersList.innerHTML = '';
-            ui.lowPerformersList.innerHTML = '';
+            ui.topPickPerformersList.innerHTML = '';
+            ui.topPackPerformersList.innerHTML = '';
 
             if (data.length === 0) {
-                ui.topPerformersList.innerHTML = '<li class="text-gray-500">데이터 없음</li>';
-                ui.lowPerformersList.innerHTML = '<li class="text-gray-500">데이터 없음</li>';
+                ui.topPickPerformersList.innerHTML = '<li class="text-gray-500">데이터 없음</li>';
+                ui.topPackPerformersList.innerHTML = '<li class="text-gray-500">데이터 없음</li>';
                 return;
             }
 
-            const sortedByHtp = [...data].sort((a, b) => parseFloat(b.htp) - parseFloat(a.htp));
-            const top5 = sortedByHtp.slice(0, 5);
-            const low5 = sortedByHtp.filter(d => d.htp > 0).slice(-5).reverse();
+            const pickData = data.filter(d => d.processType.includes('PICK'));
+            const packData = data.filter(d => d.processType.includes('PACK'));
 
-            const createListItem = (item, isTop) => {
-                const color = isTop ? 'text-green-400' : 'text-red-400';
+            pickData.sort((a, b) => parseFloat(b.htp) - parseFloat(a.htp));
+            packData.sort((a, b) => parseFloat(b.htp) - parseFloat(a.htp));
+
+            const top5Pick = pickData.slice(0, 5);
+            const top5Pack = packData.slice(0, 5);
+
+            const createListItem = (item) => {
                 return `<li class="flex justify-between items-center bg-gray-700 p-2 rounded-md">
-                            <span>${item.employee.split('(')[0].trim()} <span class="text-xs text-gray-400">${item.processType.split('(')[0]}</span></span>
-                            <span class="font-bold ${color}">${item.htp}</span>
+                            <span>${item.employee.split('(')[0].trim()}</span>
+                            <span class="font-bold text-green-400">${item.htp}</span>
                         </li>`;
             };
 
-            top5.forEach(item => ui.topPerformersList.innerHTML += createListItem(item, true));
-            low5.forEach(item => ui.lowPerformersList.innerHTML += createListItem(item, false));
+            if (top5Pick.length > 0) {
+                top5Pick.forEach(item => ui.topPickPerformersList.innerHTML += createListItem(item));
+            } else {
+                ui.topPickPerformersList.innerHTML = '<li class="text-gray-500">데이터 없음</li>';
+            }
 
-            if (top5.length === 0) ui.topPerformersList.innerHTML = '<li class="text-gray-500">데이터 없음</li>';
-            if (low5.length === 0) ui.lowPerformersList.innerHTML = '<li class="text-gray-500">데이터 없음</li>';
+            if (top5Pack.length > 0) {
+                top5Pack.forEach(item => ui.topPackPerformersList.innerHTML += createListItem(item));
+            } else {
+                ui.topPackPerformersList.innerHTML = '<li class="text-gray-500">데이터 없음</li>';
+            }
         }
 
         function updateFloorHtpChart(data) {
@@ -1494,8 +1487,7 @@
                 totalQuantity += item.unitQty;
             });
             
-            // Group small slices into '기타'
-            const otherThreshold = 0.02; // 2%
+            const otherThreshold = 0.02;
             let otherQuantity = 0;
             const finalPackData = new Map();
             
@@ -1542,7 +1534,7 @@
                             formatter: (value, context) => {
                                 const percentage = totalQuantity > 0 ? (value / totalQuantity * 100).toFixed(1) : 0;
                                 const label = context.chart.data.labels[context.dataIndex];
-                                if (parseFloat(percentage) < 5) return ''; // Hide label for very small slices
+                                if (parseFloat(percentage) < 5) return '';
                                 return `${label}\n${percentage}%`;
                             }
                         }
@@ -1668,7 +1660,7 @@
 
             const hourlyData = new Map();
             employeeData.forEach(item => {
-                const hour = item.htpStart.getUTCHours(); // Use UTC hours for consistency
+                const hour = item.htpStart.getUTCHours();
                 if (!hourlyData.has(hour)) {
                     hourlyData.set(hour, { unitQty: 0, totalSeconds: 0 });
                 }
