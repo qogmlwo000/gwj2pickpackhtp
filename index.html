@@ -4,7 +4,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>GWJ2 PICK & PACK HTP TOOL_Bennett (v1.0.0)</title>
+    <title>GWJ2 PICK & PACK HTP TOOL_Bennett (v2.0.0)</title>
     
     <!-- Favicon -->
     <link rel="icon" href="https://raw.githubusercontent.com/qogmlwo000/gwj2pickpackhtp/main/Bennett.ico" type="image/x-icon">
@@ -171,6 +171,12 @@
             max-height: 80vh;
         }
 
+        /* --- Dashboard KPI Card --- */
+        .kpi-card {
+            background-color: #1f2937; /* gray-800 */
+            border-left: 4px solid #3b82f6; /* blue-500 */
+        }
+
     </style>
 </head>
 <body class="bg-gray-900 text-gray-200">
@@ -327,17 +333,71 @@
 
         <!-- Dashboard View -->
         <div id="dashboard-view" class="hidden flex-col flex-grow min-h-0 p-4 space-y-4 overflow-y-auto">
-            <div class="grid grid-cols-1 lg:grid-cols-2 gap-4">
+            <!-- KPI Cards -->
+            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+                <div class="kpi-card p-4 rounded-lg shadow">
+                    <h4 class="text-gray-400 text-sm font-medium">총 작업자 수</h4>
+                    <p id="kpi-total-workers" class="text-3xl font-bold text-white">0</p>
+                </div>
+                <div class="kpi-card p-4 rounded-lg shadow">
+                    <h4 class="text-gray-400 text-sm font-medium">총 작업량 (Unit)</h4>
+                    <p id="kpi-total-qty" class="text-3xl font-bold text-white">0</p>
+                </div>
+                <div class="kpi-card p-4 rounded-lg shadow">
+                    <h4 class="text-gray-400 text-sm font-medium">전체 평균 HTP</h4>
+                    <p id="kpi-avg-htp" class="text-3xl font-bold text-white">0.0</p>
+                </div>
+                <div class="kpi-card p-4 rounded-lg shadow border-l-red-500">
+                    <h4 class="text-gray-400 text-sm font-medium">저조자 수</h4>
+                    <p id="kpi-low-performers" class="text-3xl font-bold text-red-400">0</p>
+                </div>
+            </div>
+
+            <!-- Charts Grid -->
+            <div class="grid grid-cols-1 lg:grid-cols-2 xl:grid-cols-3 gap-4">
+                <!-- Process Comparison Chart -->
+                <div class="bg-gray-800 p-4 rounded-lg xl:col-span-1">
+                    <h3 class="text-lg font-semibold mb-2 text-white">프로세스별 비교</h3>
+                    <div class="relative h-64 md:h-80">
+                        <canvas id="process-comparison-chart"></canvas>
+                    </div>
+                </div>
+                <!-- Hourly HTP Trend -->
+                <div class="bg-gray-800 p-4 rounded-lg xl:col-span-2">
+                    <h3 class="text-lg font-semibold mb-2 text-white">시간대별 HTP 트렌드</h3>
+                    <div class="relative h-64 md:h-80">
+                        <canvas id="hourly-htp-chart"></canvas>
+                    </div>
+                </div>
+                <!-- Floor HTP Chart -->
                 <div class="bg-gray-800 p-4 rounded-lg">
                     <h3 class="text-lg font-semibold mb-2 text-white">층별 평균 HTP (집품)</h3>
                     <div class="relative h-96">
                         <canvas id="floor-htp-chart"></canvas>
                     </div>
                 </div>
+                <!-- Pack Type Chart -->
                 <div class="bg-gray-800 p-4 rounded-lg">
                     <h3 class="text-lg font-semibold mb-2 text-white">팩 종류별 작업량 (포장)</h3>
                     <div class="relative h-96">
                         <canvas id="pack-type-chart"></canvas>
+                    </div>
+                </div>
+                <!-- Performer Lists -->
+                <div class="bg-gray-800 p-4 rounded-lg lg:col-span-2 xl:col-span-1">
+                     <div class="grid grid-cols-1 sm:grid-cols-2 gap-4 h-full">
+                        <div>
+                            <h3 class="text-lg font-semibold mb-3 text-white">🏆 Top 5 Performers</h3>
+                            <ul id="top-performers-list" class="space-y-2 text-sm">
+                                <!-- JS will populate this -->
+                            </ul>
+                        </div>
+                        <div>
+                            <h3 class="text-lg font-semibold mb-3 text-white">🚨 Low 5 Performers</h3>
+                            <ul id="low-performers-list" class="space-y-2 text-sm">
+                                <!-- JS will populate this -->
+                            </ul>
+                        </div>
                     </div>
                 </div>
             </div>
@@ -389,7 +449,6 @@
             exportBtn: document.getElementById('export-btn'),
             targetHtpSettings: document.getElementById('target-htp-settings'),
             tickerText: document.getElementById('ticker-text'),
-            // New UI elements for charts and views
             tableViewBtn: document.getElementById('table-view-btn'),
             dashboardViewBtn: document.getElementById('dashboard-view-btn'),
             tableView: document.getElementById('table-view'),
@@ -397,6 +456,15 @@
             chartModalBackdrop: document.getElementById('chart-modal-backdrop'),
             chartModalTitle: document.getElementById('chart-modal-title'),
             chartModalClose: document.getElementById('chart-modal-close'),
+            // New Dashboard UI Elements
+            kpi: {
+                totalWorkers: document.getElementById('kpi-total-workers'),
+                totalQty: document.getElementById('kpi-total-qty'),
+                avgHtp: document.getElementById('kpi-avg-htp'),
+                lowPerformers: document.getElementById('kpi-low-performers'),
+            },
+            topPerformersList: document.getElementById('top-performers-list'),
+            lowPerformersList: document.getElementById('low-performers-list'),
         };
 
         // --- Global State ---
@@ -413,7 +481,9 @@
             charts: { // To hold chart instances
                 floorHtp: null,
                 packType: null,
-                individualHtp: null
+                individualHtp: null,
+                processComparison: null,
+                hourlyHtp: null,
             }
         };
         let targetHtpValues = {};
@@ -807,7 +877,7 @@
                 label.className = 'flex items-center space-x-2 text-sm cursor-pointer';
                 const checkbox = document.createElement('input');
                 checkbox.type = 'checkbox'; checkbox.value = i;
-                checkbox.className = 'form-checkbox';
+                checkbox.className = 'form-checkbox hour-checkbox';
                 checkbox.addEventListener('change', (e) => {
                     const hourVal = parseInt(e.target.value);
                     if (e.target.checked) {
@@ -960,42 +1030,49 @@
         function applyFiltersAndRender() {
             if (globalRawData.length === 0) {
                 renderTable([]);
-                updateDashboardCharts([]);
+                updateDashboard([]);
                 return;
             };
 
-            // 1. Filter raw data by time and process (pre-aggregation)
-            let preFilteredData = [...globalRawData];
+            // 1. Filter raw data by time (pre-aggregation)
+            let timeFilteredRawData = [...globalRawData];
             if (state.filters.hours.size > 0) {
-                preFilteredData = preFilteredData.filter(item => {
+                timeFilteredRawData = timeFilteredRawData.filter(item => {
                     const itemHour = item.htpStart.getUTCHours();
                     return state.filters.hours.has(itemHour);
                 });
             }
-            if (state.filters.process === 'pick') {
-                preFilteredData = preFilteredData.filter(item => item.processTask === 'PICK(PICKING)');
-            } else if (state.filters.process === 'pack') {
-                preFilteredData = preFilteredData.filter(item => item.processTask === 'PACK(PACKING)');
-            }
+            
+            // 2. Aggregate the time-filtered raw data
+            let aggregatedData = aggregateData(timeFilteredRawData);
 
-            // 2. Aggregate the pre-filtered data
-            let aggregatedData = aggregateData(preFilteredData);
-
-            // 3. Apply display filters (search, lowHtp, floor, packType) to the aggregated data
+            // 3. Apply display filters (process, search, lowHtp, floor, packType) to the aggregated data
             let displayFilteredData = aggregatedData;
+            if (state.filters.process === 'pick') {
+                displayFilteredData = displayFilteredData.filter(item => item.processType === 'PICK(집품)');
+            } else if (state.filters.process === 'pack') {
+                displayFilteredData = displayFilteredData.filter(item => item.processType === 'PACK(포장)');
+            }
             if (state.filters.search) displayFilteredData = displayFilteredData.filter(item => item.employee.toLowerCase().includes(state.filters.search));
             if (state.filters.lowHtp) displayFilteredData = displayFilteredData.filter(item => parseFloat(item.htp) < getTargetHtp(item));
-            if (state.filters.floors.size > 0) {
-                 displayFilteredData = displayFilteredData.filter(item => item.processType.includes('PICK') && state.filters.floors.has(item.floor));
-            }
-            if (state.filters.packTypes.size > 0) {
-                displayFilteredData = displayFilteredData.filter(item => item.processType.includes('PACK') && state.filters.packTypes.has(item.packType));
+            
+            // Apply floor and pack type filters post-aggregation
+            let finalDisplayData = displayFilteredData;
+            if (state.filters.floors.size > 0 && state.filters.packTypes.size > 0) {
+                 finalDisplayData = displayFilteredData.filter(item => 
+                    (item.processType.includes('PICK') && state.filters.floors.has(item.floor)) ||
+                    (item.processType.includes('PACK') && state.filters.packTypes.has(item.packType))
+                );
+            } else if (state.filters.floors.size > 0) {
+                finalDisplayData = displayFilteredData.filter(item => item.processType.includes('PICK') && state.filters.floors.has(item.floor));
+            } else if (state.filters.packTypes.size > 0) {
+                finalDisplayData = displayFilteredData.filter(item => item.processType.includes('PACK') && state.filters.packTypes.has(item.packType));
             }
             
             // 4. Sort the final data
             if (state.sort.key && state.sort.direction) {
                 const numericKeys = ['unitQty', 'mh', 'htp'];
-                displayFilteredData.sort((a, b) => {
+                finalDisplayData.sort((a, b) => {
                     const key = state.sort.key;
                     const valA = a[key];
                     const valB = b[key];
@@ -1011,12 +1088,12 @@
                 });
             }
 
-            // 5. Render
-            renderTable(displayFilteredData);
-            updateDashboardCharts(displayFilteredData);
-            updateColumnVisibility(displayFilteredData);
-            updateStats(displayFilteredData);
-            updateTicker(displayFilteredData);
+            // 5. Render all components
+            renderTable(finalDisplayData);
+            updateDashboard(finalDisplayData, timeFilteredRawData); // Pass raw data for hourly trend
+            updateColumnVisibility(finalDisplayData);
+            updateStats(finalDisplayData);
+            updateTicker(finalDisplayData);
             updateSortIndicators();
         }
 
@@ -1154,7 +1231,7 @@
                 const cells = row.querySelectorAll('td');
                 const rowData = {
                     '집품/포장': cells[0].textContent,
-                    '이름(원바코드)': cells[1].textContent.replace(/[👑�🐕]\s*|\[계약직\]\s*/g, ''),
+                    '이름(원바코드)': cells[1].textContent.replace(/[👑🐕]\s*|\[계약직\]\s*/g, ''),
                     '작업량': Number(cells[2].textContent),
                     '로케이션 및 작업대': cells[3].textContent,
                     'PP': cells[4].textContent,
@@ -1277,14 +1354,18 @@
             }, duration);
         }
         
-        // --- Charting Functions ---
+        // --- Charting & Dashboard Functions ---
         Chart.register(ChartDataLabels); // **IMPORTANT: Register the plugin**
 
-        function updateDashboardCharts(data) {
-            updateFloorHtpChart(data);
-            updatePackTypeChart(data);
+        function updateDashboard(filteredAggregatedData, timeFilteredRawData) {
+            updateKpiCards(filteredAggregatedData);
+            updatePerformersLists(filteredAggregatedData);
+            updateFloorHtpChart(filteredAggregatedData);
+            updatePackTypeChart(filteredAggregatedData);
+            updateProcessComparisonChart(filteredAggregatedData);
+            updateHourlyTrendChart(timeFilteredRawData); // Use raw data for this
         }
-
+        
         function generateColors(numColors) {
             const colors = [
                 'rgba(59, 130, 246, 0.7)', 'rgba(239, 68, 68, 0.7)', 'rgba(34, 197, 94, 0.7)',
@@ -1296,6 +1377,48 @@
                 result.push(colors[i % colors.length]);
             }
             return result;
+        }
+
+        function updateKpiCards(data) {
+            const totalWorkers = new Set(data.map(d => d.employee)).size;
+            const totalQty = data.reduce((sum, d) => sum + d.unitQty, 0);
+            const totalMh = data.reduce((sum, d) => sum + parseFloat(d.mh), 0);
+            const avgHtp = totalMh > 0 ? (totalQty / totalMh) : 0;
+            const lowPerformers = data.filter(d => parseFloat(d.htp) < getTargetHtp(d)).length;
+
+            ui.kpi.totalWorkers.textContent = totalWorkers.toLocaleString();
+            ui.kpi.totalQty.textContent = totalQty.toLocaleString();
+            ui.kpi.avgHtp.textContent = avgHtp.toFixed(1);
+            ui.kpi.lowPerformers.textContent = lowPerformers.toLocaleString();
+        }
+
+        function updatePerformersLists(data) {
+            ui.topPerformersList.innerHTML = '';
+            ui.lowPerformersList.innerHTML = '';
+
+            if (data.length === 0) {
+                ui.topPerformersList.innerHTML = '<li class="text-gray-500">데이터 없음</li>';
+                ui.lowPerformersList.innerHTML = '<li class="text-gray-500">데이터 없음</li>';
+                return;
+            }
+
+            const sortedByHtp = [...data].sort((a, b) => parseFloat(b.htp) - parseFloat(a.htp));
+            const top5 = sortedByHtp.slice(0, 5);
+            const low5 = sortedByHtp.filter(d => d.htp > 0).slice(-5).reverse();
+
+            const createListItem = (item, isTop) => {
+                const color = isTop ? 'text-green-400' : 'text-red-400';
+                return `<li class="flex justify-between items-center bg-gray-700 p-2 rounded-md">
+                            <span>${item.employee.split('(')[0].trim()} <span class="text-xs text-gray-400">${item.processType.split('(')[0]}</span></span>
+                            <span class="font-bold ${color}">${item.htp}</span>
+                        </li>`;
+            };
+
+            top5.forEach(item => ui.topPerformersList.innerHTML += createListItem(item, true));
+            low5.forEach(item => ui.lowPerformersList.innerHTML += createListItem(item, false));
+
+            if (top5.length === 0) ui.topPerformersList.innerHTML = '<li class="text-gray-500">데이터 없음</li>';
+            if (low5.length === 0) ui.lowPerformersList.innerHTML = '<li class="text-gray-500">데이터 없음</li>';
         }
 
         function updateFloorHtpChart(data) {
@@ -1311,13 +1434,14 @@
                 floor.totalMh += parseFloat(item.mh);
             });
 
-            const labels = [];
-            const avgHtps = [];
-            for (const [floor, d] of floorData.entries()) {
-                labels.push(floor);
-                const weightedAvgHtp = d.totalMh > 0 ? (d.totalQty / d.totalMh) : 0;
-                avgHtps.push(weightedAvgHtp.toFixed(1));
-            }
+            const sortedFloors = Array.from(floorData.keys()).sort();
+            const labels = sortedFloors;
+            const avgHtps = sortedFloors.map(floor => {
+                 const d = floorData.get(floor);
+                 const weightedAvgHtp = d.totalMh > 0 ? (d.totalQty / d.totalMh) : 0;
+                 return weightedAvgHtp.toFixed(1);
+            });
+
 
             const ctx = document.getElementById('floor-htp-chart').getContext('2d');
             if (state.charts.floorHtp) {
@@ -1422,6 +1546,112 @@
                                 return `${label}\n${percentage}%`;
                             }
                         }
+                    }
+                }
+            });
+        }
+
+        function updateProcessComparisonChart(data) {
+            const processStats = {
+                PICK: { totalQty: 0, totalMh: 0 },
+                PACK: { totalQty: 0, totalMh: 0 },
+            };
+
+            data.forEach(item => {
+                const type = item.processType.includes('PICK') ? 'PICK' : 'PACK';
+                processStats[type].totalQty += item.unitQty;
+                processStats[type].totalMh += parseFloat(item.mh);
+            });
+
+            const pickHtp = processStats.PICK.totalMh > 0 ? (processStats.PICK.totalQty / processStats.PICK.totalMh) : 0;
+            const packHtp = processStats.PACK.totalMh > 0 ? (processStats.PACK.totalQty / processStats.PACK.totalMh) : 0;
+
+            const ctx = document.getElementById('process-comparison-chart').getContext('2d');
+            if (state.charts.processComparison) {
+                state.charts.processComparison.destroy();
+            }
+            state.charts.processComparison = new Chart(ctx, {
+                type: 'doughnut',
+                data: {
+                    labels: ['PICK(집품)', 'PACK(포장)'],
+                    datasets: [{
+                        label: '총 작업량',
+                        data: [processStats.PICK.totalQty, processStats.PACK.totalQty],
+                        backgroundColor: ['rgba(59, 130, 246, 0.7)', 'rgba(245, 158, 11, 0.7)'],
+                        borderColor: '#374151',
+                        borderWidth: 2
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: { position: 'bottom', labels: { color: '#d1d5db' } },
+                        datalabels: {
+                             color: '#fff',
+                             font: { weight: 'bold' },
+                             formatter: (value, context) => {
+                                const label = context.chart.data.labels[context.dataIndex];
+                                const htp = label.includes('PICK') ? pickHtp : packHtp;
+                                return `${value.toLocaleString()}\n(Avg ${htp.toFixed(0)} HTP)`;
+                             }
+                        }
+                    }
+                }
+            });
+        }
+
+        function updateHourlyTrendChart(rawData) {
+             const hourlyData = new Map();
+             for(let i=0; i<24; i++) {
+                hourlyData.set(i, { unitQty: 0, totalSeconds: 0 });
+             }
+
+             rawData.forEach(item => {
+                const hour = item.htpStart.getUTCHours();
+                const stats = hourlyData.get(hour);
+                if(stats){
+                    stats.unitQty += item.unitQty;
+                    stats.totalSeconds += (item.htpEnd - item.htpStart) / 1000;
+                }
+             });
+
+            const sortedHours = Array.from(hourlyData.keys()).sort((a, b) => a - b);
+            const labels = sortedHours.map(hour => `${hour.toString().padStart(2, '0')}:00`);
+            const htpValues = sortedHours.map(hour => {
+                const stats = hourlyData.get(hour);
+                if (!stats || stats.totalSeconds <= 0) return 0;
+                const mh = stats.totalSeconds / 3600;
+                return (stats.unitQty / mh).toFixed(1);
+            });
+
+            const ctx = document.getElementById('hourly-htp-chart').getContext('2d');
+            if (state.charts.hourlyHtp) {
+                state.charts.hourlyHtp.destroy();
+            }
+            state.charts.hourlyHtp = new Chart(ctx, {
+                type: 'line',
+                data: {
+                    labels: labels,
+                    datasets: [{
+                        label: '시간별 평균 HTP',
+                        data: htpValues,
+                        fill: true,
+                        backgroundColor: 'rgba(75, 192, 192, 0.2)',
+                        borderColor: 'rgba(75, 192, 192, 1)',
+                        tension: 0.3
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    scales: {
+                        y: { beginAtZero: false, ticks: { color: '#d1d5db' } },
+                        x: { ticks: { color: '#d1d5db', maxRotation: 0, autoSkip: true, maxTicksLimit: 12 } }
+                    },
+                    plugins: {
+                        legend: { display: false },
+                        datalabels: { display: false }
                     }
                 }
             });
