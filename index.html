@@ -1129,20 +1129,47 @@
                 return;
             }
             ui.placeholderRow.classList.add('hidden');
+
+            // TOP10 계산
+            const pickData = data.filter(d => d.processType.includes('PICK')).sort((a, b) => parseFloat(b.htp) - parseFloat(a.htp));
+            const packData = data.filter(d => d.processType.includes('PACK')).sort((a, b) => parseFloat(b.htp) - parseFloat(a.htp));
+            
+            const topPickSet = new Set(pickData.slice(0, 10).map(d => d.employee));
+            const topPackSet = new Set(packData.slice(0, 10).map(d => d.employee));
+            const lowPickSet = new Set(pickData.slice(-10).map(d => d.employee));
+            const lowPackSet = new Set(packData.slice(-10).map(d => d.employee));
+
             data.forEach(item => {
                 const row = document.createElement('tr');
                 row.className = 'cursor-pointer hover:bg-gray-700';
+                
                 let processTypeColor = item.processType.includes('PICK') ? 'text-blue-400' : 'text-yellow-400';
                 const targetHtp = getTargetHtp(item);
                 let htpColor = parseFloat(item.htp) < targetHtp ? 'text-red-400' : 'text-green-400';
+                
                 let empDisplay = item.employee;
                 let empColor = 'text-gray-200';
+
                 if (item.isManager) {
                     empDisplay = `👑 ${item.employee}`;
                     empColor = 'text-yellow-300 font-bold';
                 } else if (item.isPerm) {
-                    empColor = 'text-lime-400';
+                    const isDark = document.documentElement.getAttribute('data-theme') === 'dark';
+                    empColor = isDark ? 'text-lime-400' : 'text-green-600 font-semibold';
                 }
+
+                // 뱃지 추가
+                let badge = '';
+                if (item.processType.includes('PICK')) {
+                    if (topPickSet.has(item.employee)) badge = ' 🔥';
+                    else if (lowPickSet.has(item.employee)) badge = ' 🐢';
+                } else {
+                    if (topPackSet.has(item.employee)) badge = ' 🔥';
+                    else if (lowPackSet.has(item.employee)) badge = ' 🐢';
+                }
+                
+                empDisplay += badge;
+
                 row.innerHTML = `
                     <td class="px-4 py-3 font-medium ${processTypeColor}">${item.processType}</td>
                     <td class="px-4 py-3 ${empColor}">${empDisplay}</td>
@@ -1534,12 +1561,16 @@
         }
 
         function showIndividualTrend(employeeName, processType) {
+		// 모든 이모지 제거 (왕관, 불, 거북이 등)
+            employeeName = employeeName.replace(/[👑🔥🐢]\s*/g, '').trim();
             const targetProcessTask = processType.includes('PICK') ? 'PICK(PICKING)' : 'PACK(PACKING)';
             const employeeData = globalRawData.filter(d => d.employee === employeeName && d.processTask === targetProcessTask);
+            
             if (employeeData.length === 0) {
                 showModal(`${employeeName.split('(')[0]} 님의 해당 공정 데이터가 없습니다.`);
                 return;
             }
+
             const hourlyData = new Map();
             employeeData.forEach(item => {
                 const hour = item.htpStart.getUTCHours();
@@ -1548,6 +1579,7 @@
                 hourStats.unitQty += item.unitQty;
                 hourStats.totalSeconds += (item.htpEnd - item.htpStart) / 1000;
             });
+
             const sortedHours = Array.from(hourlyData.keys()).sort((a, b) => a - b);
             const labels = sortedHours.map(hour => `${hour}시`);
             const htpValues = sortedHours.map(hour => {
@@ -1555,7 +1587,113 @@
                 const mh = stats.totalSeconds / 3600;
                 return mh > 0 ? (stats.unitQty / mh).toFixed(1) : 0;
             });
-            ui.chartModalTitle.textContent = `${employeeName} 님의 시간대별 HTP (${processType.split('(')[0]})`;
+
+            // 통계 계산
+            const totalQty = employeeData.reduce((sum, item) => sum + item.unitQty, 0);
+            const totalSeconds = employeeData.reduce((sum, item) => sum + (item.htpEnd - item.htpStart) / 1000, 0);
+            const totalMh = totalSeconds / 3600;
+            const avgHtp = totalMh > 0 ? (totalQty / totalMh) : 0;
+            const maxHtp = Math.max(...htpValues.map(v => parseFloat(v)));
+            const minHtp = Math.min(...htpValues.filter(v => v > 0).map(v => parseFloat(v)));
+            const maxHour = sortedHours[htpValues.indexOf(maxHtp.toString())];
+            
+            // 시간대별 순위 계산
+            const hourlyRanks = sortedHours.map(hour => {
+                const stats = hourlyData.get(hour);
+                const mh = stats.totalSeconds / 3600;
+                const employeeHtp = mh > 0 ? stats.unitQty / mh : 0;
+                
+                // 같은 시간대의 모든 작업자 HTP 계산
+                const sameHourData = globalRawData.filter(d => 
+                    d.processTask === targetProcessTask && 
+                    d.htpStart.getUTCHours() === hour
+                );
+                
+                const employeeHtps = new Map();
+                sameHourData.forEach(item => {
+                    if (!employeeHtps.has(item.employee)) {
+                        employeeHtps.set(item.employee, { unitQty: 0, totalSeconds: 0 });
+                    }
+                    const empStats = employeeHtps.get(item.employee);
+                    empStats.unitQty += item.unitQty;
+                    empStats.totalSeconds += (item.htpEnd - item.htpStart) / 1000;
+                });
+                
+                const htpList = Array.from(employeeHtps.values())
+                    .map(s => s.totalSeconds > 0 ? s.unitQty / (s.totalSeconds / 3600) : 0)
+                    .sort((a, b) => b - a);
+                
+                const rank = htpList.findIndex(h => h <= employeeHtp) + 1;
+                const total = htpList.length;
+                
+                return { hour, rank, total };
+            });
+
+            // 모달 HTML 구성
+            ui.chartModalTitle.textContent = `${employeeName} 님의 상세 분석 (${processType.split('(')[0]})`;
+            const modalContent = document.getElementById('chart-modal-content');
+            modalContent.innerHTML = `
+                <h3 class="text-xl font-bold mb-4" style="color: var(--text-primary);">${employeeName} 님의 상세 분석 (${processType.split('(')[0]})</h3>
+                
+                <div style="display: grid; grid-template-columns: 2fr 1fr; gap: 16px; margin-bottom: 16px;">
+                    <!-- 통계 요약 카드 -->
+                    <div style="background: var(--bg-tertiary); border: 1px solid var(--border-color); border-radius: 12px; padding: 16px;">
+                        <h4 style="color: var(--text-secondary); font-size: 14px; font-weight: 600; margin-bottom: 12px;">📊 오늘의 성과 요약</h4>
+                        <div style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 12px;">
+                            <div>
+                                <div style="color: var(--text-tertiary); font-size: 11px;">평균 HTP</div>
+                                <div style="color: var(--text-primary); font-size: 20px; font-weight: 700;">${avgHtp.toFixed(1)}</div>
+                            </div>
+                            <div>
+                                <div style="color: var(--text-tertiary); font-size: 11px;">최고 HTP</div>
+                                <div style="color: #4ade80; font-size: 20px; font-weight: 700;">${maxHtp.toFixed(1)}</div>
+                                <div style="color: var(--text-tertiary); font-size: 10px;">${maxHour}시</div>
+                            </div>
+                            <div>
+                                <div style="color: var(--text-tertiary); font-size: 11px;">최저 HTP</div>
+                                <div style="color: #f87171; font-size: 20px; font-weight: 700;">${minHtp > 0 ? minHtp.toFixed(1) : '-'}</div>
+                            </div>
+                            <div>
+                                <div style="color: var(--text-tertiary); font-size: 11px;">총 작업량</div>
+                                <div style="color: var(--text-primary); font-size: 18px; font-weight: 700;">${totalQty.toLocaleString()}</div>
+                                <div style="color: var(--text-tertiary); font-size: 10px;">Unit</div>
+                            </div>
+                            <div>
+                                <div style="color: var(--text-tertiary); font-size: 11px;">총 작업시간</div>
+                                <div style="color: var(--text-primary); font-size: 18px; font-weight: 700;">${totalMh.toFixed(1)}</div>
+                                <div style="color: var(--text-tertiary); font-size: 10px;">시간</div>
+                            </div>
+                            <div>
+                                <div style="color: var(--text-tertiary); font-size: 11px;">목표 대비</div>
+                                <div style="color: ${avgHtp >= getTargetHtp({processType: processType}) ? '#4ade80' : '#f87171'}; font-size: 18px; font-weight: 700;">
+                                    ${((avgHtp / getTargetHtp({processType: processType}) - 1) * 100).toFixed(1)}%
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <!-- 시간대별 순위 -->
+                    <div style="background: var(--bg-tertiary); border: 1px solid var(--border-color); border-radius: 12px; padding: 16px; max-height: 180px; overflow-y: auto;">
+                        <h4 style="color: var(--text-secondary); font-size: 14px; font-weight: 600; margin-bottom: 12px;">🏆 시간대별 순위</h4>
+                        <div style="display: flex; flex-direction: column; gap: 8px;">
+                            ${hourlyRanks.map(r => `
+                                <div style="display: flex; justify-content: space-between; align-items: center; padding: 6px 8px; background: var(--bg-secondary); border-radius: 6px;">
+                                    <span style="color: var(--text-primary); font-weight: 600; font-size: 13px;">${r.hour}시</span>
+                                    <span style="color: ${r.rank <= 3 ? '#fbbf24' : r.rank <= r.total / 2 ? '#4ade80' : '#94a3b8'}; font-weight: 700; font-size: 13px;">
+                                        ${r.rank}위 / ${r.total}명 ${r.rank === 1 ? '👑' : r.rank <= 3 ? '⭐' : ''}
+                                    </span>
+                                </div>
+                            `).join('')}
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- 차트 -->
+                <div class="flex-grow" style="min-height: 300px;">
+                    <canvas id="individual-htp-chart"></canvas>
+                </div>
+            `;
+
             const ctx = document.getElementById('individual-htp-chart').getContext('2d');
             if (state.charts.individualHtp) state.charts.individualHtp.destroy();
             state.charts.individualHtp = new Chart(ctx, {
@@ -1567,6 +1705,7 @@
                     plugins: { legend: { labels: { color: '#d1d5db' } }, datalabels: { align: 'top', color: '#FFFFFF' } }
                 }
             });
+
             ui.chartModalBackdrop.classList.remove('hidden');
             ui.chartModalBackdrop.classList.add('flex');
         }
