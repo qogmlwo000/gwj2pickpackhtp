@@ -883,11 +883,13 @@
             rawData.forEach(item => {
                 let key, packType = null;
                 if (item.processTask === 'PICK(PICKING)') {
-                    key = `${item.employee}|${item.floor}|PICK`;
+                    // PICK도 processPathName별로 분리
+                    key = `${item.employee}|${item.processPathName}|${item.floor}|PICK`;
                     packType = '집품';
                 } else {
+                    // PACK은 processPathName과 packType 둘 다 사용하여 분리
                     packType = getPackType(item.location, item.processTask, item.processPathName);
-                    key = `${item.employee}|${packType}|PACK`;
+                    key = `${item.employee}|${item.processPathName}|${packType}|PACK`;
                 }
                 const durationSeconds = (item.htpEnd - item.htpStart) / 1000;
                 if (durationSeconds <= 0) return;
@@ -904,6 +906,7 @@
                 const group = aggregatedMap.get(key);
                 group.unitQty += item.unitQty;
                 group.totalSeconds += durationSeconds;
+                // 가장 최근 정보로 업데이트
                 group.location = item.location;
                 group.processPathName = item.processPathName;
                 group.floor = item.floor;
@@ -911,7 +914,10 @@
             const finalData = [];
             for (const group of aggregatedMap.values()) {
                 const mh = group.totalSeconds > 0 ? group.totalSeconds / 3600 : 0;
-                finalData.push({ ...group, mh: mh.toFixed(4), htp: (mh > 0 ? group.unitQty / mh : 0).toFixed(1) });
+                // M/H 0.25 이상(15분) AND 작업량 30개 이상인 데이터만 추가
+                if (mh >= 0.25 && group.unitQty >= 30) {
+                    finalData.push({ ...group, mh: mh.toFixed(4), htp: (mh > 0 ? group.unitQty / mh : 0).toFixed(1) });
+                }
             }
             return finalData;
         }
