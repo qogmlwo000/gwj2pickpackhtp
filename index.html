@@ -883,13 +883,13 @@
             rawData.forEach(item => {
                 let key, packType = null;
                 if (item.processTask === 'PICK(PICKING)') {
-                    // PICK도 processPathName별로 분리
+                    // PICK은 processPathName별로 분리
                     key = `${item.employee}|${item.processPathName}|${item.floor}|PICK`;
                     packType = '집품';
                 } else {
-                    // PACK은 processPathName과 packType 둘 다 사용하여 분리
+                    // PACK은 packType별로만 분리
                     packType = getPackType(item.location, item.processTask, item.processPathName);
-                    key = `${item.employee}|${item.processPathName}|${packType}|PACK`;
+                    key = `${item.employee}|${packType}|PACK`;
                 }
                 const durationSeconds = (item.htpEnd - item.htpStart) / 1000;
                 if (durationSeconds <= 0) return;
