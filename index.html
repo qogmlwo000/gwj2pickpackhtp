@@ -212,10 +212,8 @@
         .view-tab { background-color: var(--bg-tertiary); color: var(--text-secondary); border: 2px solid var(--border-color); transition: all 0.2s ease; font-weight: 600; }
         .view-tab:hover { background-color: var(--bg-hover); color: var(--text-primary); }
         .view-tab.active { background: linear-gradient(135deg, var(--accent-primary) 0%, var(--accent-secondary) 100%); color: white; border-color: var(--accent-primary); box-shadow: 0 4px 12px rgba(59, 130, 246, 0.3); }
-		
-		/* Title & Ticker */
-        #main-title { animation: color-cycle 10s infinite linear; font-weight: 800; letter-spacing: -0.5px; }
-        @keyframes color-cycle { 0% { color: #ef4444; } 14% { color: #f59e0b; } 28% { color: #eab308; } 42% { color: #10b981; } 57% { color: #3b82f6; } 71% { color: #6366f1; } 85% { color: #a855f7; } 100% { color: #ef4444; } }
+
+        /* Title & Ticker */
         #ticker-container { overflow: hidden; white-space: nowrap; position: relative; background: linear-gradient(90deg, var(--bg-secondary) 0%, var(--bg-tertiary) 50%, var(--bg-secondary) 100%); border-radius: 8px; border: 1px solid var(--border-color); box-shadow: var(--shadow-sm); }
         #ticker-text { position: absolute; animation: ticker-scroll 20s linear infinite; font-weight: 700; background: linear-gradient(90deg, #f59e0b, #eab308, #f59e0b); -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text; }
         @keyframes ticker-scroll { 0% { transform: translateX(100%); } 100% { transform: translateX(-100%); } }
@@ -234,6 +232,22 @@
         .sortable:hover .sort-indicator { opacity: 0.8; }
         .sort-indicator.asc, .sort-indicator.desc { opacity: 1; color: var(--accent-primary); font-weight: bold; }
         .hidden-col { display: none; }
+		
+		/* 🆕 Enhanced Hidden Employee Styles */
+        #data-table tbody tr.hidden-employee { 
+            opacity: 0.2; 
+            background: repeating-linear-gradient(
+                45deg,
+                var(--bg-secondary),
+                var(--bg-secondary) 10px,
+                var(--bg-tertiary) 10px,
+                var(--bg-tertiary) 20px
+            );
+            filter: grayscale(0.8);
+        }
+        #data-table tbody tr.hidden-employee:hover {
+            opacity: 0.4;
+        }
 
         /* Forms */
         input[type="text"], input[type="number"], input[type="date"] { background-color: var(--bg-tertiary); border: 2px solid var(--border-color); color: var(--text-primary); transition: all 0.2s ease; }
@@ -247,11 +261,11 @@
         .kpi-card p { color: var(--text-primary); font-size: 2rem; font-weight: 800; margin-top: 0.5rem; }
 
         /* Modals */
-        #chart-modal-backdrop, #history-modal-backdrop { background-color: rgba(0, 0, 0, 0.75); backdrop-filter: blur(4px); }
-        #chart-modal-content, #history-modal-content { max-height: 80vh; background-color: var(--bg-secondary); border: 1px solid var(--border-color); box-shadow: var(--shadow-lg); }
+        #chart-modal-backdrop, #history-modal-backdrop, #employee-detail-modal-backdrop, #ranking-modal-backdrop { background-color: rgba(0, 0, 0, 0.75); backdrop-filter: blur(4px); }
+        #chart-modal-content, #history-modal-content, #employee-detail-modal-content, #ranking-modal-content { max-height: 85vh; background-color: var(--bg-secondary); border: 1px solid var(--border-color); box-shadow: var(--shadow-lg); overflow-y: auto; }
         #sidebar-overlay { background-color: rgba(0, 0, 0, 0.5); backdrop-filter: blur(2px); }
-
-        /* Text Colors */
+		
+		/* Text Colors */
         .text-gray-200, .text-white { color: var(--text-primary) !important; }
         .text-gray-300 { color: var(--text-secondary) !important; }
         .text-gray-400, .text-gray-500 { color: var(--text-tertiary) !important; }
@@ -297,6 +311,57 @@
         .badge-streak { background: linear-gradient(135deg, #ef4444 0%, #dc2626 100%); color: white; }
         .badge-record { background: linear-gradient(135deg, #8b5cf6 0%, #7c3aed 100%); color: white; }
         @keyframes badge-pulse { 0%, 100% { opacity: 1; } 50% { opacity: 0.8; } }
+		
+		/* 🆕 Warning/Danger Badge Styles */
+        .badge-warning { 
+            background: linear-gradient(135deg, #f59e0b 0%, #d97706 100%); 
+            color: #78350f; 
+            box-shadow: 0 0 10px rgba(245, 158, 11, 0.5);
+        }
+        .badge-danger { 
+            background: linear-gradient(135deg, #ef4444 0%, #dc2626 100%); 
+            color: white; 
+            box-shadow: 0 0 10px rgba(239, 68, 68, 0.5);
+        }
+        .badge-info { 
+            background: linear-gradient(135deg, #06b6d4 0%, #0891b2 100%); 
+            color: white; 
+        }
+		
+		/* 🆕 Row Action Menu (Hover) */
+        .row-action-menu {
+            position: absolute;
+            left: 50%;
+            top: 50%;
+            transform: translate(-50%, -50%);
+            opacity: 0;
+            transition: opacity 0.2s ease;
+            background: var(--bg-tertiary);
+            border-radius: 8px;
+            padding: 6px 10px;
+            box-shadow: var(--shadow-lg);
+            z-index: 10;
+            border: 2px solid var(--border-color);
+        }
+        tr:hover .row-action-menu {
+            opacity: 1;
+        }
+        .action-menu-btn {
+            background: transparent;
+            border: none;
+            color: var(--text-secondary);
+            cursor: pointer;
+            padding: 6px 12px;
+            font-size: 1.3rem;
+            transition: all 0.2s ease;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        .action-menu-btn:hover {
+            color: var(--text-primary);
+            transform: scale(1.2);
+        }
 
         /* History View Styles */
         .period-selector { display: flex; gap: 8px; margin-bottom: 16px; flex-wrap: wrap; }
@@ -307,6 +372,383 @@
         
         .date-range-picker { display: flex; gap: 12px; align-items: center; margin-bottom: 16px; flex-wrap: wrap; }
         .date-range-picker input { padding: 8px 12px; border-radius: 8px; font-size: 0.875rem; }
+
+        /* 🆕 Calendar View Styles */
+        .calendar-container { background-color: var(--bg-secondary); border-radius: 12px; padding: 20px; border: 1px solid var(--border-color); box-shadow: var(--shadow-md); }
+        .calendar-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; }
+        .calendar-nav-btn { padding: 8px 16px; border-radius: 8px; font-weight: 600; background-color: var(--bg-tertiary); border: 2px solid var(--border-color); cursor: pointer; }
+        .calendar-nav-btn:hover { background-color: var(--bg-hover); }
+        .calendar-grid { display: grid; grid-template-columns: repeat(7, 1fr); gap: 8px; }
+        .calendar-day-header { text-align: center; font-weight: 700; color: var(--text-secondary); padding: 12px; font-size: 0.875rem; }
+        .calendar-day {
+            aspect-ratio: 1;
+            border-radius: 8px;
+            border: 2px solid var(--border-color);
+            padding: 8px;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
+            min-height: 80px;
+            position: relative;
+        }
+        .calendar-day:hover { transform: translateY(-2px); box-shadow: var(--shadow-md); }
+        .calendar-day.inactive { opacity: 0.3; cursor: default; }
+        .calendar-day.inactive:hover { transform: none; box-shadow: none; }
+        .calendar-day.today { border-color: var(--accent-primary); border-width: 3px; }
+        .calendar-day-number { font-weight: 700; font-size: 1rem; color: var(--text-primary); }
+        .calendar-day-htp { font-size: 0.75rem; font-weight: 600; margin-top: 4px; }
+        .calendar-day.excellent { background: linear-gradient(135deg, rgba(16, 185, 129, 0.2) 0%, rgba(5, 150, 105, 0.2) 100%); }
+        .calendar-day.good { background: linear-gradient(135deg, rgba(59, 130, 246, 0.2) 0%, rgba(37, 99, 235, 0.2) 100%); }
+        .calendar-day.average { background: linear-gradient(135deg, rgba(245, 158, 11, 0.2) 0%, rgba(217, 119, 6, 0.2) 100%); }
+        .calendar-day.poor { background: linear-gradient(135deg, rgba(239, 68, 68, 0.2) 0%, rgba(220, 38, 38, 0.2) 100%); }
+        .calendar-day.no-data { background-color: var(--bg-tertiary); }
+        .calendar-legend { display: flex; gap: 16px; justify-content: center; margin-top: 20px; flex-wrap: wrap; }
+        .calendar-legend-item { display: flex; align-items: center; gap: 8px; font-size: 0.875rem; }
+        .calendar-legend-color { width: 24px; height: 24px; border-radius: 6px; border: 2px solid var(--border-color); }
+
+        /* 🆕 Ranking/Leaderboard Styles */
+        .ranking-card { background-color: var(--bg-secondary); border-radius: 12px; padding: 20px; border: 1px solid var(--border-color); box-shadow: var(--shadow-md); margin-bottom: 16px; }
+        .ranking-podium { display: grid; grid-template-columns: repeat(3, 1fr); gap: 16px; margin-bottom: 24px; align-items: end; }
+        .podium-item { text-align: center; padding: 20px; border-radius: 12px; transition: all 0.3s ease; cursor: pointer; }
+        .podium-item:hover { transform: translateY(-4px); box-shadow: var(--shadow-lg); }
+        .podium-first { background: linear-gradient(135deg, #fbbf24 0%, #f59e0b 100%); order: 2; padding-top: 40px; }
+        .podium-second { background: linear-gradient(135deg, #e5e7eb 0%, #9ca3af 100%); order: 1; }
+        .podium-third { background: linear-gradient(135deg, #fb923c 0%, #f97316 100%); order: 3; }
+        .podium-rank { font-size: 3rem; margin-bottom: 8px; }
+        .podium-name { font-weight: 700; font-size: 1.1rem; color: var(--text-primary); margin-bottom: 4px; }
+        .podium-score { font-weight: 600; font-size: 1.5rem; color: var(--text-primary); }
+        .ranking-list { display: flex; flex-direction: column; gap: 8px; }
+        .ranking-item { display: flex; justify-content: space-between; align-items: center; padding: 12px 16px; background-color: var(--bg-tertiary); border-radius: 8px; border: 2px solid var(--border-color); transition: all 0.2s ease; cursor: pointer; }
+        .ranking-item:hover { background-color: var(--bg-hover); transform: translateX(4px); }
+        .ranking-item.highlight-user { border-color: var(--accent-primary); background-color: rgba(59, 130, 246, 0.1); }
+        .ranking-position { font-weight: 700; font-size: 1.2rem; color: var(--text-secondary); min-width: 40px; }
+        .ranking-employee { font-weight: 600; flex-grow: 1; color: var(--text-primary); }
+        .ranking-htp { font-weight: 700; font-size: 1.1rem; color: var(--success); }
+        .ranking-change { font-size: 0.875rem; font-weight: 600; margin-left: 8px; }
+        .ranking-change.up { color: var(--success); }
+        .ranking-change.down { color: var(--error); }
+        .ranking-change.same { color: var(--text-tertiary); }
+        .ranking-tabs { display: flex; gap: 8px; margin-bottom: 16px; }
+        .ranking-tab { flex: 1; padding: 12px; border-radius: 8px; font-weight: 600; text-align: center; cursor: pointer; background-color: var(--bg-tertiary); border: 2px solid var(--border-color); transition: all 0.2s ease; }
+        .ranking-tab:hover { background-color: var(--bg-hover); }
+        .ranking-tab.active { background: linear-gradient(135deg, var(--accent-primary) 0%, var(--accent-secondary) 100%); color: white; border-color: var(--accent-primary); }
+
+        /* 🆕 Employee Detail Modal Styles */
+        .employee-detail-header { background: linear-gradient(135deg, var(--accent-primary) 0%, var(--accent-secondary) 100%); color: white; padding: 24px; border-radius: 12px 12px 0 0; margin: -24px -24px 24px -24px; }
+        .employee-detail-stats { display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 16px; margin-bottom: 24px; }
+        .employee-stat-card { background-color: var(--bg-tertiary); padding: 16px; border-radius: 8px; border: 1px solid var(--border-color); }
+        .employee-stat-label { font-size: 0.75rem; color: var(--text-tertiary); text-transform: uppercase; font-weight: 600; }
+        .employee-stat-value { font-size: 1.8rem; font-weight: 800; color: var(--text-primary); margin-top: 4px; }
+        .employee-chart-container { background-color: var(--bg-tertiary); padding: 20px; border-radius: 12px; margin-bottom: 16px; }
+        .trend-indicator { display: inline-flex; align-items: center; gap: 4px; padding: 4px 8px; border-radius: 6px; font-size: 0.875rem; font-weight: 600; }
+        .trend-indicator.positive { background-color: rgba(16, 185, 129, 0.2); color: var(--success); }
+        .trend-indicator.negative { background-color: rgba(239, 68, 68, 0.2); color: var(--error); }
+        .trend-indicator.neutral { background-color: var(--bg-tertiary); color: var(--text-tertiary); }
+
+        /* 🆕 Hidden Employee Styles */
+        .hidden-employee-indicator { 
+            position: absolute; 
+            right: 8px; 
+            top: 50%; 
+            transform: translateY(-50%);
+            background: linear-gradient(135deg, rgba(239, 68, 68, 0.3) 0%, rgba(220, 38, 38, 0.3) 100%);
+            color: var(--error);
+            padding: 4px 10px;
+            border-radius: 6px;
+            font-size: 0.75rem;
+            font-weight: 700;
+            border: 1px solid rgba(239, 68, 68, 0.5);
+            box-shadow: 0 0 8px rgba(239, 68, 68, 0.3);
+            animation: pulse-hidden 2s infinite;
+        }
+        
+        @keyframes pulse-hidden {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.6; }
+        }
+        .hide-employee-btn {
+            background-color: rgba(239, 68, 68, 0.1);
+            border: 1px solid var(--error);
+            color: var(--error);
+            padding: 6px 12px;
+            border-radius: 6px;
+            font-size: 0.875rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.2s ease;
+        }
+        .hide-employee-btn:hover {
+            background-color: var(--error);
+            color: white;
+        }
+        .show-employee-btn {
+            background-color: rgba(16, 185, 129, 0.1);
+            border: 1px solid var(--success);
+            color: var(--success);
+            padding: 6px 12px;
+            border-radius: 6px;
+            font-size: 0.875rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.2s ease;
+        }
+        .show-employee-btn:hover {
+            background-color: var(--success);
+            color: white;
+        }
+        .hidden-employees-panel {
+            background-color: var(--bg-tertiary);
+            border-radius: 8px;
+            padding: 16px;
+            border: 1px solid var(--border-color);
+            margin-top: 12px;
+        }
+        .hidden-employee-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 8px 12px;
+            background-color: var(--bg-secondary);
+            border-radius: 6px;
+            margin-bottom: 8px;
+        }
+		
+		/* 🆕 Enhanced Header Styles */
+        .header-gradient {
+            background: linear-gradient(135deg, 
+                rgba(59, 130, 246, 0.2) 0%, 
+				rgba(139, 92, 246, 0.2) 50%, 
+				rgba(236, 72, 153, 0.2) 100%
+            );
+            border-bottom: 2px solid transparent;
+            border-image: linear-gradient(90deg, #3b82f6, #8b5cf6, #ec4899) 1;
+            position: relative;
+            overflow: hidden;
+        }
+        
+        .header-gradient::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: -100%;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(90deg, 
+                transparent, 
+                rgba(255, 255, 255, 0.1), 
+                transparent
+            );
+            animation: shine 3s infinite;
+        }
+        
+        @keyframes shine {
+            0% { left: -100%; }
+            100% { left: 100%; }
+        }
+        
+        .header-toggle-btn {
+            background: var(--bg-tertiary);
+            border: 2px solid var(--border-color);
+            border-radius: 10px;
+            padding: 10px;
+            transition: all 0.3s ease;
+            color: var(--text-primary);
+        }
+        
+        .header-toggle-btn:hover {
+            background: var(--accent-primary);
+            border-color: var(--accent-primary);
+            transform: rotate(90deg);
+            color: white;
+        }
+        
+        .logo-icon {
+            font-size: 3rem;
+            animation: float 3s ease-in-out infinite;
+            filter: drop-shadow(0 0 10px rgba(59, 130, 246, 0.5));
+        }
+        
+        @keyframes float {
+            0%, 100% { transform: translateY(0px); }
+            50% { transform: translateY(-10px); }
+        }
+        
+        .header-title {
+            font-size: 1.75rem;
+            font-weight: 900;
+            letter-spacing: -0.5px;
+            line-height: 1.2;
+            margin: 0;
+        }
+        
+        .gradient-text {
+            background: linear-gradient(135deg, #3b82f6, #8b5cf6, #ec4899);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            animation: gradient-shift 5s ease infinite;
+            background-size: 200% 200%;
+        }
+        
+        @keyframes gradient-shift {
+            0%, 100% { background-position: 0% 50%; }
+            50% { background-position: 100% 50%; }
+        }
+        
+        .version-badge {
+            display: inline-block;
+            background: linear-gradient(135deg, #10b981, #059669);
+            color: white;
+            padding: 4px 12px;
+            border-radius: 20px;
+            font-size: 0.75rem;
+            font-weight: 700;
+            margin-left: 12px;
+            box-shadow: 0 2px 8px rgba(16, 185, 129, 0.3);
+            animation: pulse-glow 2s infinite;
+        }
+        
+        @keyframes pulse-glow {
+            0%, 100% { box-shadow: 0 2px 8px rgba(16, 185, 129, 0.3); }
+            50% { box-shadow: 0 4px 16px rgba(16, 185, 129, 0.6); }
+        }
+        
+        .header-subtitle {
+            color: var(--text-secondary);
+            font-size: 0.875rem;
+            margin-top: 6px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            font-weight: 500;
+        }
+        
+        .status-pulse {
+            color: #10b981;
+            animation: pulse-dot 1.5s ease-in-out infinite;
+            font-size: 1.2rem;
+        }
+        
+        @keyframes pulse-dot {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.3; }
+        }
+        
+        .status-card {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            background: var(--bg-tertiary);
+            padding: 12px 20px;
+            border-radius: 12px;
+            border: 2px solid var(--border-color);
+            box-shadow: var(--shadow-md);
+            transition: all 0.3s ease;
+        }
+        
+        .status-card:hover {
+            transform: translateY(-2px);
+            box-shadow: var(--shadow-lg);
+            border-color: var(--accent-primary);
+        }
+        
+        .status-label {
+            font-size: 0.75rem;
+            color: var(--text-tertiary);
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+        
+        .status-value {
+            font-size: 0.875rem;
+            color: var(--text-primary);
+            font-weight: 700;
+        }
+		
+		/* 🆕 Employee Analysis Card Styles */
+        .employee-analysis-card {
+            background: var(--bg-tertiary);
+            border: 2px solid var(--border-color);
+            border-radius: 12px;
+            padding: 16px;
+            transition: all 0.3s ease;
+            cursor: pointer;
+        }
+        .employee-analysis-card:hover {
+            border-color: var(--accent-primary);
+            box-shadow: 0 4px 12px rgba(59, 130, 246, 0.3);
+            transform: translateY(-2px);
+        }
+        .employee-name-header {
+            font-size: 1.1rem;
+            font-weight: 700;
+            color: var(--text-primary);
+            margin-bottom: 12px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        .employee-stats-grid {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 12px;
+            margin-bottom: 12px;
+        }
+        .employee-stat-item {
+            background: var(--bg-secondary);
+            padding: 8px 12px;
+            border-radius: 8px;
+        }
+        .employee-stat-label {
+            font-size: 0.75rem;
+            color: var(--text-tertiary);
+            margin-bottom: 4px;
+        }
+        .employee-stat-value {
+            font-size: 1.2rem;
+            font-weight: 700;
+            color: var(--text-primary);
+        }
+        .best-performance-section {
+            background: linear-gradient(135deg, rgba(59, 130, 246, 0.1) 0%, rgba(139, 92, 246, 0.1) 100%);
+            border: 1px solid rgba(59, 130, 246, 0.3);
+            border-radius: 8px;
+            padding: 12px;
+            margin-top: 12px;
+        }
+        .best-performance-title {
+            font-size: 0.875rem;
+            font-weight: 600;
+            color: var(--accent-primary);
+            margin-bottom: 8px;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+        .best-performance-detail {
+            font-size: 0.875rem;
+            color: var(--text-primary);
+            line-height: 1.6;
+        }
+        .performance-badge {
+            display: inline-block;
+            padding: 4px 8px;
+            border-radius: 6px;
+            font-size: 0.75rem;
+            font-weight: 600;
+            margin-left: 8px;
+        }
+        .performance-badge.pick {
+            background: rgba(59, 130, 246, 0.2);
+            color: #60a5fa;
+        }
+        .performance-badge.pack {
+            background: rgba(245, 158, 11, 0.2);
+            color: #fbbf24;
+        }
     </style>
 </head>
 
@@ -325,6 +767,20 @@
             </div>
         </div>
         
+        <!-- 🆕 Hidden Employees Management -->
+        <div class="bg-gray-700 p-3 rounded-lg">
+            <div class="flex justify-between items-center mb-2">
+                <h3 class="font-semibold text-white">👻 숨긴 작업자</h3>
+                <span id="hidden-count-badge" class="bg-red-500 text-white px-2 py-1 rounded-full text-xs font-bold">0</span>
+            </div>
+            <button id="manage-hidden-btn" class="w-full py-2 px-3 text-sm font-semibold rounded-md bg-gray-600 hover:bg-gray-500">
+                관리하기
+            </button>
+            <div id="hidden-employees-list" class="hidden-employees-panel hidden mt-3">
+                <p class="text-sm text-gray-400 mb-2">숨긴 작업자가 없습니다.</p>
+            </div>
+        </div>
+
         <!-- Time Filters -->
         <div class="bg-gray-700 p-3 rounded-lg">
             <h3 class="font-semibold mb-2 text-white">⏰ 시간대별 필터</h3>
@@ -366,32 +822,46 @@
     </aside>
     
     <div id="sidebar-overlay" class="fixed inset-0 bg-black bg-opacity-50 z-30 hidden lg:hidden"></div>
-
-    <!-- Main Content -->
-    <main id="main-content" class="flex-1 flex flex-col">
-        <div class="w-full bg-gray-800 shadow-lg p-4 flex-shrink-0">
+	
+	<!-- Main Content -->
+<main id="main-content" class="flex-1 flex flex-col">
+    <div class="header-gradient shadow-lg p-6 flex-shrink-0">
             <div class="flex justify-between items-center">
-                <div class="flex items-center">
-                    <button id="sidebar-toggle-desktop" class="p-2 rounded-md hover:bg-gray-700 mr-4">
+                <div class="flex items-center gap-4">
+                    <button id="sidebar-toggle-desktop" class="header-toggle-btn">
                         <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16"></path></svg>
                     </button>
-                    <button id="sidebar-toggle-mobile" class="p-2 rounded-md hover:bg-gray-700 mr-4">
+                    <button id="sidebar-toggle-mobile" class="header-toggle-btn">
                         <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16"></path></svg>
                     </button>
-                    <div>
-                        <h1 id="main-title" class="text-2xl font-extrabold">🚀 GWJ2 OB PICK & PACK HTP TOOL v3.0</h1>
-                        <p class="text-gray-400 text-sm">한 명이 엑셀을 올리면 모두에게 실시간으로 반영됩니다.</p>
+                    <div class="header-content">
+                        <div class="flex items-center gap-3">
+                            <div class="logo-icon">🚀</div>
+                            <div>
+                                <h1 class="header-title">
+                                    <span class="gradient-text">GWJ2 OB PICK & PACK</span>
+                                    <span class="version-badge">v3.5</span>
+                                </h1>
+                                <p class="header-subtitle">
+                                    <span class="status-pulse">●</span>
+                                    한 명이 엑셀을 올리면 모두에게 실시간으로 반영됩니다
+                                </p>
+                            </div>
+                        </div>
                     </div>
                 </div>
-                <div id="status-indicator" class="flex items-center">
+                <div id="status-indicator" class="status-card">
                     <div class="status-dot status-disconnected"></div>
-                    <span class="font-medium text-sm">연결 상태: 확인 중...</span>
+                    <div>
+                        <div class="status-label">연결 상태</div>
+                        <div class="status-value">확인 중...</div>
+                    </div>
                 </div>
             </div>
         </div>
 
         <div class="p-4 space-y-4 flex flex-col flex-shrink-0">
-		<!-- Controls -->
+            <!-- Controls -->
             <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
                 <div class="bg-gray-800 p-3 rounded-lg flex items-center space-x-2">
                     <button id="filter-all" class="filter-btn flex-1 py-2 px-3 text-sm font-semibold rounded-md active">전체</button>
@@ -407,8 +877,8 @@
                         <div class="relative w-11 h-6 bg-gray-600 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-0.5 after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-red-500"></div>
                         <span class="ml-3 text-sm font-medium">🚨 저조자만 보기</span>
                     </label>
-                    <button id="capture-btn" class="py-2 px-3 text-sm font-semibold rounded-md">📷 캡처</button>
-                    <button id="export-btn" class="py-2 px-3 text-sm font-semibold rounded-md">📊 엑셀</button>
+                    <button id="capture-btn" class="py-2 px-3 text-sm font-semibold rounded-md">📷</button>
+                    <button id="export-btn" class="py-2 px-3 text-sm font-semibold rounded-md">📊</button>
                 </div>
             </div>
             
@@ -438,12 +908,14 @@
             </div>
         </div>
 
-        <!-- View Switcher (3개 메뉴) -->
+        <!-- View Switcher (5개 메뉴) -->
         <div class="px-4 pt-2">
-            <div class="bg-gray-800 p-1 rounded-lg flex space-x-1">
-                <button id="table-view-btn" class="view-tab flex-1 py-2 px-3 text-sm font-semibold rounded-md active">📋 데이터 보기</button>
-                <button id="dashboard-view-btn" class="view-tab flex-1 py-2 px-3 text-sm font-semibold rounded-md">📊 대시보드</button>
-                <button id="history-view-btn" class="view-tab flex-1 py-2 px-3 text-sm font-semibold rounded-md">📈 전체 히스토리</button>
+            <div class="bg-gray-800 p-1 rounded-lg flex space-x-1 overflow-x-auto">
+                <button id="table-view-btn" class="view-tab flex-1 py-2 px-3 text-sm font-semibold rounded-md active whitespace-nowrap">📋 데이터</button>
+                <button id="dashboard-view-btn" class="view-tab flex-1 py-2 px-3 text-sm font-semibold rounded-md whitespace-nowrap">📊 대시보드</button>
+                <button id="history-view-btn" class="view-tab flex-1 py-2 px-3 text-sm font-semibold rounded-md whitespace-nowrap">📈 히스토리</button>
+                <button id="calendar-view-btn" class="view-tab flex-1 py-2 px-3 text-sm font-semibold rounded-md whitespace-nowrap">📅 캘린더</button>
+                <button id="ranking-view-btn" class="view-tab flex-1 py-2 px-3 text-sm font-semibold rounded-md whitespace-nowrap">🏆 랭킹</button>
             </div>
         </div>
         
@@ -462,10 +934,11 @@
                             <th scope="col" class="px-4 py-3 sortable" data-sort-key="packType">팩 종류<span class="sort-indicator"></span></th>
                             <th scope="col" class="px-4 py-3 sortable" data-sort-key="mh">M/H<span class="sort-indicator"></span></th>
                             <th scope="col" class="px-4 py-3 sortable" data-sort-key="htp">HTP<span class="sort-indicator"></span></th>
+                            <th scope="col" class="px-4 py-3 text-center">보기</th>
                         </tr>
                     </thead>
                     <tbody id="data-table-body" class="bg-gray-800">
-                        <tr id="placeholder-row"><td colspan="8" class="text-center py-10 text-gray-500">엑셀 파일을 업로드하여 데이터를 확인하세요.</td></tr>
+                        <tr id="placeholder-row"><td colspan="9" class="text-center py-10 text-gray-500">엑셀 파일을 업로드하여 데이터를 확인하세요.</td></tr>
                     </tbody>
                 </table>
             </div>
@@ -526,7 +999,7 @@
             </div>
         </div>
 
-        <!-- History View (NEW) -->
+        <!-- History View -->
         <div id="history-view" class="hidden flex-col flex-grow min-h-0 p-4 space-y-4 overflow-y-auto">
             <!-- Period Selector -->
             <div class="bg-gray-800 p-4 rounded-lg">
@@ -565,15 +1038,40 @@
                 </div>
             </div>
 
-            <!-- History Charts -->
-            <div class="grid grid-cols-1 lg:grid-cols-2 gap-4">
-                <div class="history-chart-container">
-                    <h3 class="text-lg font-semibold mb-3 text-white">📈 일별 평균 HTP 추이</h3>
-                    <div class="relative h-80"><canvas id="history-daily-trend-chart"></canvas></div>
+            <!-- 🆕 Employee Search & Analysis Section -->
+            <div class="bg-gray-800 p-4 rounded-lg">
+                <div class="flex justify-between items-center mb-4">
+                    <h3 class="text-lg font-semibold text-white">👤 사원별 상세 분석</h3>
+                    <div class="flex items-center gap-2">
+                        <input 
+                            type="text" 
+                            id="history-employee-search" 
+                            placeholder="🔍 이름 또는 원바코드 검색..." 
+                            class="py-2 px-4 rounded-md text-sm w-80"
+                            style="background: var(--bg-tertiary); border: 2px solid var(--border-color); color: var(--text-primary);"
+                        >
+                        <button id="history-show-all-btn" class="py-2 px-4 bg-blue-600 text-white rounded-md text-sm font-semibold hover:bg-blue-700">
+                            전체 보기
+                        </button>
+                    </div>
                 </div>
-                <div class="history-chart-container">
-                    <h3 class="text-lg font-semibold mb-3 text-white">📊 일별 작업량 추이</h3>
-                    <div class="relative h-80"><canvas id="history-daily-qty-chart"></canvas></div>
+
+                <!-- Employee Analysis Results -->
+                <div id="history-employee-results" class="space-y-3 max-h-96 overflow-y-auto">
+                    <div class="text-center py-10 text-gray-400">
+                        사원을 검색하거나 "전체 보기"를 클릭하세요
+                    </div>
+                </div>
+
+                <!-- Pagination for All Employees -->
+                <div id="history-pagination" class="hidden mt-4 flex justify-center items-center gap-2">
+                    <button id="history-prev-page" class="py-2 px-4 bg-gray-700 text-white rounded-md hover:bg-gray-600 disabled:opacity-50">
+                        ◀ 이전
+                    </button>
+                    <span id="history-page-info" class="text-gray-300 mx-4">1 / 1</span>
+                    <button id="history-next-page" class="py-2 px-4 bg-gray-700 text-white rounded-md hover:bg-gray-600 disabled:opacity-50">
+                        다음 ▶
+                    </button>
                 </div>
             </div>
 
@@ -602,6 +1100,126 @@
                 </button>
             </div>
         </div>
+
+        <!-- 🆕 Calendar View -->
+        <div id="calendar-view" class="hidden flex-col flex-grow min-h-0 p-4 space-y-4 overflow-y-auto">
+            <div class="calendar-container">
+                <div class="calendar-header">
+                    <button id="calendar-prev-month" class="calendar-nav-btn">◀ 이전</button>
+                    <h2 id="calendar-month-title" class="text-2xl font-bold text-white">2025년 1월</h2>
+                    <button id="calendar-next-month" class="calendar-nav-btn">다음 ▶</button>
+                </div>
+                
+                <div class="calendar-grid" id="calendar-grid">
+                    <!-- 요일 헤더 -->
+                    <div class="calendar-day-header">일</div>
+                    <div class="calendar-day-header">월</div>
+                    <div class="calendar-day-header">화</div>
+                    <div class="calendar-day-header">수</div>
+                    <div class="calendar-day-header">목</div>
+                    <div class="calendar-day-header">금</div>
+                    <div class="calendar-day-header">토</div>
+                    <!-- 날짜들이 동적으로 추가됨 -->
+                </div>
+
+                <div class="calendar-legend">
+                    <div class="calendar-legend-item">
+                        <div class="calendar-legend-color excellent"></div>
+                        <span>우수 (목표 120% 이상)</span>
+                    </div>
+                    <div class="calendar-legend-item">
+                        <div class="calendar-legend-color good"></div>
+                        <span>양호 (목표 100-120%)</span>
+                    </div>
+                    <div class="calendar-legend-item">
+                        <div class="calendar-legend-color average"></div>
+                        <span>보통 (목표 80-100%)</span>
+                    </div>
+                    <div class="calendar-legend-item">
+                        <div class="calendar-legend-color poor"></div>
+                        <span>저조 (목표 80% 미만)</span>
+                    </div>
+                    <div class="calendar-legend-item">
+                        <div class="calendar-legend-color no-data"></div>
+                        <span>데이터 없음</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+		
+		<!-- 🆕 Ranking View -->
+        <div id="ranking-view" class="hidden flex-col flex-grow min-h-0 p-4 space-y-4 overflow-y-auto">
+            <!-- Ranking Period Selector -->
+            <div class="bg-gray-800 p-4 rounded-lg">
+                <div class="ranking-tabs">
+                    <button id="ranking-daily" class="ranking-tab active">📅 일간</button>
+                    <button id="ranking-weekly" class="ranking-tab">📊 주간</button>
+                    <button id="ranking-monthly" class="ranking-tab">📈 월간</button>
+                    <button id="ranking-all-time" class="ranking-tab">🏆 전체</button>
+                </div>
+            </div>
+
+            <!-- Process Type Selector for Ranking -->
+            <div class="bg-gray-800 p-4 rounded-lg">
+                <div class="ranking-tabs">
+                    <button id="ranking-pick-type" class="ranking-tab active">🟦 PICK 랭킹</button>
+                    <button id="ranking-pack-type" class="ranking-tab">🟨 PACK 랭킹</button>
+                </div>
+            </div>
+
+            <!-- Top 3 Podium -->
+            <div class="ranking-card">
+                <h3 class="text-2xl font-bold text-white mb-4 text-center">🏆 TOP 3</h3>
+                <div class="ranking-podium" id="ranking-podium">
+                    <!-- Podium items will be dynamically added -->
+                    <div class="podium-item podium-second">
+                        <div class="podium-rank">🥈</div>
+                        <div class="podium-name" id="podium-2-name">-</div>
+                        <div class="podium-score" id="podium-2-score">0</div>
+                    </div>
+                    <div class="podium-item podium-first">
+                        <div class="podium-rank">🥇</div>
+                        <div class="podium-name" id="podium-1-name">-</div>
+                        <div class="podium-score" id="podium-1-score">0</div>
+                    </div>
+                    <div class="podium-item podium-third">
+                        <div class="podium-rank">🥉</div>
+                        <div class="podium-name" id="podium-3-name">-</div>
+                        <div class="podium-score" id="podium-3-score">0</div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Full Ranking List -->
+            <div class="ranking-card">
+                <div class="flex justify-between items-center mb-4">
+                    <h3 class="text-xl font-bold text-white">📋 전체 순위</h3>
+                    <div class="text-sm text-gray-400">
+                        <span>총 <span id="ranking-total-count" class="font-bold text-white">0</span>명</span>
+                    </div>
+                </div>
+                <div class="ranking-list" id="ranking-list">
+                    <!-- Ranking items will be dynamically added -->
+                    <div class="text-center py-10 text-gray-500">데이터를 불러오는 중...</div>
+                </div>
+            </div>
+
+            <!-- Ranking Statistics -->
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+                <div class="kpi-card p-4 rounded-lg shadow">
+                    <h4 class="text-gray-400 text-sm font-medium">평균 HTP</h4>
+                    <p id="ranking-avg-htp" class="text-3xl font-bold text-white">0.0</p>
+                </div>
+                <div class="kpi-card p-4 rounded-lg shadow border-l-green-500">
+                    <h4 class="text-gray-400 text-sm font-medium">최고 HTP</h4>
+                    <p id="ranking-max-htp" class="text-3xl font-bold text-green-400">0.0</p>
+                </div>
+                <div class="kpi-card p-4 rounded-lg shadow border-l-yellow-500">
+                    <h4 class="text-gray-400 text-sm font-medium">중간값 HTP</h4>
+                    <p id="ranking-median-htp" class="text-3xl font-bold text-yellow-400">0.0</p>
+                </div>
+            </div>
+        </div>
     </main>
 </div>
 
@@ -613,6 +1231,170 @@
         <button id="chart-modal-close" class="absolute top-3 right-3 text-gray-400 hover:text-white">
             <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path></svg>
         </button>
+    </div>
+</div>
+
+<!-- 🆕 Employee Detail Modal (개인별 히스토리 상세 분석) -->
+<div id="employee-detail-modal-backdrop" class="fixed inset-0 z-50 hidden items-center justify-center p-4">
+    <div id="employee-detail-modal-content" class="bg-gray-800 rounded-lg shadow-xl w-full max-w-6xl p-6 relative">
+        <!-- Header -->
+        <div class="employee-detail-header">
+            <div class="flex justify-between items-start">
+                <div>
+                    <h2 id="employee-detail-name" class="text-3xl font-bold mb-2">작업자 이름</h2>
+                    <p id="employee-detail-subtitle" class="text-lg opacity-90">PICK (집품)</p>
+                </div>
+                <button id="employee-detail-close" class="text-white hover:text-gray-300">
+                    <svg class="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path></svg>
+                </button>
+            </div>
+        </div>
+
+        <!-- Stats Cards -->
+        <div class="employee-detail-stats">
+            <div class="employee-stat-card">
+                <div class="employee-stat-label">총 근무일수</div>
+                <div class="employee-stat-value" id="employee-detail-total-days">0</div>
+            </div>
+            <div class="employee-stat-card">
+                <div class="employee-stat-label">평균 HTP</div>
+                <div class="employee-stat-value" id="employee-detail-avg-htp">0.0</div>
+                <div id="employee-detail-avg-trend" class="trend-indicator positive mt-2">
+                    <span>↑</span>
+                    <span>+0%</span>
+                </div>
+            </div>
+            <div class="employee-stat-card">
+                <div class="employee-stat-label">최고 HTP</div>
+                <div class="employee-stat-value text-green-400" id="employee-detail-max-htp">0.0</div>
+            </div>
+            <div class="employee-stat-card">
+                <div class="employee-stat-label">총 작업량</div>
+                <div class="employee-stat-value" id="employee-detail-total-qty">0</div>
+            </div>
+            <div class="employee-stat-card">
+                <div class="employee-stat-label">목표 달성률</div>
+                <div class="employee-stat-value" id="employee-detail-target-rate">0%</div>
+            </div>
+            <div class="employee-stat-card">
+                <div class="employee-stat-label">현재 순위</div>
+                <div class="employee-stat-value" id="employee-detail-rank">-</div>
+            </div>
+        </div>
+
+        <!-- 뱃지 섹션 -->
+        <div class="bg-gray-700 p-4 rounded-lg mb-4">
+            <h4 class="text-lg font-semibold mb-3 text-white">🏅 획득 뱃지</h4>
+            <div id="employee-detail-badges" class="flex flex-wrap gap-2">
+                <span class="text-gray-400">획득한 뱃지가 없습니다</span>
+            </div>
+        </div>
+
+        <!-- Charts -->
+        <div class="grid grid-cols-1 lg:grid-cols-2 gap-4 mb-4">
+            <div class="employee-chart-container">
+                <h4 class="text-lg font-semibold mb-3 text-white">📈 일별 HTP 추이</h4>
+                <div class="relative h-64"><canvas id="employee-detail-daily-chart"></canvas></div>
+            </div>
+            <div class="employee-chart-container">
+                <h4 class="text-lg font-semibold mb-3 text-white">📊 일별 작업량</h4>
+                <div class="relative h-64"><canvas id="employee-detail-qty-chart"></canvas></div>
+            </div>
+        </div>
+
+        <!-- 주간/월간 비교 -->
+        <div class="employee-chart-container mb-4">
+            <h4 class="text-lg font-semibold mb-3 text-white">📅 주간 평균 비교</h4>
+            <div class="relative h-64"><canvas id="employee-detail-weekly-chart"></canvas></div>
+        </div>
+
+        <!-- 최근 기록 테이블 -->
+        <div class="bg-gray-700 p-4 rounded-lg">
+            <h4 class="text-lg font-semibold mb-3 text-white">📋 최근 10일 기록</h4>
+            <div class="overflow-x-auto">
+                <table class="min-w-full text-sm">
+                    <thead class="bg-gray-600">
+                        <tr>
+                            <th class="px-4 py-2 text-left text-white">날짜</th>
+                            <th class="px-4 py-2 text-left text-white">작업량</th>
+                            <th class="px-4 py-2 text-left text-white">M/H</th>
+                            <th class="px-4 py-2 text-left text-white">HTP</th>
+                            <th class="px-4 py-2 text-left text-white">순위</th>
+                        </tr>
+                    </thead>
+                    <tbody id="employee-detail-recent-table" class="bg-gray-800">
+                        <!-- Data will be added dynamically -->
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- 🆕 Calendar Day Detail Modal -->
+<div id="calendar-detail-modal-backdrop" class="fixed inset-0 z-50 hidden items-center justify-center p-4">
+    <div id="calendar-detail-modal-content" class="bg-gray-800 rounded-lg shadow-xl w-full max-w-3xl p-6 relative max-h-[85vh] overflow-y-auto">
+        <div class="flex justify-between items-center mb-4">
+            <h3 id="calendar-detail-title" class="text-2xl font-bold text-white">2025-01-17 상세 정보</h3>
+            <button id="calendar-detail-close" class="text-gray-400 hover:text-white">
+                <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path></svg>
+            </button>
+        </div>
+
+        <!-- Day Stats -->
+        <div class="grid grid-cols-2 md:grid-cols-4 gap-4 mb-6">
+            <div class="bg-gray-700 p-4 rounded-lg">
+                <div class="text-xs text-gray-400 mb-1">평균 HTP</div>
+                <div id="calendar-detail-avg-htp" class="text-2xl font-bold text-white">0.0</div>
+            </div>
+            <div class="bg-gray-700 p-4 rounded-lg">
+                <div class="text-xs text-gray-400 mb-1">총 작업량</div>
+                <div id="calendar-detail-total-qty" class="text-2xl font-bold text-white">0</div>
+            </div>
+            <div class="bg-gray-700 p-4 rounded-lg">
+                <div class="text-xs text-gray-400 mb-1">작업자 수</div>
+                <div id="calendar-detail-worker-count" class="text-2xl font-bold text-white">0</div>
+            </div>
+            <div class="bg-gray-700 p-4 rounded-lg">
+                <div class="text-xs text-gray-400 mb-1">목표 달성률</div>
+                <div id="calendar-detail-target-rate" class="text-2xl font-bold text-white">0%</div>
+            </div>
+        </div>
+
+        <!-- Top Performers of the Day -->
+        <div class="bg-gray-700 p-4 rounded-lg mb-4">
+            <h4 class="text-lg font-semibold mb-3 text-white">🏆 당일 Top 5</h4>
+            <div id="calendar-detail-top-list" class="space-y-2">
+                <!-- List will be populated dynamically -->
+            </div>
+        </div>
+
+        <!-- Process Distribution Chart -->
+        <div class="bg-gray-700 p-4 rounded-lg">
+            <h4 class="text-lg font-semibold mb-3 text-white">📊 프로세스별 분포</h4>
+            <div class="relative h-64"><canvas id="calendar-detail-chart"></canvas></div>
+        </div>
+    </div>
+</div>
+
+<!-- 🆕 Hidden Employees Management Modal -->
+<div id="hidden-employees-modal-backdrop" class="fixed inset-0 z-50 hidden items-center justify-center p-4">
+    <div class="bg-gray-800 rounded-lg shadow-xl w-full max-w-2xl p-6 relative">
+        <div class="flex justify-between items-center mb-4">
+            <h3 class="text-2xl font-bold text-white">👻 숨긴 작업자 관리</h3>
+            <button id="hidden-employees-modal-close" class="text-gray-400 hover:text-white">
+                <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path></svg>
+            </button>
+        </div>
+
+        <div class="mb-4">
+            <p class="text-gray-400 text-sm">숨긴 작업자는 데이터 보기 탭에서 반투명하게 표시되며, 통계에서 제외되지 않습니다.</p>
+        </div>
+
+        <div id="hidden-employees-modal-list" class="space-y-2 max-h-96 overflow-y-auto">
+            <!-- Hidden employees list will be populated -->
+            <div class="text-center py-10 text-gray-500">숨긴 작업자가 없습니다.</div>
+        </div>
     </div>
 </div>
 
@@ -679,9 +1461,13 @@
             tableViewBtn: document.getElementById('table-view-btn'),
             dashboardViewBtn: document.getElementById('dashboard-view-btn'),
             historyViewBtn: document.getElementById('history-view-btn'),
+            calendarViewBtn: document.getElementById('calendar-view-btn'),
+            rankingViewBtn: document.getElementById('ranking-view-btn'),
             tableView: document.getElementById('table-view'),
             dashboardView: document.getElementById('dashboard-view'),
             historyView: document.getElementById('history-view'),
+            calendarView: document.getElementById('calendar-view'),
+            rankingView: document.getElementById('ranking-view'),
             chartModalBackdrop: document.getElementById('chart-modal-backdrop'),
             chartModalTitle: document.getElementById('chart-modal-title'),
             chartModalClose: document.getElementById('chart-modal-close'),
@@ -712,11 +1498,41 @@
             historyTopPackList: document.getElementById('history-top-pack-list'),
             exportHistoryExcel: document.getElementById('export-history-excel'),
             exportHistoryPdf: document.getElementById('export-history-pdf'),
+            // 🆕 Calendar View Elements
+            calendarPrevMonth: document.getElementById('calendar-prev-month'),
+            calendarNextMonth: document.getElementById('calendar-next-month'),
+            calendarMonthTitle: document.getElementById('calendar-month-title'),
+            calendarGrid: document.getElementById('calendar-grid'),
+            calendarDetailModalBackdrop: document.getElementById('calendar-detail-modal-backdrop'),
+            calendarDetailClose: document.getElementById('calendar-detail-close'),
+            // 🆕 Ranking View Elements
+            rankingDaily: document.getElementById('ranking-daily'),
+            rankingWeekly: document.getElementById('ranking-weekly'),
+            rankingMonthly: document.getElementById('ranking-monthly'),
+            rankingAllTime: document.getElementById('ranking-all-time'),
+            rankingPickType: document.getElementById('ranking-pick-type'),
+            rankingPackType: document.getElementById('ranking-pack-type'),
+            rankingPodium: document.getElementById('ranking-podium'),
+            rankingList: document.getElementById('ranking-list'),
+            rankingTotalCount: document.getElementById('ranking-total-count'),
+            rankingAvgHtp: document.getElementById('ranking-avg-htp'),
+            rankingMaxHtp: document.getElementById('ranking-max-htp'),
+            rankingMedianHtp: document.getElementById('ranking-median-htp'),
+            // 🆕 Employee Detail Modal Elements
+            employeeDetailModalBackdrop: document.getElementById('employee-detail-modal-backdrop'),
+            employeeDetailClose: document.getElementById('employee-detail-close'),
+            // 🆕 Hidden Employees Elements
+            manageHiddenBtn: document.getElementById('manage-hidden-btn'),
+            hiddenCountBadge: document.getElementById('hidden-count-badge'),
+            hiddenEmployeesList: document.getElementById('hidden-employees-list'),
+            hiddenEmployeesModalBackdrop: document.getElementById('hidden-employees-modal-backdrop'),
+            hiddenEmployeesModalClose: document.getElementById('hidden-employees-modal-close'),
         };
 
         // --- Global State ---
         let globalRawData = []; 
         let historyData = {}; // { 'YYYY-MM-DD': rawDataArray }
+        let hiddenEmployees = new Set(); // 숨긴 작업자 목록
         let state = {
             filters: {
                 process: 'all', search: '', lowHtp: false,
@@ -726,13 +1542,19 @@
             charts: { 
                 floorHtp: null, packType: null, individualHtp: null, 
                 processComparison: null, hourlyHtp: null,
-                historyDailyTrend: null, historyDailyQty: null
+                historyDailyTrend: null, historyDailyQty: null,
+                employeeDailyChart: null, employeeQtyChart: null, employeeWeeklyChart: null,
+                calendarDetailChart: null
             },
             historyPeriod: 'week', // 'week', 'month', 'all', 'custom'
-            historyDateRange: { start: null, end: null }
+            historyDateRange: { start: null, end: null },
+            calendarCurrentMonth: new Date(), // 현재 표시 중인 월
+            rankingPeriod: 'daily', // 'daily', 'weekly', 'monthly', 'all-time'
+            rankingProcessType: 'pick', // 'pick', 'pack'
         };
         let targetHtpValues = {};
         let employeeBadges = {}; // { employeeId: { badges: [], streaks: {}, records: {} } }
+        let previousRankings = {}; // 이전 순위 저장 (순위 변동 계산용)
 
         // --- Constants ---
         const PACK_TYPE_MAP = {
@@ -765,6 +1587,72 @@
             targetHtpValues[key] = TARGET_HTP_DEFAULTS[key].value;
         }
 
+        // --- LocalStorage Management for Hidden Employees ---
+        function loadHiddenEmployees() {
+            const saved = localStorage.getItem('hiddenEmployees');
+            if (saved) {
+                hiddenEmployees = new Set(JSON.parse(saved));
+            }
+            updateHiddenCountBadge();
+        }
+
+        function saveHiddenEmployees() {
+            localStorage.setItem('hiddenEmployees', JSON.stringify([...hiddenEmployees]));
+            updateHiddenCountBadge();
+        }
+
+        function updateHiddenCountBadge() {
+            ui.hiddenCountBadge.textContent = hiddenEmployees.size;
+            if (hiddenEmployees.size > 0) {
+                ui.hiddenCountBadge.classList.remove('bg-gray-500');
+                ui.hiddenCountBadge.classList.add('bg-red-500');
+            } else {
+                ui.hiddenCountBadge.classList.remove('bg-red-500');
+                ui.hiddenCountBadge.classList.add('bg-gray-500');
+            }
+        }
+
+        function toggleHiddenEmployee(employeeName) {
+            if (hiddenEmployees.has(employeeName)) {
+                hiddenEmployees.delete(employeeName);
+            } else {
+                hiddenEmployees.add(employeeName);
+            }
+            saveHiddenEmployees();
+            applyFiltersAndRender();
+        }
+
+        function showHiddenEmployeesModal() {
+            const modalList = document.getElementById('hidden-employees-modal-list');
+            modalList.innerHTML = '';
+
+            if (hiddenEmployees.size === 0) {
+                modalList.innerHTML = '<div class="text-center py-10 text-gray-500">숨긴 작업자가 없습니다.</div>';
+            } else {
+                hiddenEmployees.forEach(employeeName => {
+                    const item = document.createElement('div');
+                    item.className = 'hidden-employee-item';
+                    item.innerHTML = `
+                        <span class="font-semibold text-white">${employeeName}</span>
+                        <button class="show-employee-btn" data-employee="${employeeName}">복구</button>
+                    `;
+                    modalList.appendChild(item);
+                });
+
+                // Attach event listeners
+                modalList.querySelectorAll('.show-employee-btn').forEach(btn => {
+                    btn.addEventListener('click', (e) => {
+                        const employeeName = e.target.dataset.employee;
+                        toggleHiddenEmployee(employeeName);
+                        showHiddenEmployeesModal(); // Refresh modal
+                    });
+                });
+            }
+
+            ui.hiddenEmployeesModalBackdrop.classList.remove('hidden');
+            ui.hiddenEmployeesModalBackdrop.classList.add('flex');
+        }
+
         // --- Firebase Setup ---
         const firebaseConfig = {
             apiKey: "AIzaSyBrPfjJWPPd8HzI1jCRoHFqwcuPuJ9u10E",
@@ -794,6 +1682,7 @@
                 ui.fileUpload.disabled = false;
                 setupRealtimeListener();
                 loadHistoryData(); // Load history on auth
+                loadHiddenEmployees(); // Load hidden employees
             } else {
                 try { await signInAnonymously(auth); } catch (error) {
                     console.error("익명 로그인 오류:", error);
@@ -882,97 +1771,222 @@
                 console.error("히스토리 데이터 로드 오류:", error);
             }
         }
-
-        // --- Gamification: Badge Calculation ---
+		
+		// --- Gamification: Badge Calculation ---
         function calculateEmployeeBadges() {
-            employeeBadges = {};
+    employeeBadges = {};
+    
+    const sortedDates = Object.keys(historyData).sort();
+    const allEmployees = new Set();
+    Object.values(historyData).forEach(dayData => {
+        dayData.forEach(item => allEmployees.add(item.employee));
+    });
+    
+    allEmployees.forEach(employeeName => {
+        const badges = [];
+        const streaks = { 
+            targetMet: 0, 
+            targetMissed: 0, // 🆕 목표 미달 연속
+            topPerformer: 0, 
+            top5Performer: 0, // 🆕 Top5 연속
+            attendance: 0 // 🆕 연속 출근
+        };
+        const records = { maxHtp: 0, maxQty: 0, totalDays: 0 };
+        const dailyHtps = []; // 🆕 일별 HTP 기록 (편차 계산용)
+        const recentPerformance = { last7: [], prev7: [], last10: [], overall: [] }; // 🆕
+        
+        let consecutiveTargetDays = 0;
+        let consecutiveTargetMissedDays = 0; // 🆕
+        let consecutiveTopDays = 0;
+        let consecutiveTop5Days = 0; // 🆕
+        let consecutiveAttendance = 0; // 🆕
+        let lastDate = null;
+        
+        sortedDates.forEach((date, dateIndex) => {
+            const dayData = historyData[date];
+            const employeeData = dayData.filter(d => d.employee === employeeName);
             
-            const sortedDates = Object.keys(historyData).sort();
+            if (employeeData.length === 0) {
+                consecutiveTargetDays = 0;
+                consecutiveTargetMissedDays = 0;
+                consecutiveTopDays = 0;
+                consecutiveTop5Days = 0;
+                consecutiveAttendance = 0;
+                return;
+            }
             
-            // Calculate for each employee
-            const allEmployees = new Set();
-            Object.values(historyData).forEach(dayData => {
-                dayData.forEach(item => allEmployees.add(item.employee));
+            records.totalDays++;
+            
+            // 🆕 연속 출근 체크
+            if (lastDate) {
+                const dayDiff = (new Date(date) - new Date(lastDate)) / (1000 * 60 * 60 * 24);
+                if (dayDiff === 1) {
+                    consecutiveAttendance++;
+                } else {
+                    consecutiveAttendance = 1;
+                }
+            } else {
+                consecutiveAttendance = 1;
+            }
+            if (consecutiveAttendance > streaks.attendance) {
+                streaks.attendance = consecutiveAttendance;
+            }
+            lastDate = date;
+            
+            const aggregated = aggregateData(employeeData);
+            aggregated.forEach(item => {
+                const htp = parseFloat(item.htp);
+                const qty = item.unitQty;
+                const targetHtp = getTargetHtp(item);
+                
+                // 🆕 일별 HTP 기록
+                dailyHtps.push(htp);
+                recentPerformance.overall.push(htp);
+                
+                // 🆕 최근 성과 기록
+                if (dateIndex >= sortedDates.length - 10) {
+                    recentPerformance.last10.push(htp);
+                }
+                if (dateIndex >= sortedDates.length - 7) {
+                    recentPerformance.last7.push(htp);
+                }
+                if (dateIndex >= sortedDates.length - 14 && dateIndex < sortedDates.length - 7) {
+                    recentPerformance.prev7.push(htp);
+                }
+                
+                if (htp > records.maxHtp) records.maxHtp = htp;
+                if (qty > records.maxQty) records.maxQty = qty;
+                
+                // 목표 달성/미달 체크
+                if (htp >= targetHtp) {
+                    consecutiveTargetDays++;
+                    consecutiveTargetMissedDays = 0; // 리셋
+                } else {
+                    consecutiveTargetDays = 0;
+                    consecutiveTargetMissedDays++; // 🆕
+                }
+                
+                // 🆕 최대 목표 미달 연속 기록
+                if (consecutiveTargetMissedDays > streaks.targetMissed) {
+                    streaks.targetMissed = consecutiveTargetMissedDays;
+                }
+                
+                if (consecutiveTargetDays > streaks.targetMet) {
+                    streaks.targetMet = consecutiveTargetDays;
+                }
+                
+                const allForProcess = aggregateData(dayData.filter(d => 
+                    d.processTask === (item.processType.includes('PICK') ? 'PICK(PICKING)' : 'PACK(PACKING)')
+                ));
+                const sortedByHtp = allForProcess.sort((a, b) => parseFloat(b.htp) - parseFloat(a.htp));
+                
+                const isTop3 = sortedByHtp.slice(0, 3).some(d => d.employee === employeeName);
+                const isTop5 = sortedByHtp.slice(0, 5).some(d => d.employee === employeeName); // 🆕
+                
+                if (isTop3) {
+                    consecutiveTopDays++;
+                } else {
+                    consecutiveTopDays = 0;
+                }
+                
+                // 🆕 Top5 연속 체크
+                if (isTop5) {
+                    consecutiveTop5Days++;
+                } else {
+                    consecutiveTop5Days = 0;
+                }
+                
+                if (consecutiveTopDays > streaks.topPerformer) {
+                    streaks.topPerformer = consecutiveTopDays;
+                }
+                
+                if (consecutiveTop5Days > streaks.top5Performer) {
+                    streaks.top5Performer = consecutiveTop5Days;
+                }
             });
-            
-            allEmployees.forEach(employeeName => {
-                const badges = [];
-                const streaks = { targetMet: 0, topPerformer: 0 };
-                const records = { maxHtp: 0, maxQty: 0, totalDays: 0 };
-                
-                let consecutiveTargetDays = 0;
-                let consecutiveTopDays = 0;
-                
-                sortedDates.forEach(date => {
-                    const dayData = historyData[date];
-                    const employeeData = dayData.filter(d => d.employee === employeeName);
-                    
-                    if (employeeData.length === 0) {
-                        consecutiveTargetDays = 0;
-                        consecutiveTopDays = 0;
-                        return;
-                    }
-                    
-                    records.totalDays++;
-                    
-                    // Aggregate employee's data for the day
-                    const aggregated = aggregateData(employeeData);
-                    aggregated.forEach(item => {
-                        const htp = parseFloat(item.htp);
-                        const qty = item.unitQty;
-                        const targetHtp = getTargetHtp(item);
-                        
-                        // Track max HTP and Qty
-                        if (htp > records.maxHtp) records.maxHtp = htp;
-                        if (qty > records.maxQty) records.maxQty = qty;
-                        
-                        // Check if target met
-                        if (htp >= targetHtp) {
-                            consecutiveTargetDays++;
-                        } else {
-                            consecutiveTargetDays = 0;
-                        }
-                        
-                        // Check if top performer (top 3)
-                        const allForProcess = aggregateData(dayData.filter(d => 
-                            d.processTask === item.processType.includes('PICK') ? 'PICK(PICKING)' : 'PACK(PACKING)'
-                        ));
-                        const sortedByHtp = allForProcess.sort((a, b) => parseFloat(b.htp) - parseFloat(a.htp));
-                        const isTop3 = sortedByHtp.slice(0, 3).some(d => d.employee === employeeName);
-                        
-                        if (isTop3) {
-                            consecutiveTopDays++;
-                        } else {
-                            consecutiveTopDays = 0;
-                        }
-                    });
-                    
-                    // Update streaks
-                    if (consecutiveTargetDays > streaks.targetMet) {
-                        streaks.targetMet = consecutiveTargetDays;
-                    }
-                    if (consecutiveTopDays > streaks.topPerformer) {
-                        streaks.topPerformer = consecutiveTopDays;
-                    }
-                });
-                
-                // Award badges based on achievements
-                if (streaks.targetMet >= 7) badges.push({ type: 'streak', name: '🔥 7일 연속 목표 달성', level: 'gold' });
-                else if (streaks.targetMet >= 3) badges.push({ type: 'streak', name: '🔥 3일 연속 목표 달성', level: 'silver' });
-                
-                if (streaks.topPerformer >= 3) badges.push({ type: 'top', name: '⭐ 3일 연속 Top3', level: 'gold' });
-                
-                if (records.maxHtp >= 500) badges.push({ type: 'record', name: '💎 HTP 500+', level: 'gold' });
-                else if (records.maxHtp >= 400) badges.push({ type: 'record', name: '💎 HTP 400+', level: 'silver' });
-                else if (records.maxHtp >= 300) badges.push({ type: 'record', name: '💎 HTP 300+', level: 'bronze' });
-                
-                if (records.totalDays >= 30) badges.push({ type: 'attendance', name: '📅 30일 근무', level: 'gold' });
-                else if (records.totalDays >= 14) badges.push({ type: 'attendance', name: '📅 14일 근무', level: 'silver' });
-                else if (records.totalDays >= 7) badges.push({ type: 'attendance', name: '📅 7일 근무', level: 'bronze' });
-                
-                employeeBadges[employeeName] = { badges, streaks, records };
-            });
+        });
+        
+        // --- 🆕 통계 계산 ---
+        const avgHtp = recentPerformance.overall.length > 0 
+            ? recentPerformance.overall.reduce((a, b) => a + b, 0) / recentPerformance.overall.length 
+            : 0;
+        
+        const last7Avg = recentPerformance.last7.length > 0 
+            ? recentPerformance.last7.reduce((a, b) => a + b, 0) / recentPerformance.last7.length 
+            : 0;
+        
+        const prev7Avg = recentPerformance.prev7.length > 0 
+            ? recentPerformance.prev7.reduce((a, b) => a + b, 0) / recentPerformance.prev7.length 
+            : 0;
+        
+        const last10Avg = recentPerformance.last10.length > 0 
+            ? recentPerformance.last10.reduce((a, b) => a + b, 0) / recentPerformance.last10.length 
+            : 0;
+        
+        // 표준편차 계산
+        const mean = dailyHtps.reduce((a, b) => a + b, 0) / dailyHtps.length;
+        const variance = dailyHtps.reduce((sum, val) => sum + Math.pow(val - mean, 2), 0) / dailyHtps.length;
+        const stdDev = Math.sqrt(variance);
+        
+        // --- 긍정 뱃지 ---
+        if (streaks.targetMet >= 7) badges.push({ type: 'streak', name: '🔥 7일 연속 목표 달성', level: 'gold' });
+        else if (streaks.targetMet >= 5) badges.push({ type: 'streak', name: '🔥 5일 연속 목표 달성', level: 'silver' });
+        else if (streaks.targetMet >= 3) badges.push({ type: 'streak', name: '🔥 3일 연속 목표 달성', level: 'bronze' });
+        
+        if (streaks.topPerformer >= 3) badges.push({ type: 'top', name: '⭐ 3일 연속 Top3', level: 'gold' });
+        if (streaks.top5Performer >= 5) badges.push({ type: 'top', name: '🎖️ 5일 연속 Top5', level: 'silver' });
+        
+        if (streaks.attendance >= 30) badges.push({ type: 'attendance', name: '🔥 30일 연속 출근', level: 'gold' });
+        else if (streaks.attendance >= 14) badges.push({ type: 'attendance', name: '🔥 14일 연속 출근', level: 'silver' });
+        else if (streaks.attendance >= 7) badges.push({ type: 'attendance', name: '🔥 7일 연속 출근', level: 'bronze' });
+        
+        if (records.maxHtp >= 500) badges.push({ type: 'record', name: '💎 HTP 500+', level: 'gold' });
+        else if (records.maxHtp >= 400) badges.push({ type: 'record', name: '💎 HTP 400+', level: 'silver' });
+        else if (records.maxHtp >= 300) badges.push({ type: 'record', name: '💎 HTP 300+', level: 'bronze' });
+        
+        if (records.totalDays >= 30) badges.push({ type: 'attendance', name: '📅 30일 근무', level: 'gold' });
+        else if (records.totalDays >= 14) badges.push({ type: 'attendance', name: '📅 14일 근무', level: 'silver' });
+        else if (records.totalDays >= 7) badges.push({ type: 'attendance', name: '📅 7일 근무', level: 'bronze' });
+        
+        // 🆕 상승세
+        if (prev7Avg > 0 && last7Avg > 0) {
+            const improvement = ((last7Avg - prev7Avg) / prev7Avg) * 100;
+            if (improvement >= 20) badges.push({ type: 'trend', name: '📈 상승세 (+20%)', level: 'gold' });
         }
+        
+        // 🆕 안정성
+        if (dailyHtps.length >= 5) {
+            if (stdDev <= 15) badges.push({ type: 'stable', name: '⚡ 안정적', level: 'silver' });
+        }
+        
+        // --- 🆕 경고 뱃지 ---
+        if (streaks.targetMissed >= 3) badges.push({ type: 'warning', name: '🐢 3일 연속 저조', level: 'danger' });
+        
+        if (prev7Avg > 0 && last7Avg > 0) {
+            const decline = ((prev7Avg - last7Avg) / prev7Avg) * 100;
+            if (decline >= 20) badges.push({ type: 'warning', name: '📉 하락세 (-20%)', level: 'danger' });
+        }
+        
+        if (dailyHtps.length >= 5 && stdDev >= 40) {
+            badges.push({ type: 'warning', name: '⚡ 불안정', level: 'warning' });
+        }
+        
+        if (avgHtp > 0 && last10Avg > 0) {
+            const recentVsOverall = ((avgHtp - last10Avg) / avgHtp) * 100;
+            if (recentVsOverall >= 30) badges.push({ type: 'warning', name: '💤 부진', level: 'danger' });
+        }
+        
+        // 🆕 최근 5일 중 4일 이상 목표 미달
+        if (recentPerformance.last7.length >= 5) {
+            const last5 = recentPerformance.last7.slice(-5);
+            const targetHtp = 90; // 기본 목표
+            const missedDays = last5.filter(htp => htp < targetHtp).length;
+            if (missedDays >= 4) badges.push({ type: 'warning', name: '🎯 개선 필요', level: 'warning' });
+        }
+        
+        employeeBadges[employeeName] = { badges, streaks, records };
+    });
+}
 
         // --- Event Listeners ---
         function toggleMobileSidebar() {
@@ -1002,8 +2016,7 @@
             state.filters.lowHtp = e.target.checked;
             applyFiltersAndRender();
         });
-		
-		document.querySelectorAll('.filter-btn').forEach(btn => {
+        document.querySelectorAll('.filter-btn').forEach(btn => {
             btn.addEventListener('click', (e) => {
                 document.querySelectorAll('.filter-btn').forEach(b => b.classList.remove('active'));
                 e.currentTarget.classList.add('active');
@@ -1027,34 +2040,59 @@
             applyFiltersAndRender();
         });
 
-        // View Switcher (3개 메뉴)
-        ui.tableViewBtn.addEventListener('click', () => {
-            ui.tableView.classList.remove('hidden');
-            ui.dashboardView.classList.add('hidden');
-            ui.historyView.classList.add('hidden');
-            ui.tableViewBtn.classList.add('active');
-            ui.dashboardViewBtn.classList.remove('active');
-            ui.historyViewBtn.classList.remove('active');
-        });
-        ui.dashboardViewBtn.addEventListener('click', () => {
-            ui.tableView.classList.add('hidden');
-            ui.dashboardView.classList.remove('hidden');
-            ui.dashboardView.classList.add('flex');
-            ui.historyView.classList.add('hidden');
-            ui.tableViewBtn.classList.remove('active');
-            ui.dashboardViewBtn.classList.add('active');
-            ui.historyViewBtn.classList.remove('active');
-        });
-        ui.historyViewBtn.addEventListener('click', () => {
+        // View Switcher (5개 메뉴)
+        ui.tableViewBtn.addEventListener('click', () => switchView('table'));
+        ui.dashboardViewBtn.addEventListener('click', () => switchView('dashboard'));
+        ui.historyViewBtn.addEventListener('click', () => switchView('history'));
+        ui.calendarViewBtn.addEventListener('click', () => switchView('calendar'));
+        ui.rankingViewBtn.addEventListener('click', () => switchView('ranking'));
+
+        function switchView(viewName) {
+            // Hide all views
             ui.tableView.classList.add('hidden');
             ui.dashboardView.classList.add('hidden');
-            ui.historyView.classList.remove('hidden');
-            ui.historyView.classList.add('flex');
+            ui.historyView.classList.add('hidden');
+            ui.calendarView.classList.add('hidden');
+            ui.rankingView.classList.add('hidden');
+            
+            // Remove active class from all tabs
             ui.tableViewBtn.classList.remove('active');
             ui.dashboardViewBtn.classList.remove('active');
-            ui.historyViewBtn.classList.add('active');
-            renderHistoryView();
-        });
+            ui.historyViewBtn.classList.remove('active');
+            ui.calendarViewBtn.classList.remove('active');
+            ui.rankingViewBtn.classList.remove('active');
+            
+            // Show selected view and activate tab
+            switch(viewName) {
+                case 'table':
+                    ui.tableView.classList.remove('hidden');
+                    ui.tableViewBtn.classList.add('active');
+                    break;
+                case 'dashboard':
+                    ui.dashboardView.classList.remove('hidden');
+                    ui.dashboardView.classList.add('flex');
+                    ui.dashboardViewBtn.classList.add('active');
+                    break;
+                case 'history':
+                    ui.historyView.classList.remove('hidden');
+                    ui.historyView.classList.add('flex');
+                    ui.historyViewBtn.classList.add('active');
+                    renderHistoryView();
+                    break;
+                case 'calendar':
+                    ui.calendarView.classList.remove('hidden');
+                    ui.calendarView.classList.add('flex');
+                    ui.calendarViewBtn.classList.add('active');
+                    renderCalendarView();
+                    break;
+                case 'ranking':
+                    ui.rankingView.classList.remove('hidden');
+                    ui.rankingView.classList.add('flex');
+                    ui.rankingViewBtn.classList.add('active');
+                    renderRankingView();
+                    break;
+            }
+        }
 
         // History Period Selectors
         ui.periodWeekBtn.addEventListener('click', () => {
@@ -1099,17 +2137,119 @@
         ui.exportHistoryExcel.addEventListener('click', exportHistoryToExcel);
         ui.exportHistoryPdf.addEventListener('click', exportHistoryToPDF);
 
+        // 🆕 Calendar Navigation
+        ui.calendarPrevMonth.addEventListener('click', () => {
+            state.calendarCurrentMonth.setMonth(state.calendarCurrentMonth.getMonth() - 1);
+            renderCalendarView();
+        });
+        ui.calendarNextMonth.addEventListener('click', () => {
+            state.calendarCurrentMonth.setMonth(state.calendarCurrentMonth.getMonth() + 1);
+            renderCalendarView();
+        });
+
+        // 🆕 Ranking Period Selectors
+        ui.rankingDaily.addEventListener('click', () => setRankingPeriod('daily'));
+        ui.rankingWeekly.addEventListener('click', () => setRankingPeriod('weekly'));
+        ui.rankingMonthly.addEventListener('click', () => setRankingPeriod('monthly'));
+        ui.rankingAllTime.addEventListener('click', () => setRankingPeriod('all-time'));
+
+        function setRankingPeriod(period) {
+            state.rankingPeriod = period;
+            document.querySelectorAll('#ranking-daily, #ranking-weekly, #ranking-monthly, #ranking-all-time').forEach(btn => btn.classList.remove('active'));
+            if (period === 'daily') ui.rankingDaily.classList.add('active');
+            else if (period === 'weekly') ui.rankingWeekly.classList.add('active');
+            else if (period === 'monthly') ui.rankingMonthly.classList.add('active');
+            else if (period === 'all-time') ui.rankingAllTime.classList.add('active');
+            renderRankingView();
+        }
+
+        // 🆕 Ranking Process Type Selectors
+        ui.rankingPickType.addEventListener('click', () => setRankingProcessType('pick'));
+        ui.rankingPackType.addEventListener('click', () => setRankingProcessType('pack'));
+
+        function setRankingProcessType(type) {
+            state.rankingProcessType = type;
+            document.querySelectorAll('#ranking-pick-type, #ranking-pack-type').forEach(btn => btn.classList.remove('active'));
+            if (type === 'pick') ui.rankingPickType.classList.add('active');
+            else ui.rankingPackType.classList.add('active');
+            renderRankingView();
+        }
+
+        // 🆕 Hidden Employees Management
+        ui.manageHiddenBtn.addEventListener('click', () => {
+            if (ui.hiddenEmployeesList.classList.contains('hidden')) {
+                ui.hiddenEmployeesList.classList.remove('hidden');
+                renderHiddenEmployeesList();
+            } else {
+                ui.hiddenEmployeesList.classList.add('hidden');
+            }
+        });
+
+        function renderHiddenEmployeesList() {
+            ui.hiddenEmployeesList.innerHTML = '';
+            
+            if (hiddenEmployees.size === 0) {
+                ui.hiddenEmployeesList.innerHTML = '<p class="text-sm text-gray-400 mb-2">숨긴 작업자가 없습니다.</p>';
+                return;
+            }
+
+            hiddenEmployees.forEach(employeeName => {
+                const item = document.createElement('div');
+                item.className = 'hidden-employee-item';
+                item.innerHTML = `
+                    <span class="font-semibold text-white text-sm">${employeeName.split('(')[0].trim()}</span>
+                    <button class="show-employee-btn-small" data-employee="${employeeName}">복구</button>
+                `;
+                ui.hiddenEmployeesList.appendChild(item);
+            });
+
+            // Attach event listeners
+            ui.hiddenEmployeesList.querySelectorAll('.show-employee-btn-small').forEach(btn => {
+                btn.addEventListener('click', (e) => {
+                    const employeeName = e.target.dataset.employee;
+                    toggleHiddenEmployee(employeeName);
+                    renderHiddenEmployeesList();
+                });
+            });
+        }
+
+        ui.hiddenEmployeesModalClose.addEventListener('click', () => {
+            ui.hiddenEmployeesModalBackdrop.classList.add('hidden');
+            ui.hiddenEmployeesModalBackdrop.classList.remove('flex');
+        });
+
+        // 🆕 Modal Close Events
+        ui.employeeDetailClose.addEventListener('click', () => {
+            ui.employeeDetailModalBackdrop.classList.add('hidden');
+            ui.employeeDetailModalBackdrop.classList.remove('flex');
+        });
+
+        ui.calendarDetailClose.addEventListener('click', () => {
+            ui.calendarDetailModalBackdrop.classList.add('hidden');
+            ui.calendarDetailModalBackdrop.classList.remove('flex');
+        });
+
         ui.tableBody.addEventListener('click', (e) => {
             const row = e.target.closest('tr');
             if (!row || row.id === 'placeholder-row') return;
+            
+            // Check if clicked on action button
+            if (e.target.closest('.hide-employee-btn') || e.target.closest('.show-employee-btn')) {
+                const btn = e.target.closest('.hide-employee-btn') || e.target.closest('.show-employee-btn');
+                const employeeName = btn.dataset.employee;
+                toggleHiddenEmployee(employeeName);
+                return;
+            }
+
             const employeeCell = row.querySelector('td:nth-child(2)');
             const processCell = row.querySelector('td:nth-child(1)');
             if(employeeCell && processCell) {
-                const employeeName = employeeCell.textContent.replace(/[👑🔥🐢]\s*/g, '').trim();
+                const employeeName = employeeCell.textContent.replace(/[👑🔥🐢🥇🥈🥉]\s*/g, '').trim();
                 const processType = processCell.textContent;
                 showIndividualTrend(employeeName, processType);
             }
         });
+        
         ui.chartModalClose.addEventListener('click', () => {
             ui.chartModalBackdrop.classList.add('hidden');
             ui.chartModalBackdrop.classList.remove('flex');
@@ -1240,8 +2380,8 @@
             }
             return finalData;
         }
-        
-        function initializeFiltersFromData(rawData) {
+		
+		function initializeFiltersFromData(rawData) {
             const allPackTypes = new Set();
             const floors = new Set();
             rawData.forEach(item => {
@@ -1472,17 +2612,10 @@
             }
             ui.placeholderRow.classList.add('hidden');
 
-            const pickData = data.filter(d => d.processType.includes('PICK')).sort((a, b) => parseFloat(b.htp) - parseFloat(a.htp));
-            const packData = data.filter(d => d.processType.includes('PACK')).sort((a, b) => parseFloat(b.htp) - parseFloat(a.htp));
-            
-            const topPickSet = new Set(pickData.slice(0, 10).map(d => d.employee));
-            const topPackSet = new Set(packData.slice(0, 10).map(d => d.employee));
-            const lowPickSet = new Set(pickData.slice(-10).map(d => d.employee));
-            const lowPackSet = new Set(packData.slice(-10).map(d => d.employee));
-
             data.forEach(item => {
                 const row = document.createElement('tr');
-                row.className = 'cursor-pointer hover:bg-gray-700';
+                const isHidden = hiddenEmployees.has(item.employee);
+                row.className = isHidden ? 'cursor-pointer hover:bg-gray-700 hidden-employee' : 'cursor-pointer hover:bg-gray-700';
                 
                 let processTypeColor = item.processType.includes('PICK') ? 'text-blue-400' : 'text-yellow-400';
                 const targetHtp = getTargetHtp(item);
@@ -1500,15 +2633,8 @@
                 }
 
                 let badge = '';
-                if (item.processType.includes('PICK')) {
-                    if (topPickSet.has(item.employee)) badge = ' 🔥';
-                    else if (lowPickSet.has(item.employee)) badge = ' 🐢';
-                } else {
-                    if (topPackSet.has(item.employee)) badge = ' 🔥';
-                    else if (lowPackSet.has(item.employee)) badge = ' 🐢';
-                }
                 
-                // Add gamification badges
+                // Add gamification badges (획득 뱃지만 표시)
                 const employeeBadge = employeeBadges[item.employee];
                 if (employeeBadge && employeeBadge.badges.length > 0) {
                     const topBadge = employeeBadge.badges[0];
@@ -1519,16 +2645,29 @@
                 
                 empDisplay += badge;
 
+                // 🆕 Hidden indicator and action button
+                const actionMenu = `
+            <div class="row-action-menu">
+                ${isHidden 
+                    ? `<button class="action-menu-btn show-employee-btn" data-employee="${item.employee}" title="복구">🔓</button>`
+                    : `<button class="action-menu-btn hide-employee-btn" data-employee="${item.employee}" title="숨기기">🔒</button>`
+                }
+            </div>
+        `;
+
                 row.innerHTML = `
-                    <td class="px-4 py-3 font-medium ${processTypeColor}">${item.processType}</td>
-                    <td class="px-4 py-3 ${empColor}">${empDisplay}</td>
-                    <td class="px-4 py-3 text-gray-200">${item.unitQty}</td>
-                    <td class="px-4 py-3 text-gray-200">${item.location || '-'}</td>
-                    <td class="px-4 py-3 text-gray-200">${item.processPathName || '-'}</td>
-                    <td class="px-4 py-3 text-gray-200">${item.packType}</td>
-                    <td class="px-4 py-3 text-gray-200">${item.mh}</td>
-                    <td class="px-4 py-3 font-bold ${htpColor}">${parseFloat(item.htp) < targetHtp && targetHtp > 0 ? '🚨 ' : ''}${item.htp}</td>
-                `;
+            <td class="px-4 py-3 font-medium ${processTypeColor}">${item.processType}</td>
+            <td class="px-4 py-3 ${empColor} relative">
+                ${empDisplay}${isHidden ? '<span class="hidden-employee-indicator">숨김</span>' : ''}
+            </td>
+            <td class="px-4 py-3 text-gray-200">${item.unitQty}</td>
+            <td class="px-4 py-3 text-gray-200">${item.location || '-'}</td>
+            <td class="px-4 py-3 text-gray-200">${item.processPathName || '-'}</td>
+            <td class="px-4 py-3 text-gray-200">${item.packType}</td>
+            <td class="px-4 py-3 text-gray-200">${item.mh}</td>
+            <td class="px-4 py-3 font-bold ${htpColor}">${parseFloat(item.htp) < targetHtp && targetHtp > 0 ? '🚨 ' : ''}${item.htp}</td>
+            <td class="px-4 py-3 relative">${actionMenu}</td>
+        `;
                 ui.tableBody.appendChild(row);
             });
         }
@@ -1601,8 +2740,8 @@
                 });
             });
         }
-		
-		function exportToExcel() {
+
+        function exportToExcel() {
             if (globalRawData.length === 0) {
                 showModal('내보낼 데이터가 없습니다.');
                 return;
@@ -1698,14 +2837,18 @@
         }
         
         function updateStatus(status, message) {
-            const dot = ui.statusIndicator.querySelector('.status-dot');
-            const text = ui.statusIndicator.querySelector('span');
-            dot.className = 'status-dot';
-            if (status === 'connected') dot.classList.add('status-connected');
-            else if (status === 'disconnected') dot.classList.add('status-disconnected');
-            else if (status === 'loading') dot.classList.add('status-loading');
-            text.textContent = message;
-        }
+    const dot = ui.statusIndicator.querySelector('.status-dot');
+    const statusValue = ui.statusIndicator.querySelector('.status-value');
+    
+    dot.className = 'status-dot';
+    if (status === 'connected') dot.classList.add('status-connected');
+    else if (status === 'disconnected') dot.classList.add('status-disconnected');
+    else if (status === 'loading') dot.classList.add('status-loading');
+    
+    if (statusValue) {
+        statusValue.textContent = message;
+    }
+}
 
         function showLoader() { ui.loaderContainer.classList.remove('hidden'); ui.tableView.classList.add('hidden'); }
         function hideLoader() { ui.loaderContainer.classList.add('hidden'); ui.tableView.classList.remove('hidden'); }
@@ -1729,7 +2872,10 @@
             setTimeout(() => { modal.remove(); style.remove(); }, duration);
         }
 
-        // --- Chart Functions ---
+        // Initialize on page load
+        initializeFiltersFromData([]);
+	
+	// --- Chart Functions ---
         Chart.register(ChartDataLabels);
 
         function updateDashboard(filteredAggregatedData, timeFilteredRawData) {
@@ -1974,7 +3120,6 @@
                 return { hour, rank, total };
             });
 
-            // Get employee badges
             const employeeBadge = employeeBadges[employeeName] || { badges: [], streaks: {}, records: {} };
             const badgesHtml = employeeBadge.badges.length > 0 
                 ? employeeBadge.badges.map(b => `<span class="badge badge-${b.level}">${b.name}</span>`).join(' ')
@@ -1985,7 +3130,6 @@
             modalContent.innerHTML = `
                 <h3 class="text-xl font-bold mb-4" style="color: var(--text-primary);">${employeeName} 님의 상세 분석 (${processType.split('(')[0]})</h3>
                 
-                <!-- Badges Section -->
                 <div style="background: var(--bg-tertiary); border: 1px solid var(--border-color); border-radius: 12px; padding: 16px; margin-bottom: 16px;">
                     <h4 style="color: var(--text-secondary); font-size: 14px; font-weight: 600; margin-bottom: 12px;">🏅 획득 뱃지</h4>
                     <div style="display: flex; flex-wrap: wrap; gap: 8px;">
@@ -2064,7 +3208,6 @@
                 }
             });
             
-            // Re-attach close button event
             document.getElementById('chart-modal-close').addEventListener('click', () => {
                 ui.chartModalBackdrop.classList.add('hidden');
                 ui.chartModalBackdrop.classList.remove('flex');
@@ -2073,24 +3216,158 @@
             ui.chartModalBackdrop.classList.remove('hidden');
             ui.chartModalBackdrop.classList.add('flex');
         }
-		
-		// --- History View Functions ---
-        function renderHistoryView() {
-            if (Object.keys(historyData).length === 0) {
-                showModal('히스토리 데이터가 없습니다.');
+
+        // 🆕 이 부분은 너무 길어서 다음 메시지에서 계속됩니다
+		// --- 🆕 Calendar View Functions ---
+        function renderCalendarView() {
+            const year = state.calendarCurrentMonth.getFullYear();
+            const month = state.calendarCurrentMonth.getMonth();
+            
+            // Update title
+            ui.calendarMonthTitle.textContent = `${year}년 ${month + 1}월`;
+            
+            // Clear existing calendar days (keep headers)
+            const existingDays = ui.calendarGrid.querySelectorAll('.calendar-day');
+            existingDays.forEach(day => day.remove());
+            
+            // Get first day of month and total days
+            const firstDay = new Date(year, month, 1).getDay(); // 0 = Sunday
+            const daysInMonth = new Date(year, month + 1, 0).getDate();
+            
+            // Add empty cells for days before month starts
+            for (let i = 0; i < firstDay; i++) {
+                const emptyDay = document.createElement('div');
+                emptyDay.className = 'calendar-day inactive';
+                ui.calendarGrid.appendChild(emptyDay);
+            }
+            
+            // Add days of the month
+            const today = new Date();
+            for (let day = 1; day <= daysInMonth; day++) {
+                const dateStr = `${year}-${String(month + 1).padStart(2, '0')}-${String(day).padStart(2, '0')}`;
+                const dayData = historyData[dateStr];
+                
+                const dayEl = document.createElement('div');
+                dayEl.className = 'calendar-day';
+                
+                // Check if today
+                if (year === today.getFullYear() && month === today.getMonth() && day === today.getDate()) {
+                    dayEl.classList.add('today');
+                }
+                
+                if (dayData && dayData.length > 0) {
+                    // Calculate average HTP for the day
+                    const aggregated = aggregateData(dayData);
+                    const totalQty = aggregated.reduce((sum, d) => sum + d.unitQty, 0);
+                    const totalMh = aggregated.reduce((sum, d) => sum + parseFloat(d.mh), 0);
+                    const avgHtp = totalMh > 0 ? (totalQty / totalMh) : 0;
+                    
+                    // Determine performance level
+                    const targetHtp = 90; // Base target
+                    const performanceRatio = avgHtp / targetHtp;
+                    
+                    if (performanceRatio >= 1.2) dayEl.classList.add('excellent');
+                    else if (performanceRatio >= 1.0) dayEl.classList.add('good');
+                    else if (performanceRatio >= 0.8) dayEl.classList.add('average');
+                    else dayEl.classList.add('poor');
+                    
+                    dayEl.innerHTML = `
+                        <div class="calendar-day-number">${day}</div>
+                        <div class="calendar-day-htp" style="color: var(--text-primary);">HTP ${avgHtp.toFixed(0)}</div>
+                    `;
+                    
+                    dayEl.addEventListener('click', () => showCalendarDayDetail(dateStr));
+                } else {
+                    dayEl.classList.add('no-data');
+                    dayEl.innerHTML = `
+                        <div class="calendar-day-number">${day}</div>
+                        <div class="calendar-day-htp" style="color: var(--text-tertiary); font-size: 0.65rem;">데이터 없음</div>
+                    `;
+                }
+                
+                ui.calendarGrid.appendChild(dayEl);
+            }
+        }
+
+        function showCalendarDayDetail(dateStr) {
+            const dayData = historyData[dateStr];
+            if (!dayData || dayData.length === 0) {
+                showModal('해당 날짜의 데이터가 없습니다.');
                 return;
             }
+            
+            const aggregated = aggregateData(dayData);
+            const totalQty = aggregated.reduce((sum, d) => sum + d.unitQty, 0);
+            const totalMh = aggregated.reduce((sum, d) => sum + parseFloat(d.mh), 0);
+            const avgHtp = totalMh > 0 ? (totalQty / totalMh) : 0;
+            const workerCount = new Set(aggregated.map(d => d.employee)).size;
+            const targetHtp = 90;
+            const targetRate = ((avgHtp / targetHtp) * 100).toFixed(0);
+            
+            // Update modal content
+            document.getElementById('calendar-detail-title').textContent = `${dateStr} 상세 정보`;
+            document.getElementById('calendar-detail-avg-htp').textContent = avgHtp.toFixed(1);
+            document.getElementById('calendar-detail-total-qty').textContent = totalQty.toLocaleString();
+            document.getElementById('calendar-detail-worker-count').textContent = workerCount;
+            document.getElementById('calendar-detail-target-rate').textContent = targetRate + '%';
+            
+            // Top 5 performers
+            const sorted = [...aggregated].sort((a, b) => parseFloat(b.htp) - parseFloat(a.htp));
+            const top5 = sorted.slice(0, 5);
+            const topListHtml = top5.map((item, index) => `
+                <div class="flex justify-between items-center bg-gray-600 p-2 rounded-md">
+                    <span class="font-semibold">${index + 1}. ${item.employee.split('(')[0].trim()}</span>
+                    <span class="font-bold text-green-400">${item.htp} HTP</span>
+                </div>
+            `).join('');
+            document.getElementById('calendar-detail-top-list').innerHTML = topListHtml;
+            
+            // Process distribution chart
+            const pickData = aggregated.filter(d => d.processType.includes('PICK'));
+            const packData = aggregated.filter(d => d.processType.includes('PACK'));
+            const pickQty = pickData.reduce((sum, d) => sum + d.unitQty, 0);
+            const packQty = packData.reduce((sum, d) => sum + d.unitQty, 0);
+            
+            const ctx = document.getElementById('calendar-detail-chart').getContext('2d');
+            if (state.charts.calendarDetailChart) state.charts.calendarDetailChart.destroy();
+            state.charts.calendarDetailChart = new Chart(ctx, {
+                type: 'doughnut',
+                data: {
+                    labels: ['PICK', 'PACK'],
+                    datasets: [{
+                        data: [pickQty, packQty],
+                        backgroundColor: ['rgba(59, 130, 246, 0.7)', 'rgba(245, 158, 11, 0.7)'],
+                        borderColor: '#374151',
+                        borderWidth: 2
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: { labels: { color: '#d1d5db' } },
+                        datalabels: {
+                            color: '#fff',
+                            font: { weight: 'bold' },
+                            formatter: (value) => value.toLocaleString()
+                        }
+                    }
+                }
+            });
+            
+            ui.calendarDetailModalBackdrop.classList.remove('hidden');
+            ui.calendarDetailModalBackdrop.classList.add('flex');
+        }
 
-            const filteredDates = getFilteredHistoryDates();
+        // --- 🆕 Ranking View Functions ---
+        function renderRankingView() {
+            const filteredDates = getRankingFilteredDates();
             if (filteredDates.length === 0) {
-                ui.historyKpi.days.textContent = '0';
-                ui.historyKpi.totalQty.textContent = '0';
-                ui.historyKpi.avgHtp.textContent = '0.0';
-                ui.historyKpi.maxHtp.textContent = '0.0';
+                ui.rankingList.innerHTML = '<div class="text-center py-10 text-gray-500">데이터가 없습니다.</div>';
                 return;
             }
-
-            // Calculate aggregated stats
+            
+            // Aggregate data for the period
             let allAggregatedData = [];
             filteredDates.forEach(date => {
                 const dayData = historyData[date];
@@ -2099,23 +3376,371 @@
                     allAggregatedData = allAggregatedData.concat(aggregated.map(item => ({ ...item, date })));
                 }
             });
+            
+            // Filter by process type
+            const processFilter = state.rankingProcessType === 'pick' ? 'PICK(집품)' : 'PACK(포장)';
+            const filteredData = allAggregatedData.filter(d => d.processType === processFilter);
+            
+            // Calculate average HTP per employee
+            const employeeStats = new Map();
+            filteredData.forEach(item => {
+                if (!employeeStats.has(item.employee)) {
+                    employeeStats.set(item.employee, { totalQty: 0, totalMh: 0 });
+                }
+                const stats = employeeStats.get(item.employee);
+                stats.totalQty += item.unitQty;
+                stats.totalMh += parseFloat(item.mh);
+            });
+            
+            const rankings = [];
+            employeeStats.forEach((stats, employee) => {
+                const avgHtp = stats.totalMh > 0 ? (stats.totalQty / stats.totalMh) : 0;
+                rankings.push({ employee, avgHtp: avgHtp.toFixed(1), totalQty: stats.totalQty });
+            });
+            
+            // Sort by HTP
+            rankings.sort((a, b) => parseFloat(b.avgHtp) - parseFloat(a.avgHtp));
+            
+            // Update statistics
+            ui.rankingTotalCount.textContent = rankings.length;
+            const avgHtp = rankings.length > 0 ? (rankings.reduce((sum, r) => sum + parseFloat(r.avgHtp), 0) / rankings.length) : 0;
+            const maxHtp = rankings.length > 0 ? Math.max(...rankings.map(r => parseFloat(r.avgHtp))) : 0;
+            const medianHtp = rankings.length > 0 ? parseFloat(rankings[Math.floor(rankings.length / 2)].avgHtp) : 0;
+            
+            ui.rankingAvgHtp.textContent = avgHtp.toFixed(1);
+            ui.rankingMaxHtp.textContent = maxHtp.toFixed(1);
+            ui.rankingMedianHtp.textContent = medianHtp.toFixed(1);
+            
+            // Update podium (Top 3)
+            if (rankings.length >= 1) {
+                document.getElementById('podium-1-name').textContent = rankings[0].employee.split('(')[0].trim();
+                document.getElementById('podium-1-score').textContent = rankings[0].avgHtp;
+            } else {
+                document.getElementById('podium-1-name').textContent = '-';
+                document.getElementById('podium-1-score').textContent = '0';
+            }
+            
+            if (rankings.length >= 2) {
+                document.getElementById('podium-2-name').textContent = rankings[1].employee.split('(')[0].trim();
+                document.getElementById('podium-2-score').textContent = rankings[1].avgHtp;
+            } else {
+                document.getElementById('podium-2-name').textContent = '-';
+                document.getElementById('podium-2-score').textContent = '0';
+            }
+            
+            if (rankings.length >= 3) {
+                document.getElementById('podium-3-name').textContent = rankings[2].employee.split('(')[0].trim();
+                document.getElementById('podium-3-score').textContent = rankings[2].avgHtp;
+            } else {
+                document.getElementById('podium-3-name').textContent = '-';
+                document.getElementById('podium-3-score').textContent = '0';
+            }
+            
+            // Update ranking list
+            ui.rankingList.innerHTML = '';
+            rankings.forEach((rank, index) => {
+                const position = index + 1;
+                const previousRank = previousRankings[rank.employee] || position;
+                const change = previousRank - position;
+                
+                let changeHtml = '';
+                if (change > 0) {
+                    changeHtml = `<span class="ranking-change up">▲${change}</span>`;
+                } else if (change < 0) {
+                    changeHtml = `<span class="ranking-change down">▼${Math.abs(change)}</span>`;
+                } else {
+                    changeHtml = `<span class="ranking-change same">-</span>`;
+                }
+                
+                const item = document.createElement('div');
+                item.className = 'ranking-item';
+                item.innerHTML = `
+                    <div class="ranking-position">#${position}</div>
+                    <div class="ranking-employee">${rank.employee.split('(')[0].trim()}</div>
+                    <div class="ranking-htp">${rank.avgHtp}${changeHtml}</div>
+                `;
+                
+                // Click to show employee detail
+                item.addEventListener('click', () => {
+                    const processType = state.rankingProcessType === 'pick' ? 'PICK(집품)' : 'PACK(포장)';
+                    showEmployeeDetailModal(rank.employee, processType);
+                });
+                
+                ui.rankingList.appendChild(item);
+            });
+            
+            // Save current rankings for next comparison
+            previousRankings = {};
+            rankings.forEach((rank, index) => {
+                previousRankings[rank.employee] = index + 1;
+            });
+        }
 
-            // Update KPI Cards
-            const totalDays = filteredDates.length;
-            const totalQty = allAggregatedData.reduce((sum, d) => sum + d.unitQty, 0);
-            const totalMh = allAggregatedData.reduce((sum, d) => sum + parseFloat(d.mh), 0);
+        function getRankingFilteredDates() {
+            const allDates = Object.keys(historyData).sort();
+            if (allDates.length === 0) return [];
+            
+            const today = new Date();
+            const todayStr = today.toISOString().split('T')[0];
+            
+            if (state.rankingPeriod === 'daily') {
+                return allDates.filter(date => date === todayStr);
+            } else if (state.rankingPeriod === 'weekly') {
+                const sevenDaysAgo = new Date(today);
+                sevenDaysAgo.setDate(today.getDate() - 7);
+                const sevenDaysAgoStr = sevenDaysAgo.toISOString().split('T')[0];
+                return allDates.filter(date => date >= sevenDaysAgoStr && date <= todayStr);
+            } else if (state.rankingPeriod === 'monthly') {
+                const thirtyDaysAgo = new Date(today);
+                thirtyDaysAgo.setDate(today.getDate() - 30);
+                const thirtyDaysAgoStr = thirtyDaysAgo.toISOString().split('T')[0];
+                return allDates.filter(date => date >= thirtyDaysAgoStr && date <= todayStr);
+            } else if (state.rankingPeriod === 'all-time') {
+                return allDates;
+            }
+            return allDates;
+        }
+
+        // --- 🆕 Employee Detail Modal Functions ---
+        function showEmployeeDetailModal(employeeName, processType) {
+            employeeName = employeeName.replace(/[👑🔥🐢🥇🥈🥉]\s*/g, '').trim();
+            const targetProcessTask = processType.includes('PICK') ? 'PICK(PICKING)' : 'PACK(PACKING)';
+            
+            // Gather all historical data for this employee
+            const employeeHistoryData = [];
+            Object.keys(historyData).sort().forEach(date => {
+                const dayData = historyData[date];
+                const employeeData = dayData.filter(d => d.employee === employeeName && d.processTask === targetProcessTask);
+                if (employeeData.length > 0) {
+                    const aggregated = aggregateData(employeeData);
+                    aggregated.forEach(item => {
+                        employeeHistoryData.push({ ...item, date });
+                    });
+                }
+            });
+            
+            if (employeeHistoryData.length === 0) {
+                showModal(`${employeeName.split('(')[0]} 님의 히스토리 데이터가 없습니다.`);
+                return;
+            }
+            
+            // Calculate statistics
+            const totalDays = new Set(employeeHistoryData.map(d => d.date)).size;
+            const totalQty = employeeHistoryData.reduce((sum, d) => sum + d.unitQty, 0);
+            const totalMh = employeeHistoryData.reduce((sum, d) => sum + parseFloat(d.mh), 0);
             const avgHtp = totalMh > 0 ? (totalQty / totalMh) : 0;
-            const maxHtp = Math.max(...allAggregatedData.map(d => parseFloat(d.htp)), 0);
-
-            ui.historyKpi.days.textContent = totalDays.toLocaleString();
-            ui.historyKpi.totalQty.textContent = totalQty.toLocaleString();
-            ui.historyKpi.avgHtp.textContent = avgHtp.toFixed(1);
-            ui.historyKpi.maxHtp.textContent = maxHtp.toFixed(1);
-
-            // Update Charts
-            updateHistoryDailyTrendChart(filteredDates);
-            updateHistoryDailyQtyChart(filteredDates);
-            updateHistoryTopPerformers(allAggregatedData);
+            const maxHtp = Math.max(...employeeHistoryData.map(d => parseFloat(d.htp)));
+            const targetHtp = getTargetHtp({ processType });
+            const targetRate = ((avgHtp / targetHtp) * 100).toFixed(0);
+            
+            // Calculate trend (last 7 days vs previous 7 days)
+            const sortedDates = [...new Set(employeeHistoryData.map(d => d.date))].sort();
+            const last7Days = sortedDates.slice(-7);
+            const prev7Days = sortedDates.slice(-14, -7);
+            
+            const last7Data = employeeHistoryData.filter(d => last7Days.includes(d.date));
+            const prev7Data = employeeHistoryData.filter(d => prev7Days.includes(d.date));
+            
+            const last7Mh = last7Data.reduce((sum, d) => sum + parseFloat(d.mh), 0);
+            const last7Qty = last7Data.reduce((sum, d) => sum + d.unitQty, 0);
+            const last7Htp = last7Mh > 0 ? last7Qty / last7Mh : 0;
+            
+            const prev7Mh = prev7Data.reduce((sum, d) => sum + parseFloat(d.mh), 0);
+            const prev7Qty = prev7Data.reduce((sum, d) => sum + d.unitQty, 0);
+            const prev7Htp = prev7Mh > 0 ? prev7Qty / prev7Mh : 0;
+            
+            const trendPercent = prev7Htp > 0 ? (((last7Htp - prev7Htp) / prev7Htp) * 100).toFixed(1) : 0;
+            const trendPositive = parseFloat(trendPercent) >= 0;
+            
+            // Calculate rank (based on current ranking view)
+            const currentRankings = ui.rankingList.querySelectorAll('.ranking-item');
+            let rank = '-';
+            currentRankings.forEach((item, index) => {
+                const empName = item.querySelector('.ranking-employee').textContent;
+                if (empName === employeeName.split('(')[0].trim()) {
+                    rank = `#${index + 1}`;
+                }
+            });
+            
+            // Update modal
+            document.getElementById('employee-detail-name').textContent = employeeName.split('(')[0].trim();
+            document.getElementById('employee-detail-subtitle').textContent = processType;
+            document.getElementById('employee-detail-total-days').textContent = totalDays;
+            document.getElementById('employee-detail-avg-htp').textContent = avgHtp.toFixed(1);
+            document.getElementById('employee-detail-max-htp').textContent = maxHtp.toFixed(1);
+            document.getElementById('employee-detail-total-qty').textContent = totalQty.toLocaleString();
+            document.getElementById('employee-detail-target-rate').textContent = targetRate + '%';
+            document.getElementById('employee-detail-rank').textContent = rank;
+            
+            // Update trend indicator
+            const trendEl = document.getElementById('employee-detail-avg-trend');
+            trendEl.className = trendPositive ? 'trend-indicator positive mt-2' : 'trend-indicator negative mt-2';
+            trendEl.innerHTML = `<span>${trendPositive ? '↑' : '↓'}</span><span>${trendPositive ? '+' : ''}${trendPercent}%</span>`;
+            
+            // Update badges
+            const employeeBadge = employeeBadges[employeeName] || { badges: [] };
+            const badgesHtml = employeeBadge.badges.length > 0
+                ? employeeBadge.badges.map(b => `<span class="badge badge-${b.level}">${b.name}</span>`).join(' ')
+                : '<span class="text-gray-400">획득한 뱃지가 없습니다</span>';
+            document.getElementById('employee-detail-badges').innerHTML = badgesHtml;
+            
+            // Daily HTP Chart
+            const dailyData = new Map();
+            employeeHistoryData.forEach(item => {
+                if (!dailyData.has(item.date)) {
+                    dailyData.set(item.date, { totalQty: 0, totalMh: 0 });
+                }
+                const stats = dailyData.get(item.date);
+                stats.totalQty += item.unitQty;
+                stats.totalMh += parseFloat(item.mh);
+            });
+            
+            const sortedDailyDates = [...dailyData.keys()].sort().slice(-30); // Last 30 days
+            const dailyLabels = sortedDailyDates.map(d => d.substring(5)); // MM-DD
+            const dailyHtps = sortedDailyDates.map(date => {
+                const stats = dailyData.get(date);
+                return stats.totalMh > 0 ? (stats.totalQty / stats.totalMh).toFixed(1) : 0;
+            });
+            
+            const dailyCtx = document.getElementById('employee-detail-daily-chart').getContext('2d');
+            if (state.charts.employeeDailyChart) state.charts.employeeDailyChart.destroy();
+            state.charts.employeeDailyChart = new Chart(dailyCtx, {
+                type: 'line',
+                data: {
+                    labels: dailyLabels,
+                    datasets: [{
+                        label: '일별 HTP',
+                        data: dailyHtps,
+                        borderColor: 'rgb(59, 130, 246)',
+                        backgroundColor: 'rgba(59, 130, 246, 0.1)',
+                        fill: true,
+                        tension: 0.3
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    scales: {
+                        y: { beginAtZero: true, ticks: { color: '#d1d5db' } },
+                        x: { ticks: { color: '#d1d5db', maxRotation: 45 } }
+                    },
+                    plugins: {
+                        legend: { display: false },
+                        datalabels: { display: false }
+                    }
+                }
+            });
+            
+            // Daily Qty Chart
+            const dailyQtys = sortedDailyDates.map(date => dailyData.get(date).totalQty);
+            const qtyCtx = document.getElementById('employee-detail-qty-chart').getContext('2d');
+            if (state.charts.employeeQtyChart) state.charts.employeeQtyChart.destroy();
+            state.charts.employeeQtyChart = new Chart(qtyCtx, {
+                type: 'bar',
+                data: {
+                    labels: dailyLabels,
+                    datasets: [{
+                        label: '일별 작업량',
+                        data: dailyQtys,
+                        backgroundColor: 'rgba(245, 158, 11, 0.7)',
+                        borderColor: 'rgba(245, 158, 11, 1)',
+                        borderWidth: 1
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    scales: {
+                        y: { beginAtZero: true, ticks: { color: '#d1d5db' } },
+                        x: { ticks: { color: '#d1d5db', maxRotation: 45 } }
+                    },
+                    plugins: {
+                        legend: { display: false },
+                        datalabels: { display: false }
+                    }
+                }
+            });
+            
+            // Weekly comparison chart
+            const weeklyData = [];
+            for (let i = 0; i < sortedDailyDates.length; i += 7) {
+                const weekDates = sortedDailyDates.slice(i, i + 7);
+                const weekData = employeeHistoryData.filter(d => weekDates.includes(d.date));
+                const weekMh = weekData.reduce((sum, d) => sum + parseFloat(d.mh), 0);
+                const weekQty = weekData.reduce((sum, d) => sum + d.unitQty, 0);
+                const weekHtp = weekMh > 0 ? weekQty / weekMh : 0;
+                weeklyData.push({
+                    label: `${weekDates[0].substring(5)}~${weekDates[weekDates.length - 1].substring(5)}`,
+                    htp: weekHtp.toFixed(1)
+                });
+            }
+            
+            const weeklyCtx = document.getElementById('employee-detail-weekly-chart').getContext('2d');
+            if (state.charts.employeeWeeklyChart) state.charts.employeeWeeklyChart.destroy();
+            state.charts.employeeWeeklyChart = new Chart(weeklyCtx, {
+                type: 'bar',
+                data: {
+                    labels: weeklyData.map(w => w.label),
+                    datasets: [{
+                        label: '주간 평균 HTP',
+                        data: weeklyData.map(w => w.htp),
+                        backgroundColor: 'rgba(139, 92, 246, 0.7)',
+                        borderColor: 'rgba(139, 92, 246, 1)',
+                        borderWidth: 1
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    scales: {
+                        y: { beginAtZero: true, ticks: { color: '#d1d5db' } },
+                        x: { ticks: { color: '#d1d5db', maxRotation: 45 } }
+                    },
+                    plugins: {
+                        legend: { display: false },
+                        datalabels: {
+                            anchor: 'end',
+                            align: 'top',
+                            color: '#FFFFFF',
+                            font: { weight: 'bold' }
+                        }
+                    }
+                }
+            });
+            
+            // Recent 10 days table
+            const recent10 = sortedDailyDates.slice(-10).reverse();
+            const tableHtml = recent10.map(date => {
+                const stats = dailyData.get(date);
+                const htp = stats.totalMh > 0 ? (stats.totalQty / stats.totalMh).toFixed(1) : 0;
+                
+                // Calculate rank for that day
+                const dayFullData = historyData[date];
+                if (dayFullData) {
+                    const allAggregated = aggregateData(dayFullData);
+                    const sameProcess = allAggregated.filter(d => d.processType === processType);
+                    sameProcess.sort((a, b) => parseFloat(b.htp) - parseFloat(a.htp));
+                    const rankIndex = sameProcess.findIndex(d => d.employee === employeeName);
+                    const dayRank = rankIndex >= 0 ? `#${rankIndex + 1}` : '-';
+                    
+                    return `
+                        <tr class="border-b border-gray-700">
+                            <td class="px-4 py-2">${date}</td>
+                            <td class="px-4 py-2">${stats.totalQty.toLocaleString()}</td>
+                            <td class="px-4 py-2">${stats.totalMh.toFixed(2)}</td>
+                            <td class="px-4 py-2 font-bold ${parseFloat(htp) >= targetHtp ? 'text-green-400' : 'text-red-400'}">${htp}</td>
+                            <td class="px-4 py-2">${dayRank}</td>
+                        </tr>
+                    `;
+                }
+                return '';
+            }).join('');
+            
+            document.getElementById('employee-detail-recent-table').innerHTML = tableHtml;
+            
+            // Show modal
+            ui.employeeDetailModalBackdrop.classList.remove('hidden');
+            ui.employeeDetailModalBackdrop.classList.add('flex');
         }
 
         function getFilteredHistoryDates() {
@@ -2145,7 +3770,7 @@
         }
 
         function updateHistoryDailyTrendChart(dates) {
-            const labels = dates.map(d => d.substring(5)); // MM-DD
+            const labels = dates.map(d => d.substring(5));
             const avgHtps = dates.map(date => {
                 const dayData = historyData[date];
                 if (!dayData) return 0;
@@ -2188,7 +3813,7 @@
         }
 
         function updateHistoryDailyQtyChart(dates) {
-            const labels = dates.map(d => d.substring(5)); // MM-DD
+            const labels = dates.map(d => d.substring(5));
             const dailyQtys = dates.map(date => {
                 const dayData = historyData[date];
                 if (!dayData) return 0;
@@ -2226,7 +3851,6 @@
         }
 
         function updateHistoryTopPerformers(allData) {
-            // Calculate average HTP per employee across the period
             const employeeStats = new Map();
             
             allData.forEach(item => {
@@ -2274,11 +3898,12 @@
                 pickList.forEach((item, index) => {
                     const medal = index === 0 ? '🥇' : index === 1 ? '🥈' : index === 2 ? '🥉' : `${index + 1}.`;
                     const div = document.createElement('div');
-                    div.className = 'flex justify-between items-center bg-gray-700 p-3 rounded-md';
+                    div.className = 'flex justify-between items-center bg-gray-700 p-3 rounded-md cursor-pointer hover:bg-gray-600';
                     div.innerHTML = `
                         <span class="font-semibold">${medal} ${item.employee.split('(')[0].trim()}</span>
                         <span class="text-green-400 font-bold">${item.avgHtp.toFixed(1)} HTP</span>
                     `;
+                    div.addEventListener('click', () => showEmployeeDetailModal(item.employee, 'PICK(집품)'));
                     ui.historyTopPickList.appendChild(div);
                 });
             }
@@ -2289,17 +3914,17 @@
                 packList.forEach((item, index) => {
                     const medal = index === 0 ? '🥇' : index === 1 ? '🥈' : index === 2 ? '🥉' : `${index + 1}.`;
                     const div = document.createElement('div');
-                    div.className = 'flex justify-between items-center bg-gray-700 p-3 rounded-md';
+                    div.className = 'flex justify-between items-center bg-gray-700 p-3 rounded-md cursor-pointer hover:bg-gray-600';
                     div.innerHTML = `
                         <span class="font-semibold">${medal} ${item.employee.split('(')[0].trim()}</span>
                         <span class="text-green-400 font-bold">${item.avgHtp.toFixed(1)} HTP</span>
                     `;
+                    div.addEventListener('click', () => showEmployeeDetailModal(item.employee, 'PACK(포장)'));
                     ui.historyTopPackList.appendChild(div);
                 });
             }
         }
 
-        // --- History Export Functions ---
         function exportHistoryToExcel() {
             const filteredDates = getFilteredHistoryDates();
             if (filteredDates.length === 0) {
@@ -2309,7 +3934,6 @@
 
             const wb = XLSX.utils.book_new();
 
-            // Create summary sheet
             const summaryData = [];
             filteredDates.forEach(date => {
                 const dayData = historyData[date];
@@ -2332,7 +3956,6 @@
             const summaryWs = XLSX.utils.json_to_sheet(summaryData);
             XLSX.utils.book_append_sheet(wb, summaryWs, '일별 요약');
 
-            // Create detailed data sheet
             const detailedData = [];
             filteredDates.forEach(date => {
                 const dayData = historyData[date];
@@ -2371,7 +3994,6 @@
                 return;
             }
 
-            // Calculate summary stats
             let allAggregatedData = [];
             filteredDates.forEach(date => {
                 const dayData = historyData[date];
@@ -2390,15 +4012,12 @@
             const { jsPDF } = window.jspdf;
             const doc = new jsPDF();
 
-            // Title
             doc.setFontSize(20);
             doc.text('GWJ2 OB HTP 히스토리 리포트', 105, 20, { align: 'center' });
 
-            // Period
             doc.setFontSize(12);
             doc.text(`기간: ${filteredDates[0]} ~ ${filteredDates[filteredDates.length - 1]}`, 105, 30, { align: 'center' });
 
-            // Summary Stats
             doc.setFontSize(14);
             doc.text('요약 통계', 20, 45);
             doc.setFontSize(11);
@@ -2407,7 +4026,6 @@
             doc.text(`평균 HTP: ${avgHtp.toFixed(1)}`, 20, 75);
             doc.text(`최고 HTP: ${maxHtp.toFixed(1)}`, 20, 85);
 
-            // Top Performers
             doc.setFontSize(14);
             doc.text('기간 내 Top 5 작업자', 20, 100);
 
@@ -2449,10 +4067,9 @@
                 yPos += 8;
             });
 
-            // Footer
             doc.setFontSize(9);
             doc.text(`생성일: ${new Date().toLocaleString('ko-KR')}`, 105, 280, { align: 'center' });
-            doc.text('GWJ2 OB PICK & PACK HTP TOOL v3.0', 105, 287, { align: 'center' });
+            doc.text('GWJ2 OB PICK & PACK HTP TOOL v3.5', 105, 287, { align: 'center' });
 
             const filename = `HTP_Report_${filteredDates[0]}_to_${filteredDates[filteredDates.length - 1]}.pdf`;
             doc.save(filename);
@@ -2461,10 +4078,290 @@
                 showModal('PDF 리포트가 다운로드되었습니다!');
             }, 2000);
         }
+		
+		// --- 🆕 Enhanced History View with Employee Search ---
+        
+        let historyEmployeeData = []; // 전체 사원 데이터
+        let currentHistoryPage = 1;
+        const EMPLOYEES_PER_PAGE = 20;
 
-        // Initialize on page load
-        initializeFiltersFromData([]);
+        function renderHistoryView() {
+            if (Object.keys(historyData).length === 0) {
+                showModal('히스토리 데이터가 없습니다.');
+                return;
+            }
 
+            const filteredDates = getFilteredHistoryDates();
+            if (filteredDates.length === 0) {
+                ui.historyKpi.days.textContent = '0';
+                ui.historyKpi.totalQty.textContent = '0';
+                ui.historyKpi.avgHtp.textContent = '0.0';
+                ui.historyKpi.maxHtp.textContent = '0.0';
+                return;
+            }
+
+            let allAggregatedData = [];
+            filteredDates.forEach(date => {
+                const dayData = historyData[date];
+                if (dayData) {
+                    const aggregated = aggregateData(dayData);
+                    allAggregatedData = allAggregatedData.concat(aggregated.map(item => ({ ...item, date })));
+                }
+            });
+
+            const totalDays = filteredDates.length;
+            const totalQty = allAggregatedData.reduce((sum, d) => sum + d.unitQty, 0);
+            const totalMh = allAggregatedData.reduce((sum, d) => sum + parseFloat(d.mh), 0);
+            const avgHtp = totalMh > 0 ? (totalQty / totalMh) : 0;
+            const maxHtp = Math.max(...allAggregatedData.map(d => parseFloat(d.htp)), 0);
+
+            ui.historyKpi.days.textContent = totalDays.toLocaleString();
+            ui.historyKpi.totalQty.textContent = totalQty.toLocaleString();
+            ui.historyKpi.avgHtp.textContent = avgHtp.toFixed(1);
+            ui.historyKpi.maxHtp.textContent = maxHtp.toFixed(1);
+
+            // 🆕 Calculate employee analysis data
+            calculateEmployeeHistoryData(allAggregatedData);
+            
+            updateHistoryTopPerformers(allAggregatedData);
+        }
+
+        function calculateEmployeeHistoryData(allData) {
+            const employeeMap = new Map();
+
+            allData.forEach(item => {
+                if (!employeeMap.has(item.employee)) {
+                    employeeMap.set(item.employee, {
+                        employee: item.employee,
+                        totalDays: new Set(),
+                        pickData: { totalQty: 0, totalMh: 0, ppPerformance: new Map() },
+                        packData: { totalQty: 0, totalMh: 0, packTypePerformance: new Map() }
+                    });
+                }
+
+                const empData = employeeMap.get(item.employee);
+                empData.totalDays.add(item.date);
+
+                if (item.processType.includes('PICK')) {
+                    empData.pickData.totalQty += item.unitQty;
+                    empData.pickData.totalMh += parseFloat(item.mh);
+                    
+                    const pp = item.processPathName || '기타';
+                    if (!empData.pickData.ppPerformance.has(pp)) {
+                        empData.pickData.ppPerformance.set(pp, { totalQty: 0, totalMh: 0 });
+                    }
+                    const ppStats = empData.pickData.ppPerformance.get(pp);
+                    ppStats.totalQty += item.unitQty;
+                    ppStats.totalMh += parseFloat(item.mh);
+                } else {
+                    empData.packData.totalQty += item.unitQty;
+                    empData.packData.totalMh += parseFloat(item.mh);
+                    
+                    const packType = item.packType || '기타';
+                    if (!empData.packData.packTypePerformance.has(packType)) {
+                        empData.packData.packTypePerformance.set(packType, { totalQty: 0, totalMh: 0 });
+                    }
+                    const packStats = empData.packData.packTypePerformance.get(packType);
+                    packStats.totalQty += item.unitQty;
+                    packStats.totalMh += parseFloat(item.mh);
+                }
+            });
+
+            // Convert to array and calculate final stats
+            historyEmployeeData = Array.from(employeeMap.values()).map(emp => {
+                const pickHtp = emp.pickData.totalMh > 0 ? (emp.pickData.totalQty / emp.pickData.totalMh) : 0;
+                const packHtp = emp.packData.totalMh > 0 ? (emp.packData.totalQty / emp.packData.totalMh) : 0;
+                const totalQty = emp.pickData.totalQty + emp.packData.totalQty;
+                const totalMh = emp.pickData.totalMh + emp.packData.totalMh;
+                const avgHtp = totalMh > 0 ? (totalQty / totalMh) : 0;
+
+                // Find best PP for PICK
+                let bestPP = null, bestPPHtp = 0;
+                emp.pickData.ppPerformance.forEach((stats, pp) => {
+                    const htp = stats.totalMh > 0 ? (stats.totalQty / stats.totalMh) : 0;
+                    if (htp > bestPPHtp) {
+                        bestPPHtp = htp;
+                        bestPP = pp;
+                    }
+                });
+
+                // Find best Pack Type for PACK
+                let bestPackType = null, bestPackTypeHtp = 0;
+                emp.packData.packTypePerformance.forEach((stats, packType) => {
+                    const htp = stats.totalMh > 0 ? (stats.totalQty / stats.totalMh) : 0;
+                    if (htp > bestPackTypeHtp) {
+                        bestPackTypeHtp = htp;
+                        bestPackType = packType;
+                    }
+                });
+
+                return {
+                    employee: emp.employee,
+                    totalDays: emp.totalDays.size,
+                    totalQty: totalQty,
+                    avgHtp: avgHtp,
+                    pickHtp: pickHtp,
+                    packHtp: packHtp,
+                    bestProcess: pickHtp > packHtp ? 'PICK' : (packHtp > 0 ? 'PACK' : 'PICK'),
+                    bestProcessHtp: Math.max(pickHtp, packHtp),
+                    bestPP: bestPP,
+                    bestPPHtp: bestPPHtp,
+                    bestPackType: bestPackType,
+                    bestPackTypeHtp: bestPackTypeHtp
+                };
+            });
+
+            // Sort by avgHtp
+            historyEmployeeData.sort((a, b) => b.avgHtp - a.avgHtp);
+        }
+
+        function renderEmployeeAnalysisCards(employees) {
+            const resultsContainer = document.getElementById('history-employee-results');
+            resultsContainer.innerHTML = '';
+
+            if (employees.length === 0) {
+                resultsContainer.innerHTML = '<div class="text-center py-10 text-gray-400">검색 결과가 없습니다</div>';
+                return;
+            }
+
+            employees.forEach((emp, index) => {
+                const card = document.createElement('div');
+                card.className = 'employee-analysis-card';
+                
+                const rank = historyEmployeeData.findIndex(e => e.employee === emp.employee) + 1;
+                const rankBadge = rank <= 3 ? (rank === 1 ? '🥇' : rank === 2 ? '🥈' : '🥉') : `#${rank}`;
+
+                card.innerHTML = `
+                    <div class="employee-name-header">
+                        <span>${emp.employee.split('(')[0].trim()}</span>
+                        <span style="font-size: 1.5rem;">${rankBadge}</span>
+                    </div>
+                    
+                    <div class="employee-stats-grid">
+                        <div class="employee-stat-item">
+                            <div class="employee-stat-label">평균 HTP</div>
+                            <div class="employee-stat-value" style="color: ${emp.avgHtp >= 90 ? '#4ade80' : '#f87171'};">
+                                ${emp.avgHtp.toFixed(1)}
+                            </div>
+                        </div>
+                        <div class="employee-stat-item">
+                            <div class="employee-stat-label">총 근무일수</div>
+                            <div class="employee-stat-value">${emp.totalDays}일</div>
+                        </div>
+                        <div class="employee-stat-item">
+                            <div class="employee-stat-label">누적 작업량</div>
+                            <div class="employee-stat-value">${emp.totalQty.toLocaleString()}</div>
+                        </div>
+                        <div class="employee-stat-item">
+                            <div class="employee-stat-label">최적 공정</div>
+                            <div class="employee-stat-value">
+                                <span class="performance-badge ${emp.bestProcess.toLowerCase()}">
+                                    ${emp.bestProcess} ${emp.bestProcessHtp.toFixed(1)}
+                                </span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="best-performance-section">
+                        <div class="best-performance-title">
+                            ⭐ 최고 효율 작업 위치
+                        </div>
+                        <div class="best-performance-detail">
+                            ${emp.bestProcess === 'PICK' && emp.bestPP ? 
+                                `<strong>PICK (집품)</strong><br/>
+                                 🔹 최고 효율 PP: <strong>${emp.bestPP}</strong><br/>
+                                 🔹 HTP: <strong style="color: #4ade80;">${emp.bestPPHtp.toFixed(1)}</strong>` :
+                                emp.bestProcess === 'PACK' && emp.bestPackType ?
+                                `<strong>PACK (포장)</strong><br/>
+                                 🔹 최고 효율 팩 종류: <strong>${emp.bestPackType}</strong><br/>
+                                 🔹 HTP: <strong style="color: #fbbf24;">${emp.bestPackTypeHtp.toFixed(1)}</strong>` :
+                                '데이터 수집 중...'}
+                        </div>
+                        ${emp.pickHtp > 0 && emp.packHtp > 0 ? `
+                            <div class="mt-2 pt-2 border-t border-gray-600">
+                                <div style="font-size: 0.75rem; color: var(--text-tertiary);">
+                                    PICK HTP: <strong>${emp.pickHtp.toFixed(1)}</strong> | 
+                                    PACK HTP: <strong>${emp.packHtp.toFixed(1)}</strong>
+                                </div>
+                            </div>
+                        ` : ''}
+                    </div>
+                `;
+
+                // Click to show detailed modal
+                card.addEventListener('click', () => {
+                    const processType = emp.bestProcess === 'PICK' ? 'PICK(집품)' : 'PACK(포장)';
+                    showEmployeeDetailModal(emp.employee, processType);
+                });
+
+                resultsContainer.appendChild(card);
+            });
+        }
+
+        // Employee Search Functionality
+        const historyEmployeeSearch = document.getElementById('history-employee-search');
+        const historyShowAllBtn = document.getElementById('history-show-all-btn');
+        const historyPrevPageBtn = document.getElementById('history-prev-page');
+        const historyNextPageBtn = document.getElementById('history-next-page');
+        const historyPagination = document.getElementById('history-pagination');
+
+        historyEmployeeSearch.addEventListener('input', (e) => {
+            const searchTerm = e.target.value.toLowerCase().trim();
+            
+            if (searchTerm === '') {
+                document.getElementById('history-employee-results').innerHTML = 
+                    '<div class="text-center py-10 text-gray-400">사원을 검색하거나 "전체 보기"를 클릭하세요</div>';
+                historyPagination.classList.add('hidden');
+                return;
+            }
+
+            const filtered = historyEmployeeData.filter(emp => 
+                emp.employee.toLowerCase().includes(searchTerm)
+            );
+
+            renderEmployeeAnalysisCards(filtered);
+            historyPagination.classList.add('hidden');
+        });
+
+        historyShowAllBtn.addEventListener('click', () => {
+            currentHistoryPage = 1;
+            renderEmployeeListPage();
+        });
+
+        historyPrevPageBtn.addEventListener('click', () => {
+            if (currentHistoryPage > 1) {
+                currentHistoryPage--;
+                renderEmployeeListPage();
+            }
+        });
+
+        historyNextPageBtn.addEventListener('click', () => {
+            const totalPages = Math.ceil(historyEmployeeData.length / EMPLOYEES_PER_PAGE);
+            if (currentHistoryPage < totalPages) {
+                currentHistoryPage++;
+                renderEmployeeListPage();
+            }
+        });
+
+        function renderEmployeeListPage() {
+            const totalPages = Math.ceil(historyEmployeeData.length / EMPLOYEES_PER_PAGE);
+            const startIndex = (currentHistoryPage - 1) * EMPLOYEES_PER_PAGE;
+            const endIndex = startIndex + EMPLOYEES_PER_PAGE;
+            const pageEmployees = historyEmployeeData.slice(startIndex, endIndex);
+
+            renderEmployeeAnalysisCards(pageEmployees);
+
+            document.getElementById('history-page-info').textContent = `${currentHistoryPage} / ${totalPages}`;
+            historyPrevPageBtn.disabled = currentHistoryPage === 1;
+            historyNextPageBtn.disabled = currentHistoryPage === totalPages;
+            historyPagination.classList.remove('hidden');
+
+            // Clear search
+            historyEmployeeSearch.value = '';
+        }
+
+        // 🎉 Complete - Initialize
+        console.log("🚀 GWJ2 HTP TOOL v3.0 초기화 완료 - 모든 기능 로드됨");
     </script>
 </body>
 </html>
