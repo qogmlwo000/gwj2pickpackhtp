@@ -4,7 +4,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>GWJ2 PICK & PACK HTP TOOL_Bennett (v2.6)</title>
+    <title>GWJ2 PICK & PACK HTP TOOL_Bennett (v3.0)</title>
     
     <!-- Favicon -->
     <link rel="icon" href="https://raw.githubusercontent.com/qogmlwo000/gwj2pickpackhtp/main/Bennett.ico" type="image/x-icon">
@@ -21,10 +21,10 @@
     <script src="https://cdnjs.cloudflare.com/ajax/libs/pako/2.1.0/pako.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/chartjs-plugin-datalabels@2.2.0/dist/chartjs-plugin-datalabels.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
     <style>
-	
-		:root {
+        :root {
             --transition-speed: 0s;
         }
         
@@ -80,16 +80,16 @@
                         border-color var(--transition-speed) ease;
         }
 
-        /* Forms - 체크박스 스타일 (별도로 작성) */
+        /* Forms - 체크박스 스타일 */
         .form-checkbox {
             -webkit-appearance: none;
             -moz-appearance: none;
             appearance: none;
             width: 1.1rem;
             height: 1.1rem;
-            border: 2px solid #94a3b8; /* 기본 회색 테두리 */
+            border: 2px solid #94a3b8;
             border-radius: 4px;
-            background-color: #f1f5f9; /* 라이트 배경 */
+            background-color: #f1f5f9;
             transition: all 0.2s ease;
             cursor: pointer;
             position: relative;
@@ -97,10 +97,9 @@
             flex-shrink: 0;
         }
         
-        /* 다크모드에서 명확하게 보이도록 */
         [data-theme="dark"] .form-checkbox {
-            background-color: #0f172a; /* 더 어두운 배경 */
-            border: 2px solid #60a5fa; /* 밝은 파란색 테두리 */
+            background-color: #0f172a;
+            border: 2px solid #60a5fa;
         }
         
         .form-checkbox:hover {
@@ -141,8 +140,8 @@
         ::-webkit-scrollbar-track { background: var(--bg-tertiary); border-radius: 5px; }
         ::-webkit-scrollbar-thumb { background: var(--text-tertiary); border-radius: 5px; border: 2px solid var(--bg-tertiary); }
         ::-webkit-scrollbar-thumb:hover { background: var(--text-secondary); }
-		
-		/* Layout */
+        
+        /* Layout */
         .app-container { display: flex; height: 100vh; background-color: var(--bg-primary); }
         
         #sidebar {
@@ -213,8 +212,8 @@
         .view-tab { background-color: var(--bg-tertiary); color: var(--text-secondary); border: 2px solid var(--border-color); transition: all 0.2s ease; font-weight: 600; }
         .view-tab:hover { background-color: var(--bg-hover); color: var(--text-primary); }
         .view-tab.active { background: linear-gradient(135deg, var(--accent-primary) 0%, var(--accent-secondary) 100%); color: white; border-color: var(--accent-primary); box-shadow: 0 4px 12px rgba(59, 130, 246, 0.3); }
-
-        /* Title & Ticker */
+		
+		/* Title & Ticker */
         #main-title { animation: color-cycle 10s infinite linear; font-weight: 800; letter-spacing: -0.5px; }
         @keyframes color-cycle { 0% { color: #ef4444; } 14% { color: #f59e0b; } 28% { color: #eab308; } 42% { color: #10b981; } 57% { color: #3b82f6; } 71% { color: #6366f1; } 85% { color: #a855f7; } 100% { color: #ef4444; } }
         #ticker-container { overflow: hidden; white-space: nowrap; position: relative; background: linear-gradient(90deg, var(--bg-secondary) 0%, var(--bg-tertiary) 50%, var(--bg-secondary) 100%); border-radius: 8px; border: 1px solid var(--border-color); box-shadow: var(--shadow-sm); }
@@ -237,13 +236,8 @@
         .hidden-col { display: none; }
 
         /* Forms */
-        .form-checkbox { -webkit-appearance: none; -moz-appearance: none; appearance: none; width: 1.1rem; height: 1.1rem; border: 2px solid var(--border-color); border-radius: 4px; background-color: var(--bg-tertiary); transition: all 0.2s ease; cursor: pointer; position: relative; vertical-align: middle; flex-shrink: 0; }
-        .form-checkbox:hover { border-color: var(--accent-primary); transform: scale(1.05); }
-        .form-checkbox:checked { background: linear-gradient(135deg, var(--accent-primary) 0%, var(--accent-secondary) 100%); border-color: var(--accent-primary); }
-        .form-checkbox:checked::after { content: '✔'; font-size: 0.8rem; font-weight: bold; color: white; position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); line-height: 1; }
-        .form-checkbox:focus { outline: none; box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.2); }
-        input[type="text"], input[type="number"] { background-color: var(--bg-tertiary); border: 2px solid var(--border-color); color: var(--text-primary); transition: all 0.2s ease; }
-        input[type="text"]:focus, input[type="number"]:focus { outline: none; border-color: var(--accent-primary); box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1); background-color: var(--bg-secondary); }
+        input[type="text"], input[type="number"], input[type="date"] { background-color: var(--bg-tertiary); border: 2px solid var(--border-color); color: var(--text-primary); transition: all 0.2s ease; }
+        input[type="text"]:focus, input[type="number"]:focus, input[type="date"]:focus { outline: none; border-color: var(--accent-primary); box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1); background-color: var(--bg-secondary); }
         input[type="text"]::placeholder { color: var(--text-tertiary); }
 
         /* Dashboard */
@@ -253,8 +247,8 @@
         .kpi-card p { color: var(--text-primary); font-size: 2rem; font-weight: 800; margin-top: 0.5rem; }
 
         /* Modals */
-        #chart-modal-backdrop { background-color: rgba(0, 0, 0, 0.75); backdrop-filter: blur(4px); }
-        #chart-modal-content { max-height: 80vh; background-color: var(--bg-secondary); border: 1px solid var(--border-color); box-shadow: var(--shadow-lg); }
+        #chart-modal-backdrop, #history-modal-backdrop { background-color: rgba(0, 0, 0, 0.75); backdrop-filter: blur(4px); }
+        #chart-modal-content, #history-modal-content { max-height: 80vh; background-color: var(--bg-secondary); border: 1px solid var(--border-color); box-shadow: var(--shadow-lg); }
         #sidebar-overlay { background-color: rgba(0, 0, 0, 0.5); backdrop-filter: blur(2px); }
 
         /* Text Colors */
@@ -268,15 +262,13 @@
         .text-yellow-300 { color: #fcd34d !important; }
         .text-lime-400 { color: #a3e635 !important; }
         
-        /* 라이트모드에서는 더 진한 녹색 */
         [data-theme="light"] .text-lime-400 {
             color: #16a34a !important;
             font-weight: 600;
         }
-		
-		/* 라이트모드에서는 더 진한 노란색/주황색 */
+        
         [data-theme="light"] .text-yellow-300 {
-            color: #d97706 !important; /* amber-600 - 더 진한 주황색 */
+            color: #d97706 !important;
         }
 
         /* Utility */
@@ -288,6 +280,33 @@
         .rounded-md { border-radius: 8px !important; }
         @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
         .card { animation: fadeIn 0.3s ease-out; }
+
+        /* Badge Styles */
+        .badge {
+            display: inline-block;
+            padding: 4px 8px;
+            border-radius: 6px;
+            font-size: 0.75rem;
+            font-weight: 700;
+            margin-left: 8px;
+            animation: badge-pulse 2s infinite;
+        }
+        .badge-gold { background: linear-gradient(135deg, #fbbf24 0%, #f59e0b 100%); color: #78350f; box-shadow: 0 0 10px rgba(251, 191, 36, 0.5); }
+        .badge-silver { background: linear-gradient(135deg, #e5e7eb 0%, #9ca3af 100%); color: #374151; }
+        .badge-bronze { background: linear-gradient(135deg, #fb923c 0%, #f97316 100%); color: #7c2d12; }
+        .badge-streak { background: linear-gradient(135deg, #ef4444 0%, #dc2626 100%); color: white; }
+        .badge-record { background: linear-gradient(135deg, #8b5cf6 0%, #7c3aed 100%); color: white; }
+        @keyframes badge-pulse { 0%, 100% { opacity: 1; } 50% { opacity: 0.8; } }
+
+        /* History View Styles */
+        .period-selector { display: flex; gap: 8px; margin-bottom: 16px; flex-wrap: wrap; }
+        .period-btn { padding: 8px 16px; border-radius: 8px; font-weight: 600; font-size: 0.875rem; cursor: pointer; }
+        .period-btn.active { background: linear-gradient(135deg, var(--accent-primary) 0%, var(--accent-secondary) 100%); color: white; }
+        
+        .history-chart-container { background-color: var(--bg-secondary); border-radius: 12px; padding: 20px; border: 1px solid var(--border-color); box-shadow: var(--shadow-md); margin-bottom: 20px; }
+        
+        .date-range-picker { display: flex; gap: 12px; align-items: center; margin-bottom: 16px; flex-wrap: wrap; }
+        .date-range-picker input { padding: 8px 12px; border-radius: 8px; font-size: 0.875rem; }
     </style>
 </head>
 
@@ -360,7 +379,7 @@
                         <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16"></path></svg>
                     </button>
                     <div>
-                        <h1 id="main-title" class="text-2xl font-extrabold">🚀 GWJ2 OB PICK & PACK HTP TOOL</h1>
+                        <h1 id="main-title" class="text-2xl font-extrabold">🚀 GWJ2 OB PICK & PACK HTP TOOL v3.0</h1>
                         <p class="text-gray-400 text-sm">한 명이 엑셀을 올리면 모두에게 실시간으로 반영됩니다.</p>
                     </div>
                 </div>
@@ -372,7 +391,7 @@
         </div>
 
         <div class="p-4 space-y-4 flex flex-col flex-shrink-0">
-            <!-- Controls -->
+		<!-- Controls -->
             <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
                 <div class="bg-gray-800 p-3 rounded-lg flex items-center space-x-2">
                     <button id="filter-all" class="filter-btn flex-1 py-2 px-3 text-sm font-semibold rounded-md active">전체</button>
@@ -419,15 +438,16 @@
             </div>
         </div>
 
-        <!-- View Switcher -->
+        <!-- View Switcher (3개 메뉴) -->
         <div class="px-4 pt-2">
             <div class="bg-gray-800 p-1 rounded-lg flex space-x-1">
-                <button id="table-view-btn" class="view-tab flex-1 py-2 px-3 text-sm font-semibold rounded-md active">데이터 보기</button>
-                <button id="dashboard-view-btn" class="view-tab flex-1 py-2 px-3 text-sm font-semibold rounded-md">대시보드</button>
+                <button id="table-view-btn" class="view-tab flex-1 py-2 px-3 text-sm font-semibold rounded-md active">📋 데이터 보기</button>
+                <button id="dashboard-view-btn" class="view-tab flex-1 py-2 px-3 text-sm font-semibold rounded-md">📊 대시보드</button>
+                <button id="history-view-btn" class="view-tab flex-1 py-2 px-3 text-sm font-semibold rounded-md">📈 전체 히스토리</button>
             </div>
         </div>
-		
-		<!-- Table View -->
+        
+        <!-- Table View -->
         <div id="table-view" class="flex flex-col flex-grow min-h-0">
             <div id="loader-container" class="flex-1 flex justify-center items-center hidden"><div class="loader"></div></div>
             <div class="table-container px-4 pb-4">
@@ -505,12 +525,89 @@
                 </div>
             </div>
         </div>
+
+        <!-- History View (NEW) -->
+        <div id="history-view" class="hidden flex-col flex-grow min-h-0 p-4 space-y-4 overflow-y-auto">
+            <!-- Period Selector -->
+            <div class="bg-gray-800 p-4 rounded-lg">
+                <h3 class="text-lg font-semibold mb-3 text-white">📅 기간 선택</h3>
+                <div class="period-selector">
+                    <button id="period-week" class="period-btn filter-btn active">최근 7일</button>
+                    <button id="period-month" class="period-btn filter-btn">최근 30일</button>
+                    <button id="period-all" class="period-btn filter-btn">전체 기간</button>
+                    <button id="period-custom" class="period-btn filter-btn">사용자 지정</button>
+                </div>
+                <div id="custom-date-range" class="date-range-picker hidden mt-3">
+                    <input type="date" id="start-date" class="rounded-md py-2 px-3">
+                    <span class="text-gray-400">~</span>
+                    <input type="date" id="end-date" class="rounded-md py-2 px-3">
+                    <button id="apply-custom-range" class="py-2 px-4 bg-blue-600 text-white rounded-md">적용</button>
+                </div>
+            </div>
+
+            <!-- History KPI Cards -->
+            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+                <div class="kpi-card p-4 rounded-lg shadow">
+                    <h4 class="text-gray-400 text-sm font-medium">총 작업 일수</h4>
+                    <p id="history-kpi-days" class="text-3xl font-bold text-white">0</p>
+                </div>
+                <div class="kpi-card p-4 rounded-lg shadow">
+                    <h4 class="text-gray-400 text-sm font-medium">누적 작업량</h4>
+                    <p id="history-kpi-total-qty" class="text-3xl font-bold text-white">0</p>
+                </div>
+                <div class="kpi-card p-4 rounded-lg shadow">
+                    <h4 class="text-gray-400 text-sm font-medium">평균 HTP</h4>
+                    <p id="history-kpi-avg-htp" class="text-3xl font-bold text-white">0.0</p>
+                </div>
+                <div class="kpi-card p-4 rounded-lg shadow border-l-purple-500">
+                    <h4 class="text-gray-400 text-sm font-medium">최고 HTP</h4>
+                    <p id="history-kpi-max-htp" class="text-3xl font-bold text-purple-400">0.0</p>
+                </div>
+            </div>
+
+            <!-- History Charts -->
+            <div class="grid grid-cols-1 lg:grid-cols-2 gap-4">
+                <div class="history-chart-container">
+                    <h3 class="text-lg font-semibold mb-3 text-white">📈 일별 평균 HTP 추이</h3>
+                    <div class="relative h-80"><canvas id="history-daily-trend-chart"></canvas></div>
+                </div>
+                <div class="history-chart-container">
+                    <h3 class="text-lg font-semibold mb-3 text-white">📊 일별 작업량 추이</h3>
+                    <div class="relative h-80"><canvas id="history-daily-qty-chart"></canvas></div>
+                </div>
+            </div>
+
+            <!-- Top Performers History -->
+            <div class="bg-gray-800 p-4 rounded-lg">
+                <h3 class="text-lg font-semibold mb-3 text-white">🏆 기간별 Top 10 작업자</h3>
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div>
+                        <h4 class="text-md font-semibold mb-2 text-blue-400">PICK (집품)</h4>
+                        <div id="history-top-pick-list" class="space-y-2"></div>
+                    </div>
+                    <div>
+                        <h4 class="text-md font-semibold mb-2 text-yellow-400">PACK (포장)</h4>
+                        <div id="history-top-pack-list" class="space-y-2"></div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Export History Button -->
+            <div class="flex justify-end gap-3">
+                <button id="export-history-excel" class="py-3 px-6 bg-green-600 text-white rounded-lg font-semibold hover:bg-green-700">
+                    📊 히스토리 엑셀 다운로드
+                </button>
+                <button id="export-history-pdf" class="py-3 px-6 bg-red-600 text-white rounded-lg font-semibold hover:bg-red-700">
+                    📄 PDF 리포트 생성
+                </button>
+            </div>
+        </div>
     </main>
 </div>
 
-<!-- Chart Modal -->
+<!-- Chart Modal (Individual Trend) -->
 <div id="chart-modal-backdrop" class="fixed inset-0 z-50 hidden items-center justify-center p-4">
-    <div id="chart-modal-content" class="bg-gray-800 rounded-lg shadow-xl w-full max-w-4xl p-6 relative flex flex-col">
+    <div id="chart-modal-content" class="bg-gray-800 rounded-lg shadow-xl w-full max-w-4xl p-6 relative flex flex-col overflow-y-auto">
         <h3 id="chart-modal-title" class="text-xl font-bold text-white mb-4">개인 HTP 추이</h3>
         <div class="flex-grow min-h-0"><canvas id="individual-htp-chart"></canvas></div>
         <button id="chart-modal-close" class="absolute top-3 right-3 text-gray-400 hover:text-white">
@@ -519,10 +616,13 @@
     </div>
 </div>
 
+</body>
+</html>
+
 <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
         import { getAuth, signInAnonymously, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
-        import { getFirestore, doc, setDoc, onSnapshot, Bytes } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
+        import { getFirestore, doc, setDoc, onSnapshot, Bytes, collection, query, orderBy, limit, getDocs, where } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
 
         // --- Theme Management ---
         function initTheme() {
@@ -578,8 +678,10 @@
             tickerText: document.getElementById('ticker-text'),
             tableViewBtn: document.getElementById('table-view-btn'),
             dashboardViewBtn: document.getElementById('dashboard-view-btn'),
+            historyViewBtn: document.getElementById('history-view-btn'),
             tableView: document.getElementById('table-view'),
             dashboardView: document.getElementById('dashboard-view'),
+            historyView: document.getElementById('history-view'),
             chartModalBackdrop: document.getElementById('chart-modal-backdrop'),
             chartModalTitle: document.getElementById('chart-modal-title'),
             chartModalClose: document.getElementById('chart-modal-close'),
@@ -591,19 +693,46 @@
             },
             topPickPerformersList: document.getElementById('top-pick-performers-list'),
             topPackPerformersList: document.getElementById('top-pack-performers-list'),
+            // History View Elements
+            periodWeekBtn: document.getElementById('period-week'),
+            periodMonthBtn: document.getElementById('period-month'),
+            periodAllBtn: document.getElementById('period-all'),
+            periodCustomBtn: document.getElementById('period-custom'),
+            customDateRange: document.getElementById('custom-date-range'),
+            startDate: document.getElementById('start-date'),
+            endDate: document.getElementById('end-date'),
+            applyCustomRange: document.getElementById('apply-custom-range'),
+            historyKpi: {
+                days: document.getElementById('history-kpi-days'),
+                totalQty: document.getElementById('history-kpi-total-qty'),
+                avgHtp: document.getElementById('history-kpi-avg-htp'),
+                maxHtp: document.getElementById('history-kpi-max-htp'),
+            },
+            historyTopPickList: document.getElementById('history-top-pick-list'),
+            historyTopPackList: document.getElementById('history-top-pack-list'),
+            exportHistoryExcel: document.getElementById('export-history-excel'),
+            exportHistoryPdf: document.getElementById('export-history-pdf'),
         };
 
         // --- Global State ---
         let globalRawData = []; 
+        let historyData = {}; // { 'YYYY-MM-DD': rawDataArray }
         let state = {
             filters: {
                 process: 'all', search: '', lowHtp: false,
                 hours: new Set(), floors: new Set(), packTypes: new Set()
             },
             sort: { key: 'htp', direction: 'asc' },
-            charts: { floorHtp: null, packType: null, individualHtp: null, processComparison: null, hourlyHtp: null }
+            charts: { 
+                floorHtp: null, packType: null, individualHtp: null, 
+                processComparison: null, hourlyHtp: null,
+                historyDailyTrend: null, historyDailyQty: null
+            },
+            historyPeriod: 'week', // 'week', 'month', 'all', 'custom'
+            historyDateRange: { start: null, end: null }
         };
         let targetHtpValues = {};
+        let employeeBadges = {}; // { employeeId: { badges: [], streaks: {}, records: {} } }
 
         // --- Constants ---
         const PACK_TYPE_MAP = {
@@ -646,23 +775,25 @@
             appId: "1:913661158847:web:ebaf60d2afbeadda452d0a",
             measurementId: "G-77DRPC5F58"
         };
-        let db, auth, userId, dataDocRef;
+        let db, auth, userId, dataDocRef, historyCollectionRef;
         try {
             const app = initializeApp(firebaseConfig);
             db = getFirestore(app);
             auth = getAuth(app);
             dataDocRef = doc(db, 'artifacts', firebaseConfig.projectId, 'public', 'data', 'htpData', 'latestCompressed');
+            historyCollectionRef = collection(db, 'artifacts', firebaseConfig.projectId, 'public', 'data', 'htpHistory');
         } catch(e) {
             console.error("Firebase 초기화 오류:", e);
             updateStatus('disconnected', 'Firebase 초기화에 실패했습니다.');
         }
-		
-		onAuthStateChanged(auth, async (user) => {
+        
+        onAuthStateChanged(auth, async (user) => {
             if (user) {
                 userId = user.uid;
                 updateStatus('connected', '실시간 서버에 연결되었습니다.');
                 ui.fileUpload.disabled = false;
                 setupRealtimeListener();
+                loadHistoryData(); // Load history on auth
             } else {
                 try { await signInAnonymously(auth); } catch (error) {
                     console.error("익명 로그인 오류:", error);
@@ -710,6 +841,139 @@
             });
         }
 
+        // --- History Data Management ---
+        async function loadHistoryData() {
+            try {
+                // Load last 90 days of history
+                const ninetyDaysAgo = new Date();
+                ninetyDaysAgo.setDate(ninetyDaysAgo.getDate() - 90);
+                
+                const q = query(
+                    historyCollectionRef,
+                    where('date', '>=', ninetyDaysAgo.toISOString().split('T')[0]),
+                    orderBy('date', 'desc')
+                );
+                
+                const querySnapshot = await getDocs(q);
+                historyData = {};
+                
+                querySnapshot.forEach((doc) => {
+                    const data = doc.data();
+                    try {
+                        const compressedBytes = data.compressedData;
+                        if (!compressedBytes) return;
+                        const compressedUint8Array = compressedBytes.toUint8Array();
+                        const decompressedString = pako.ungzip(compressedUint8Array, { to: 'string' });
+                        const parsedData = JSON.parse(decompressedString);
+                        historyData[data.date] = parsedData.map(item => ({
+                            ...item,
+                            htpStart: new Date(item.htpStart),
+                            htpEnd: new Date(item.htpEnd),
+                        }));
+                    } catch (error) {
+                        console.error(`히스토리 데이터 파싱 오류 (${data.date}):`, error);
+                    }
+                });
+                
+                console.log(`${Object.keys(historyData).length}일의 히스토리 데이터를 로드했습니다.`);
+                calculateEmployeeBadges();
+                
+            } catch (error) {
+                console.error("히스토리 데이터 로드 오류:", error);
+            }
+        }
+
+        // --- Gamification: Badge Calculation ---
+        function calculateEmployeeBadges() {
+            employeeBadges = {};
+            
+            const sortedDates = Object.keys(historyData).sort();
+            
+            // Calculate for each employee
+            const allEmployees = new Set();
+            Object.values(historyData).forEach(dayData => {
+                dayData.forEach(item => allEmployees.add(item.employee));
+            });
+            
+            allEmployees.forEach(employeeName => {
+                const badges = [];
+                const streaks = { targetMet: 0, topPerformer: 0 };
+                const records = { maxHtp: 0, maxQty: 0, totalDays: 0 };
+                
+                let consecutiveTargetDays = 0;
+                let consecutiveTopDays = 0;
+                
+                sortedDates.forEach(date => {
+                    const dayData = historyData[date];
+                    const employeeData = dayData.filter(d => d.employee === employeeName);
+                    
+                    if (employeeData.length === 0) {
+                        consecutiveTargetDays = 0;
+                        consecutiveTopDays = 0;
+                        return;
+                    }
+                    
+                    records.totalDays++;
+                    
+                    // Aggregate employee's data for the day
+                    const aggregated = aggregateData(employeeData);
+                    aggregated.forEach(item => {
+                        const htp = parseFloat(item.htp);
+                        const qty = item.unitQty;
+                        const targetHtp = getTargetHtp(item);
+                        
+                        // Track max HTP and Qty
+                        if (htp > records.maxHtp) records.maxHtp = htp;
+                        if (qty > records.maxQty) records.maxQty = qty;
+                        
+                        // Check if target met
+                        if (htp >= targetHtp) {
+                            consecutiveTargetDays++;
+                        } else {
+                            consecutiveTargetDays = 0;
+                        }
+                        
+                        // Check if top performer (top 3)
+                        const allForProcess = aggregateData(dayData.filter(d => 
+                            d.processTask === item.processType.includes('PICK') ? 'PICK(PICKING)' : 'PACK(PACKING)'
+                        ));
+                        const sortedByHtp = allForProcess.sort((a, b) => parseFloat(b.htp) - parseFloat(a.htp));
+                        const isTop3 = sortedByHtp.slice(0, 3).some(d => d.employee === employeeName);
+                        
+                        if (isTop3) {
+                            consecutiveTopDays++;
+                        } else {
+                            consecutiveTopDays = 0;
+                        }
+                    });
+                    
+                    // Update streaks
+                    if (consecutiveTargetDays > streaks.targetMet) {
+                        streaks.targetMet = consecutiveTargetDays;
+                    }
+                    if (consecutiveTopDays > streaks.topPerformer) {
+                        streaks.topPerformer = consecutiveTopDays;
+                    }
+                });
+                
+                // Award badges based on achievements
+                if (streaks.targetMet >= 7) badges.push({ type: 'streak', name: '🔥 7일 연속 목표 달성', level: 'gold' });
+                else if (streaks.targetMet >= 3) badges.push({ type: 'streak', name: '🔥 3일 연속 목표 달성', level: 'silver' });
+                
+                if (streaks.topPerformer >= 3) badges.push({ type: 'top', name: '⭐ 3일 연속 Top3', level: 'gold' });
+                
+                if (records.maxHtp >= 500) badges.push({ type: 'record', name: '💎 HTP 500+', level: 'gold' });
+                else if (records.maxHtp >= 400) badges.push({ type: 'record', name: '💎 HTP 400+', level: 'silver' });
+                else if (records.maxHtp >= 300) badges.push({ type: 'record', name: '💎 HTP 300+', level: 'bronze' });
+                
+                if (records.totalDays >= 30) badges.push({ type: 'attendance', name: '📅 30일 근무', level: 'gold' });
+                else if (records.totalDays >= 14) badges.push({ type: 'attendance', name: '📅 14일 근무', level: 'silver' });
+                else if (records.totalDays >= 7) badges.push({ type: 'attendance', name: '📅 7일 근무', level: 'bronze' });
+                
+                employeeBadges[employeeName] = { badges, streaks, records };
+            });
+        }
+
         // --- Event Listeners ---
         function toggleMobileSidebar() {
             const isOpen = ui.sidebar.classList.toggle('open');
@@ -738,7 +1002,8 @@
             state.filters.lowHtp = e.target.checked;
             applyFiltersAndRender();
         });
-        document.querySelectorAll('.filter-btn').forEach(btn => {
+		
+		document.querySelectorAll('.filter-btn').forEach(btn => {
             btn.addEventListener('click', (e) => {
                 document.querySelectorAll('.filter-btn').forEach(b => b.classList.remove('active'));
                 e.currentTarget.classList.add('active');
@@ -762,19 +1027,77 @@
             applyFiltersAndRender();
         });
 
+        // View Switcher (3개 메뉴)
         ui.tableViewBtn.addEventListener('click', () => {
             ui.tableView.classList.remove('hidden');
             ui.dashboardView.classList.add('hidden');
+            ui.historyView.classList.add('hidden');
             ui.tableViewBtn.classList.add('active');
             ui.dashboardViewBtn.classList.remove('active');
+            ui.historyViewBtn.classList.remove('active');
         });
         ui.dashboardViewBtn.addEventListener('click', () => {
             ui.tableView.classList.add('hidden');
             ui.dashboardView.classList.remove('hidden');
             ui.dashboardView.classList.add('flex');
+            ui.historyView.classList.add('hidden');
             ui.tableViewBtn.classList.remove('active');
             ui.dashboardViewBtn.classList.add('active');
+            ui.historyViewBtn.classList.remove('active');
         });
+        ui.historyViewBtn.addEventListener('click', () => {
+            ui.tableView.classList.add('hidden');
+            ui.dashboardView.classList.add('hidden');
+            ui.historyView.classList.remove('hidden');
+            ui.historyView.classList.add('flex');
+            ui.tableViewBtn.classList.remove('active');
+            ui.dashboardViewBtn.classList.remove('active');
+            ui.historyViewBtn.classList.add('active');
+            renderHistoryView();
+        });
+
+        // History Period Selectors
+        ui.periodWeekBtn.addEventListener('click', () => {
+            setHistoryPeriod('week');
+            ui.customDateRange.classList.add('hidden');
+        });
+        ui.periodMonthBtn.addEventListener('click', () => {
+            setHistoryPeriod('month');
+            ui.customDateRange.classList.add('hidden');
+        });
+        ui.periodAllBtn.addEventListener('click', () => {
+            setHistoryPeriod('all');
+            ui.customDateRange.classList.add('hidden');
+        });
+        ui.periodCustomBtn.addEventListener('click', () => {
+            ui.customDateRange.classList.remove('hidden');
+            document.querySelectorAll('.period-btn').forEach(btn => btn.classList.remove('active'));
+            ui.periodCustomBtn.classList.add('active');
+        });
+        ui.applyCustomRange.addEventListener('click', () => {
+            const start = ui.startDate.value;
+            const end = ui.endDate.value;
+            if (start && end) {
+                state.historyPeriod = 'custom';
+                state.historyDateRange = { start, end };
+                renderHistoryView();
+            } else {
+                showModal('시작일과 종료일을 모두 선택해주세요.');
+            }
+        });
+
+        function setHistoryPeriod(period) {
+            state.historyPeriod = period;
+            document.querySelectorAll('.period-btn').forEach(btn => btn.classList.remove('active'));
+            if (period === 'week') ui.periodWeekBtn.classList.add('active');
+            else if (period === 'month') ui.periodMonthBtn.classList.add('active');
+            else if (period === 'all') ui.periodAllBtn.classList.add('active');
+            renderHistoryView();
+        }
+
+        // History Export Buttons
+        ui.exportHistoryExcel.addEventListener('click', exportHistoryToExcel);
+        ui.exportHistoryPdf.addEventListener('click', exportHistoryToPDF);
 
         ui.tableBody.addEventListener('click', (e) => {
             const row = e.target.closest('tr');
@@ -782,7 +1105,7 @@
             const employeeCell = row.querySelector('td:nth-child(2)');
             const processCell = row.querySelector('td:nth-child(1)');
             if(employeeCell && processCell) {
-                const employeeName = employeeCell.textContent.replace(/[👑]\s*/g, '');
+                const employeeName = employeeCell.textContent.replace(/[👑🔥🐢]\s*/g, '').trim();
                 const processType = processCell.textContent;
                 showIndividualTrend(employeeName, processType);
             }
@@ -883,11 +1206,9 @@
             rawData.forEach(item => {
                 let key, packType = null;
                 if (item.processTask === 'PICK(PICKING)') {
-                    // PICK은 processPathName별로 분리
                     key = `${item.employee}|${item.processPathName}|${item.floor}|PICK`;
                     packType = '집품';
                 } else {
-                    // PACK은 packType별로만 분리
                     packType = getPackType(item.location, item.processTask, item.processPathName);
                     key = `${item.employee}|${packType}|PACK`;
                 }
@@ -906,7 +1227,6 @@
                 const group = aggregatedMap.get(key);
                 group.unitQty += item.unitQty;
                 group.totalSeconds += durationSeconds;
-                // 가장 최근 정보로 업데이트
                 group.location = item.location;
                 group.processPathName = item.processPathName;
                 group.floor = item.floor;
@@ -914,15 +1234,14 @@
             const finalData = [];
             for (const group of aggregatedMap.values()) {
                 const mh = group.totalSeconds > 0 ? group.totalSeconds / 3600 : 0;
-                // M/H 0.25 이상(15분) AND 작업량 30개 이상인 데이터만 추가
                 if (mh >= 0.25 && group.unitQty >= 30) {
                     finalData.push({ ...group, mh: mh.toFixed(4), htp: (mh > 0 ? group.unitQty / mh : 0).toFixed(1) });
                 }
             }
             return finalData;
         }
-		
-		function initializeFiltersFromData(rawData) {
+        
+        function initializeFiltersFromData(rawData) {
             const allPackTypes = new Set();
             const floors = new Set();
             rawData.forEach(item => {
@@ -1072,6 +1391,23 @@
                 const compressedBytes = Bytes.fromUint8Array(compressedData);
                 const payload = { compressedData: compressedBytes, uploaderId: userId, timestamp: new Date().toISOString() };
                 await setDoc(dataDocRef, payload);
+                
+                // Also save to history collection with date key
+                const today = new Date().toISOString().split('T')[0]; // YYYY-MM-DD
+                const historyDocRef = doc(historyCollectionRef, today);
+                const historyPayload = { 
+                    compressedData: compressedBytes, 
+                    uploaderId: userId, 
+                    timestamp: new Date().toISOString(),
+                    date: today
+                };
+                await setDoc(historyDocRef, historyPayload);
+                
+                showModal('데이터가 성공적으로 업로드되었습니다!');
+                
+                // Reload history data
+                await loadHistoryData();
+                
             } catch (error) {
                 console.error("Firestore 저장 오류:", error);
                 showModal("데이터를 서버에 저장하는 데 실패했습니다.");
@@ -1124,8 +1460,8 @@
             updateTicker(finalDisplayData);
             updateSortIndicators();
         }
-		
-		function renderTable(data) {
+        
+        function renderTable(data) {
             ui.tableBody.innerHTML = '';
             if (data.length === 0) {
                 ui.tableBody.appendChild(ui.placeholderRow);
@@ -1136,7 +1472,6 @@
             }
             ui.placeholderRow.classList.add('hidden');
 
-            // TOP10 계산
             const pickData = data.filter(d => d.processType.includes('PICK')).sort((a, b) => parseFloat(b.htp) - parseFloat(a.htp));
             const packData = data.filter(d => d.processType.includes('PACK')).sort((a, b) => parseFloat(b.htp) - parseFloat(a.htp));
             
@@ -1164,7 +1499,6 @@
                     empColor = isDark ? 'text-lime-400' : 'text-green-600 font-semibold';
                 }
 
-                // 뱃지 추가
                 let badge = '';
                 if (item.processType.includes('PICK')) {
                     if (topPickSet.has(item.employee)) badge = ' 🔥';
@@ -1172,6 +1506,15 @@
                 } else {
                     if (topPackSet.has(item.employee)) badge = ' 🔥';
                     else if (lowPackSet.has(item.employee)) badge = ' 🐢';
+                }
+                
+                // Add gamification badges
+                const employeeBadge = employeeBadges[item.employee];
+                if (employeeBadge && employeeBadge.badges.length > 0) {
+                    const topBadge = employeeBadge.badges[0];
+                    if (topBadge.level === 'gold') badge += ' 🥇';
+                    else if (topBadge.level === 'silver') badge += ' 🥈';
+                    else if (topBadge.level === 'bronze') badge += ' 🥉';
                 }
                 
                 empDisplay += badge;
@@ -1258,8 +1601,8 @@
                 });
             });
         }
-
-        function exportToExcel() {
+		
+		function exportToExcel() {
             if (globalRawData.length === 0) {
                 showModal('내보낼 데이터가 없습니다.');
                 return;
@@ -1293,7 +1636,7 @@
             dataToExport.forEach(item => {
                 const rowData = {
                     '집품/포장': item.processType,
-                    '이름(원바코드)': item.employee.replace(/[👑]\s*/g, ''),
+                    '이름(원바코드)': item.employee.replace(/[👑🔥🐢🥇🥈🥉]\s*/g, ''),
                     '계약직 여부': item.isPerm ? 'PERM' : 'TEMP',
                     '작업량': Number(item.unitQty),
                     '로케이션 및 작업대': item.location || '-',
@@ -1353,8 +1696,8 @@
             if (wb.SheetNames.length > 0) XLSX.writeFile(wb, "HTP_Data_Export_Styled.xlsx");
             else showModal('내보낼 데이터가 없습니다.');
         }
-		
-		function updateStatus(status, message) {
+        
+        function updateStatus(status, message) {
             const dot = ui.statusIndicator.querySelector('.status-dot');
             const text = ui.statusIndicator.querySelector('span');
             dot.className = 'status-dot';
@@ -1533,8 +1876,8 @@
                 }
             });
         }
-		
-		function updateHourlyTrendChart(rawData) {
+        
+        function updateHourlyTrendChart(rawData) {
              const hourlyData = new Map();
              for(let i=0; i<24; i++) hourlyData.set(i, { unitQty: 0, totalSeconds: 0 });
              rawData.forEach(item => {
@@ -1567,8 +1910,7 @@
         }
 
         function showIndividualTrend(employeeName, processType) {
-		// 모든 이모지 제거 (왕관, 불, 거북이 등)
-            employeeName = employeeName.replace(/[👑🔥🐢]\s*/g, '').trim();
+            employeeName = employeeName.replace(/[👑🔥🐢🥇🥈🥉]\s*/g, '').trim();
             const targetProcessTask = processType.includes('PICK') ? 'PICK(PICKING)' : 'PACK(PACKING)';
             const employeeData = globalRawData.filter(d => d.employee === employeeName && d.processTask === targetProcessTask);
             
@@ -1594,7 +1936,6 @@
                 return mh > 0 ? (stats.unitQty / mh).toFixed(1) : 0;
             });
 
-            // 통계 계산
             const totalQty = employeeData.reduce((sum, item) => sum + item.unitQty, 0);
             const totalSeconds = employeeData.reduce((sum, item) => sum + (item.htpEnd - item.htpStart) / 1000, 0);
             const totalMh = totalSeconds / 3600;
@@ -1603,13 +1944,11 @@
             const minHtp = Math.min(...htpValues.filter(v => v > 0).map(v => parseFloat(v)));
             const maxHour = sortedHours[htpValues.indexOf(maxHtp.toString())];
             
-            // 시간대별 순위 계산
             const hourlyRanks = sortedHours.map(hour => {
                 const stats = hourlyData.get(hour);
                 const mh = stats.totalSeconds / 3600;
                 const employeeHtp = mh > 0 ? stats.unitQty / mh : 0;
                 
-                // 같은 시간대의 모든 작업자 HTP 계산
                 const sameHourData = globalRawData.filter(d => 
                     d.processTask === targetProcessTask && 
                     d.htpStart.getUTCHours() === hour
@@ -1635,14 +1974,26 @@
                 return { hour, rank, total };
             });
 
-            // 모달 HTML 구성
+            // Get employee badges
+            const employeeBadge = employeeBadges[employeeName] || { badges: [], streaks: {}, records: {} };
+            const badgesHtml = employeeBadge.badges.length > 0 
+                ? employeeBadge.badges.map(b => `<span class="badge badge-${b.level}">${b.name}</span>`).join(' ')
+                : '<span class="text-gray-500">획득한 뱃지가 없습니다</span>';
+
             ui.chartModalTitle.textContent = `${employeeName} 님의 상세 분석 (${processType.split('(')[0]})`;
             const modalContent = document.getElementById('chart-modal-content');
             modalContent.innerHTML = `
                 <h3 class="text-xl font-bold mb-4" style="color: var(--text-primary);">${employeeName} 님의 상세 분석 (${processType.split('(')[0]})</h3>
                 
+                <!-- Badges Section -->
+                <div style="background: var(--bg-tertiary); border: 1px solid var(--border-color); border-radius: 12px; padding: 16px; margin-bottom: 16px;">
+                    <h4 style="color: var(--text-secondary); font-size: 14px; font-weight: 600; margin-bottom: 12px;">🏅 획득 뱃지</h4>
+                    <div style="display: flex; flex-wrap: wrap; gap: 8px;">
+                        ${badgesHtml}
+                    </div>
+                </div>
+                
                 <div style="display: grid; grid-template-columns: 2fr 1fr; gap: 16px; margin-bottom: 16px;">
-                    <!-- 통계 요약 카드 -->
                     <div style="background: var(--bg-tertiary); border: 1px solid var(--border-color); border-radius: 12px; padding: 16px;">
                         <h4 style="color: var(--text-secondary); font-size: 14px; font-weight: 600; margin-bottom: 12px;">📊 오늘의 성과 요약</h4>
                         <div style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 12px;">
@@ -1678,7 +2029,6 @@
                         </div>
                     </div>
                     
-                    <!-- 시간대별 순위 -->
                     <div style="background: var(--bg-tertiary); border: 1px solid var(--border-color); border-radius: 12px; padding: 16px; max-height: 180px; overflow-y: auto;">
                         <h4 style="color: var(--text-secondary); font-size: 14px; font-weight: 600; margin-bottom: 12px;">🏆 시간대별 순위</h4>
                         <div style="display: flex; flex-direction: column; gap: 8px;">
@@ -1694,10 +2044,12 @@
                     </div>
                 </div>
                 
-                <!-- 차트 -->
                 <div class="flex-grow" style="min-height: 300px;">
                     <canvas id="individual-htp-chart"></canvas>
                 </div>
+                <button id="chart-modal-close" class="absolute top-3 right-3 text-gray-400 hover:text-white">
+                    <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path></svg>
+                </button>
             `;
 
             const ctx = document.getElementById('individual-htp-chart').getContext('2d');
@@ -1711,9 +2063,403 @@
                     plugins: { legend: { labels: { color: '#d1d5db' } }, datalabels: { align: 'top', color: '#FFFFFF' } }
                 }
             });
+            
+            // Re-attach close button event
+            document.getElementById('chart-modal-close').addEventListener('click', () => {
+                ui.chartModalBackdrop.classList.add('hidden');
+                ui.chartModalBackdrop.classList.remove('flex');
+            });
 
             ui.chartModalBackdrop.classList.remove('hidden');
             ui.chartModalBackdrop.classList.add('flex');
+        }
+		
+		// --- History View Functions ---
+        function renderHistoryView() {
+            if (Object.keys(historyData).length === 0) {
+                showModal('히스토리 데이터가 없습니다.');
+                return;
+            }
+
+            const filteredDates = getFilteredHistoryDates();
+            if (filteredDates.length === 0) {
+                ui.historyKpi.days.textContent = '0';
+                ui.historyKpi.totalQty.textContent = '0';
+                ui.historyKpi.avgHtp.textContent = '0.0';
+                ui.historyKpi.maxHtp.textContent = '0.0';
+                return;
+            }
+
+            // Calculate aggregated stats
+            let allAggregatedData = [];
+            filteredDates.forEach(date => {
+                const dayData = historyData[date];
+                if (dayData) {
+                    const aggregated = aggregateData(dayData);
+                    allAggregatedData = allAggregatedData.concat(aggregated.map(item => ({ ...item, date })));
+                }
+            });
+
+            // Update KPI Cards
+            const totalDays = filteredDates.length;
+            const totalQty = allAggregatedData.reduce((sum, d) => sum + d.unitQty, 0);
+            const totalMh = allAggregatedData.reduce((sum, d) => sum + parseFloat(d.mh), 0);
+            const avgHtp = totalMh > 0 ? (totalQty / totalMh) : 0;
+            const maxHtp = Math.max(...allAggregatedData.map(d => parseFloat(d.htp)), 0);
+
+            ui.historyKpi.days.textContent = totalDays.toLocaleString();
+            ui.historyKpi.totalQty.textContent = totalQty.toLocaleString();
+            ui.historyKpi.avgHtp.textContent = avgHtp.toFixed(1);
+            ui.historyKpi.maxHtp.textContent = maxHtp.toFixed(1);
+
+            // Update Charts
+            updateHistoryDailyTrendChart(filteredDates);
+            updateHistoryDailyQtyChart(filteredDates);
+            updateHistoryTopPerformers(allAggregatedData);
+        }
+
+        function getFilteredHistoryDates() {
+            const allDates = Object.keys(historyData).sort();
+            if (allDates.length === 0) return [];
+
+            const today = new Date();
+            const todayStr = today.toISOString().split('T')[0];
+
+            if (state.historyPeriod === 'week') {
+                const sevenDaysAgo = new Date(today);
+                sevenDaysAgo.setDate(today.getDate() - 7);
+                const sevenDaysAgoStr = sevenDaysAgo.toISOString().split('T')[0];
+                return allDates.filter(date => date >= sevenDaysAgoStr && date <= todayStr);
+            } else if (state.historyPeriod === 'month') {
+                const thirtyDaysAgo = new Date(today);
+                thirtyDaysAgo.setDate(today.getDate() - 30);
+                const thirtyDaysAgoStr = thirtyDaysAgo.toISOString().split('T')[0];
+                return allDates.filter(date => date >= thirtyDaysAgoStr && date <= todayStr);
+            } else if (state.historyPeriod === 'all') {
+                return allDates;
+            } else if (state.historyPeriod === 'custom') {
+                const { start, end } = state.historyDateRange;
+                return allDates.filter(date => date >= start && date <= end);
+            }
+            return allDates;
+        }
+
+        function updateHistoryDailyTrendChart(dates) {
+            const labels = dates.map(d => d.substring(5)); // MM-DD
+            const avgHtps = dates.map(date => {
+                const dayData = historyData[date];
+                if (!dayData) return 0;
+                const aggregated = aggregateData(dayData);
+                const totalQty = aggregated.reduce((sum, d) => sum + d.unitQty, 0);
+                const totalMh = aggregated.reduce((sum, d) => sum + parseFloat(d.mh), 0);
+                return totalMh > 0 ? (totalQty / totalMh) : 0;
+            });
+
+            const ctx = document.getElementById('history-daily-trend-chart').getContext('2d');
+            if (state.charts.historyDailyTrend) state.charts.historyDailyTrend.destroy();
+            state.charts.historyDailyTrend = new Chart(ctx, {
+                type: 'line',
+                data: {
+                    labels: labels,
+                    datasets: [{
+                        label: '일별 평균 HTP',
+                        data: avgHtps,
+                        fill: true,
+                        backgroundColor: 'rgba(139, 92, 246, 0.2)',
+                        borderColor: 'rgba(139, 92, 246, 1)',
+                        tension: 0.3,
+                        pointRadius: 4,
+                        pointHoverRadius: 6
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    scales: {
+                        y: { beginAtZero: true, ticks: { color: '#d1d5db' } },
+                        x: { ticks: { color: '#d1d5db', maxRotation: 45, minRotation: 45 } }
+                    },
+                    plugins: {
+                        legend: { labels: { color: '#d1d5db' } },
+                        datalabels: { display: false }
+                    }
+                }
+            });
+        }
+
+        function updateHistoryDailyQtyChart(dates) {
+            const labels = dates.map(d => d.substring(5)); // MM-DD
+            const dailyQtys = dates.map(date => {
+                const dayData = historyData[date];
+                if (!dayData) return 0;
+                const aggregated = aggregateData(dayData);
+                return aggregated.reduce((sum, d) => sum + d.unitQty, 0);
+            });
+
+            const ctx = document.getElementById('history-daily-qty-chart').getContext('2d');
+            if (state.charts.historyDailyQty) state.charts.historyDailyQty.destroy();
+            state.charts.historyDailyQty = new Chart(ctx, {
+                type: 'bar',
+                data: {
+                    labels: labels,
+                    datasets: [{
+                        label: '일별 총 작업량',
+                        data: dailyQtys,
+                        backgroundColor: 'rgba(59, 130, 246, 0.7)',
+                        borderColor: 'rgba(59, 130, 246, 1)',
+                        borderWidth: 1
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    scales: {
+                        y: { beginAtZero: true, ticks: { color: '#d1d5db' } },
+                        x: { ticks: { color: '#d1d5db', maxRotation: 45, minRotation: 45 } }
+                    },
+                    plugins: {
+                        legend: { display: false },
+                        datalabels: { display: false }
+                    }
+                }
+            });
+        }
+
+        function updateHistoryTopPerformers(allData) {
+            // Calculate average HTP per employee across the period
+            const employeeStats = new Map();
+            
+            allData.forEach(item => {
+                const key = `${item.employee}|${item.processType}`;
+                if (!employeeStats.has(key)) {
+                    employeeStats.set(key, {
+                        employee: item.employee,
+                        processType: item.processType,
+                        totalQty: 0,
+                        totalMh: 0
+                    });
+                }
+                const stats = employeeStats.get(key);
+                stats.totalQty += item.unitQty;
+                stats.totalMh += parseFloat(item.mh);
+            });
+
+            const employeeList = [];
+            employeeStats.forEach(stats => {
+                const avgHtp = stats.totalMh > 0 ? (stats.totalQty / stats.totalMh) : 0;
+                employeeList.push({
+                    employee: stats.employee,
+                    processType: stats.processType,
+                    avgHtp: avgHtp,
+                    totalQty: stats.totalQty
+                });
+            });
+
+            const pickList = employeeList
+                .filter(e => e.processType.includes('PICK'))
+                .sort((a, b) => b.avgHtp - a.avgHtp)
+                .slice(0, 10);
+
+            const packList = employeeList
+                .filter(e => e.processType.includes('PACK'))
+                .sort((a, b) => b.avgHtp - a.avgHtp)
+                .slice(0, 10);
+
+            ui.historyTopPickList.innerHTML = '';
+            ui.historyTopPackList.innerHTML = '';
+
+            if (pickList.length === 0) {
+                ui.historyTopPickList.innerHTML = '<div class="text-gray-500 text-center py-4">데이터 없음</div>';
+            } else {
+                pickList.forEach((item, index) => {
+                    const medal = index === 0 ? '🥇' : index === 1 ? '🥈' : index === 2 ? '🥉' : `${index + 1}.`;
+                    const div = document.createElement('div');
+                    div.className = 'flex justify-between items-center bg-gray-700 p-3 rounded-md';
+                    div.innerHTML = `
+                        <span class="font-semibold">${medal} ${item.employee.split('(')[0].trim()}</span>
+                        <span class="text-green-400 font-bold">${item.avgHtp.toFixed(1)} HTP</span>
+                    `;
+                    ui.historyTopPickList.appendChild(div);
+                });
+            }
+
+            if (packList.length === 0) {
+                ui.historyTopPackList.innerHTML = '<div class="text-gray-500 text-center py-4">데이터 없음</div>';
+            } else {
+                packList.forEach((item, index) => {
+                    const medal = index === 0 ? '🥇' : index === 1 ? '🥈' : index === 2 ? '🥉' : `${index + 1}.`;
+                    const div = document.createElement('div');
+                    div.className = 'flex justify-between items-center bg-gray-700 p-3 rounded-md';
+                    div.innerHTML = `
+                        <span class="font-semibold">${medal} ${item.employee.split('(')[0].trim()}</span>
+                        <span class="text-green-400 font-bold">${item.avgHtp.toFixed(1)} HTP</span>
+                    `;
+                    ui.historyTopPackList.appendChild(div);
+                });
+            }
+        }
+
+        // --- History Export Functions ---
+        function exportHistoryToExcel() {
+            const filteredDates = getFilteredHistoryDates();
+            if (filteredDates.length === 0) {
+                showModal('내보낼 히스토리 데이터가 없습니다.');
+                return;
+            }
+
+            const wb = XLSX.utils.book_new();
+
+            // Create summary sheet
+            const summaryData = [];
+            filteredDates.forEach(date => {
+                const dayData = historyData[date];
+                if (!dayData) return;
+                const aggregated = aggregateData(dayData);
+                const totalQty = aggregated.reduce((sum, d) => sum + d.unitQty, 0);
+                const totalMh = aggregated.reduce((sum, d) => sum + parseFloat(d.mh), 0);
+                const avgHtp = totalMh > 0 ? (totalQty / totalMh) : 0;
+                const workers = new Set(aggregated.map(d => d.employee)).size;
+
+                summaryData.push({
+                    '날짜': date,
+                    '작업자 수': workers,
+                    '총 작업량': totalQty,
+                    '총 M/H': parseFloat(totalMh.toFixed(2)),
+                    '평균 HTP': parseFloat(avgHtp.toFixed(1))
+                });
+            });
+
+            const summaryWs = XLSX.utils.json_to_sheet(summaryData);
+            XLSX.utils.book_append_sheet(wb, summaryWs, '일별 요약');
+
+            // Create detailed data sheet
+            const detailedData = [];
+            filteredDates.forEach(date => {
+                const dayData = historyData[date];
+                if (!dayData) return;
+                const aggregated = aggregateData(dayData);
+                aggregated.forEach(item => {
+                    detailedData.push({
+                        '날짜': date,
+                        '집품/포장': item.processType,
+                        '이름(원바코드)': item.employee.replace(/[👑🔥🐢🥇🥈🥉]\s*/g, ''),
+                        '계약직 여부': item.isPerm ? 'PERM' : 'TEMP',
+                        '작업량': item.unitQty,
+                        '로케이션': item.location || '-',
+                        'PP': item.processPathName || '-',
+                        '팩 종류': item.packType,
+                        'M/H': parseFloat(item.mh),
+                        'HTP': parseFloat(item.htp)
+                    });
+                });
+            });
+
+            const detailedWs = XLSX.utils.json_to_sheet(detailedData);
+            XLSX.utils.book_append_sheet(wb, detailedWs, '상세 데이터');
+
+            const filename = `HTP_History_${filteredDates[0]}_to_${filteredDates[filteredDates.length - 1]}.xlsx`;
+            XLSX.writeFile(wb, filename);
+            showModal('히스토리 엑셀 파일이 다운로드되었습니다!');
+        }
+
+        function exportHistoryToPDF() {
+            showModal('PDF 생성 중... 잠시만 기다려주세요.', 2000);
+            
+            const filteredDates = getFilteredHistoryDates();
+            if (filteredDates.length === 0) {
+                showModal('내보낼 히스토리 데이터가 없습니다.');
+                return;
+            }
+
+            // Calculate summary stats
+            let allAggregatedData = [];
+            filteredDates.forEach(date => {
+                const dayData = historyData[date];
+                if (dayData) {
+                    const aggregated = aggregateData(dayData);
+                    allAggregatedData = allAggregatedData.concat(aggregated);
+                }
+            });
+
+            const totalDays = filteredDates.length;
+            const totalQty = allAggregatedData.reduce((sum, d) => sum + d.unitQty, 0);
+            const totalMh = allAggregatedData.reduce((sum, d) => sum + parseFloat(d.mh), 0);
+            const avgHtp = totalMh > 0 ? (totalQty / totalMh) : 0;
+            const maxHtp = Math.max(...allAggregatedData.map(d => parseFloat(d.htp)), 0);
+
+            const { jsPDF } = window.jspdf;
+            const doc = new jsPDF();
+
+            // Title
+            doc.setFontSize(20);
+            doc.text('GWJ2 OB HTP 히스토리 리포트', 105, 20, { align: 'center' });
+
+            // Period
+            doc.setFontSize(12);
+            doc.text(`기간: ${filteredDates[0]} ~ ${filteredDates[filteredDates.length - 1]}`, 105, 30, { align: 'center' });
+
+            // Summary Stats
+            doc.setFontSize(14);
+            doc.text('요약 통계', 20, 45);
+            doc.setFontSize(11);
+            doc.text(`총 작업 일수: ${totalDays}일`, 20, 55);
+            doc.text(`누적 작업량: ${totalQty.toLocaleString()} Unit`, 20, 65);
+            doc.text(`평균 HTP: ${avgHtp.toFixed(1)}`, 20, 75);
+            doc.text(`최고 HTP: ${maxHtp.toFixed(1)}`, 20, 85);
+
+            // Top Performers
+            doc.setFontSize(14);
+            doc.text('기간 내 Top 5 작업자', 20, 100);
+
+            const employeeStats = new Map();
+            allAggregatedData.forEach(item => {
+                const key = `${item.employee}|${item.processType}`;
+                if (!employeeStats.has(key)) {
+                    employeeStats.set(key, { employee: item.employee, processType: item.processType, totalQty: 0, totalMh: 0 });
+                }
+                const stats = employeeStats.get(key);
+                stats.totalQty += item.unitQty;
+                stats.totalMh += parseFloat(item.mh);
+            });
+
+            const employeeList = [];
+            employeeStats.forEach(stats => {
+                const avgHtp = stats.totalMh > 0 ? (stats.totalQty / stats.totalMh) : 0;
+                employeeList.push({ employee: stats.employee, processType: stats.processType, avgHtp: avgHtp });
+            });
+
+            const topPick = employeeList.filter(e => e.processType.includes('PICK')).sort((a, b) => b.avgHtp - a.avgHtp).slice(0, 5);
+            const topPack = employeeList.filter(e => e.processType.includes('PACK')).sort((a, b) => b.avgHtp - a.avgHtp).slice(0, 5);
+
+            doc.setFontSize(12);
+            doc.text('PICK (집품)', 20, 110);
+            doc.setFontSize(10);
+            let yPos = 120;
+            topPick.forEach((item, i) => {
+                doc.text(`${i + 1}. ${item.employee.split('(')[0].trim()} - ${item.avgHtp.toFixed(1)} HTP`, 25, yPos);
+                yPos += 8;
+            });
+
+            doc.setFontSize(12);
+            doc.text('PACK (포장)', 110, 110);
+            doc.setFontSize(10);
+            yPos = 120;
+            topPack.forEach((item, i) => {
+                doc.text(`${i + 1}. ${item.employee.split('(')[0].trim()} - ${item.avgHtp.toFixed(1)} HTP`, 115, yPos);
+                yPos += 8;
+            });
+
+            // Footer
+            doc.setFontSize(9);
+            doc.text(`생성일: ${new Date().toLocaleString('ko-KR')}`, 105, 280, { align: 'center' });
+            doc.text('GWJ2 OB PICK & PACK HTP TOOL v3.0', 105, 287, { align: 'center' });
+
+            const filename = `HTP_Report_${filteredDates[0]}_to_${filteredDates[filteredDates.length - 1]}.pdf`;
+            doc.save(filename);
+            
+            setTimeout(() => {
+                showModal('PDF 리포트가 다운로드되었습니다!');
+            }, 2000);
         }
 
         // Initialize on page load
