@@ -2268,8 +2268,10 @@
             updateLoadingProgress(95, '히스토리 로딩 완료!');
             console.log(`✨ ${Object.keys(historyData).length}일의 히스토리 데이터 로드 완료`);
             
-            // 🆕 뱃지는 필요할 때만 계산 (지연 실행)
+            // 🆕 뱃지 자동 계산
             badgesCalculated = false;
+            console.log('🏅 히스토리 로드 완료 - 뱃지 자동 계산 시작');
+            ensureBadgesCalculated();
             
         } catch (error) {
             console.error("히스토리 데이터 로드 오류:", error);
@@ -2284,12 +2286,14 @@
 
     // 🆕 뱃지 계산 (지연 실행)
     function ensureBadgesCalculated() {
-        if (!badgesCalculated && Object.keys(historyData).length > 0) {
+        // 히스토리 데이터 또는 일반 데이터가 있으면 뱃지 계산
+        const hasData = Object.keys(historyData).length > 0 || globalRawData.length > 0;
+        
+        if (!badgesCalculated && hasData) {
             console.log('🏅 뱃지 계산 시작...');
             calculateEmployeeBadges();
             badgesCalculated = true;
-            console.log('✅ 뱃지 계산 완료 (사원 분석 모달에서만 표시)');
-            // 테이블 재렌더링 불필요 (뱃지는 모달에서만 표시)
+            console.log('✅ 뱃지 계산 완료 (사원 분석 모달에서 표시)');
         }
     }
 	
@@ -2299,16 +2303,59 @@ function calculateEmployeeBadges() {
     
     employeeBadges = {};
     
-    const sortedDates = Object.keys(historyData).sort();
-    const recentDates = sortedDates.slice(-30); // 최근 30일
+    // 🆕 히스토리 데이터 OR 일반 데이터 사용
+    let dataSource = 'none';
+    let allEmployees = new Set();
+    let employeeDataMap = {}; // 사원별 데이터 저장
     
-    const allEmployees = new Set();
-    recentDates.forEach(date => {
-        const dayData = historyData[date];
-        dayData.forEach(item => allEmployees.add(item.employee));
-    });
+    if (Object.keys(historyData).length > 0) {
+        // 히스토리 데이터 사용 (30일)
+        dataSource = 'history';
+        const sortedDates = Object.keys(historyData).sort();
+        const recentDates = sortedDates.slice(-30);
+        
+        recentDates.forEach(date => {
+            const dayData = historyData[date];
+            dayData.forEach(item => {
+                allEmployees.add(item.employee);
+                if (!employeeDataMap[item.employee]) {
+                    employeeDataMap[item.employee] = [];
+                }
+                employeeDataMap[item.employee].push({
+                    date: date,
+                    htp: item.htp,
+                    qty: item.qty,
+                    processType: item.processType
+                });
+            });
+        });
+    } else if (globalRawData && globalRawData.length > 0) {
+        // 일반 데이터 사용 (오늘)
+        dataSource = 'today';
+        const today = new Date().toISOString().split('T')[0];
+        
+        globalRawData.forEach(item => {
+            if (item.employee) {
+                allEmployees.add(item.employee);
+                if (!employeeDataMap[item.employee]) {
+                    employeeDataMap[item.employee] = [];
+                }
+                employeeDataMap[item.employee].push({
+                    date: today,
+                    htp: parseFloat(item.htp) || 0,
+                    qty: parseInt(item.unitQty) || 0,
+                    processType: item.processType || ''
+                });
+            }
+        });
+    }
     
-    console.log(`📊 ${allEmployees.size}명의 사원 뱃지 계산 중...`);
+    console.log(`📊 데이터 소스: ${dataSource}, ${allEmployees.size}명의 사원 뱃지 계산 중...`);
+    
+    if (allEmployees.size === 0) {
+        console.log('⚠️ 뱃지 계산 대상 없음');
+        return;
+    }
     
     allEmployees.forEach(employeeName => {
         const badges = [];
@@ -3155,6 +3202,10 @@ function calculateEmployeeBadges() {
             showModal('데이터가 성공적으로 업로드되었습니다!');
             
             await loadHistoryData();
+            
+            // 뱃지 계산 (히스토리 데이터가 로드되었으므로)
+            console.log('🏅 엑셀 업로드 완료 - 뱃지 계산 확인');
+            ensureBadgesCalculated();
             
         } catch (error) {
             console.error("Firestore 저장 오류:", error);
@@ -4470,18 +4521,30 @@ function calculateEmployeeBadges() {
     }
 
     // 🚀 페이지 로드 시 즉시 초기화
-    window.addEventListener('DOMContentLoaded', () => {
+    // 🚀 페이지 완전히 로드된 후 초기화 (모든 함수 정의 후)
+    if (document.readyState === 'loading') {
+        document.addEventListener('DOMContentLoaded', initializePage);
+    } else {
+        // 이미 로드됨
+        initializePage();
+    }
+    
+    function initializePage() {
         console.log('🎯 페이지 초기화 시작');
         
         // 티커 즉시 표시 (데이터 없어도 안내 메시지 표시)
-        updateTicker([]);
-        console.log('✅ 티커 초기화 완료');
+        if (typeof updateTicker === 'function') {
+            updateTicker([]);
+            console.log('✅ 티커 초기화 완료');
+        } else {
+            console.warn('⚠️ updateTicker 함수 아직 정의 안됨');
+        }
         
         // 테마 적용
         const savedTheme = localStorage.getItem('theme') || 'dark';
         document.documentElement.setAttribute('data-theme', savedTheme);
         console.log('✅ 테마 적용 완료:', savedTheme);
-    });
+    }
 </script>
 </body>
 </html>
