@@ -306,9 +306,219 @@
         .view-tab.active { background: linear-gradient(135deg, var(--accent-primary) 0%, var(--accent-secondary) 100%); color: white; border-color: var(--accent-primary); box-shadow: 0 4px 12px rgba(59, 130, 246, 0.3); }
 
         /* Title & Ticker */
-        #ticker-container { overflow: hidden; white-space: nowrap; position: relative; background: linear-gradient(90deg, var(--bg-secondary) 0%, var(--bg-tertiary) 50%, var(--bg-secondary) 100%); border-radius: 8px; border: 1px solid var(--border-color); box-shadow: var(--shadow-sm); }
-        #ticker-text { position: absolute; animation: ticker-scroll 20s linear infinite; font-weight: 700; background: linear-gradient(90deg, #f59e0b, #eab308, #f59e0b); -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text; }
-        @keyframes ticker-scroll { 0% { transform: translateX(100%); } 100% { transform: translateX(-100%); } }
+        /* 🎯 Enhanced Ticker Design */
+        #ticker-container { 
+            overflow: hidden; 
+            position: relative; 
+            background: linear-gradient(135deg, #1e293b 0%, #0f172a 100%);
+            border-radius: 12px; 
+            border: 2px solid transparent;
+            background-clip: padding-box;
+            padding: 12px 16px;
+            box-shadow: 0 8px 24px rgba(0, 0, 0, 0.4), 
+                        inset 0 1px 0 rgba(255, 255, 255, 0.1);
+            position: relative;
+        }
+        
+        [data-theme="light"] #ticker-container {
+            background: linear-gradient(135deg, #f8fafc 0%, #e2e8f0 100%);
+            border: 2px solid #cbd5e1;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1),
+                        inset 0 1px 0 rgba(255, 255, 255, 0.8);
+        }
+        
+        #ticker-container::before {
+            content: '';
+            position: absolute;
+            top: -2px;
+            left: -2px;
+            right: -2px;
+            bottom: -2px;
+            background: linear-gradient(90deg, #3b82f6, #8b5cf6, #ec4899, #3b82f6);
+            border-radius: 12px;
+            z-index: -1;
+            animation: border-flow 3s linear infinite;
+            background-size: 200% 100%;
+        }
+        
+        @keyframes border-flow {
+            0% { background-position: 0% 50%; }
+            100% { background-position: 200% 50%; }
+        }
+        
+        #ticker-text-wrapper {
+            display: flex;
+            align-items: center;
+            gap: 24px;
+            overflow: hidden;
+        }
+        
+        #ticker-text { 
+            display: flex;
+            align-items: center;
+            gap: 24px;
+            animation: ticker-scroll 60s linear infinite;
+            font-weight: 700;
+            font-size: 14px;
+            white-space: nowrap;
+        }
+        
+        .ticker-section {
+            display: inline-flex;
+            align-items: center;
+            gap: 12px;
+            padding: 8px 16px;
+            border-radius: 8px;
+            transition: all 0.3s ease;
+        }
+        
+        .ticker-section.top {
+            background: linear-gradient(135deg, rgba(16, 185, 129, 0.15), rgba(5, 150, 105, 0.15));
+            border: 1px solid rgba(16, 185, 129, 0.3);
+        }
+        
+        .ticker-section.low {
+            background: linear-gradient(135deg, rgba(239, 68, 68, 0.15), rgba(220, 38, 38, 0.15));
+            border: 1px solid rgba(239, 68, 68, 0.3);
+        }
+        
+        /* PICK/PACK 전용 스타일 */
+        .ticker-section.pick {
+            border-left: 3px solid #60a5fa;
+        }
+        
+        .ticker-section.pack {
+            border-left: 3px solid #fbbf24;
+        }
+        
+        .ticker-section.pick .ticker-label::before {
+            content: '';
+            display: inline-block;
+            width: 8px;
+            height: 8px;
+            background: #60a5fa;
+            border-radius: 50%;
+            margin-right: 6px;
+            box-shadow: 0 0 8px rgba(96, 165, 250, 0.6);
+        }
+        
+        .ticker-section.pack .ticker-label::before {
+            content: '';
+            display: inline-block;
+            width: 8px;
+            height: 8px;
+            background: #fbbf24;
+            border-radius: 50%;
+            margin-right: 6px;
+            box-shadow: 0 0 8px rgba(251, 191, 36, 0.6);
+        }
+        
+        [data-theme="light"] .ticker-section.top {
+            background: linear-gradient(135deg, rgba(16, 185, 129, 0.2), rgba(5, 150, 105, 0.2));
+        }
+        
+        [data-theme="light"] .ticker-section.low {
+            background: linear-gradient(135deg, rgba(239, 68, 68, 0.2), rgba(220, 38, 38, 0.2));
+        }
+        
+        .ticker-label {
+            font-weight: 800;
+            font-size: 13px;
+            letter-spacing: 0.5px;
+            text-transform: uppercase;
+        }
+        
+        .ticker-section.top .ticker-label {
+            background: linear-gradient(135deg, #10b981, #059669);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+        
+        .ticker-section.low .ticker-label {
+            background: linear-gradient(135deg, #ef4444, #dc2626);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+        
+        .ticker-item {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            padding: 4px 10px;
+            background: rgba(255, 255, 255, 0.05);
+            border-radius: 6px;
+            font-size: 13px;
+            transition: all 0.3s ease;
+        }
+        
+        [data-theme="light"] .ticker-item {
+            background: rgba(0, 0, 0, 0.05);
+        }
+        
+        .ticker-item:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+        }
+        
+        .ticker-name {
+            font-weight: 600;
+            color: #e2e8f0;
+        }
+        
+        [data-theme="light"] .ticker-name {
+            color: #1e293b;
+        }
+        
+        .ticker-htp {
+            font-weight: 700;
+            font-size: 14px;
+        }
+        
+        .ticker-section.top .ticker-htp {
+            color: #10b981;
+        }
+        
+        .ticker-section.low .ticker-htp {
+            color: #ef4444;
+        }
+        
+        .ticker-rank {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            width: 20px;
+            height: 20px;
+            border-radius: 50%;
+            font-size: 11px;
+            font-weight: 700;
+        }
+        
+        .ticker-rank.rank-1 {
+            background: linear-gradient(135deg, #fbbf24, #f59e0b);
+            color: #78350f;
+            box-shadow: 0 0 12px rgba(251, 191, 36, 0.6);
+        }
+        
+        .ticker-rank.rank-2 {
+            background: linear-gradient(135deg, #e5e7eb, #9ca3af);
+            color: #1f2937;
+        }
+        
+        .ticker-rank.rank-3 {
+            background: linear-gradient(135deg, #fb923c, #f97316);
+            color: white;
+        }
+        
+        @keyframes ticker-scroll { 
+            0% { transform: translateX(100%); } 
+            100% { transform: translateX(-100%); } 
+        }
+        
+        #ticker-text:hover {
+            animation-play-state: paused;
+        }
 
         /* Table */
         .table-container { flex-grow: 1; overflow: auto; -webkit-overflow-scrolling: touch; background-color: var(--bg-secondary); border-radius: 12px; border: 1px solid var(--border-color); box-shadow: var(--shadow-md); }
@@ -1100,9 +1310,13 @@
             </div>
             
             <!-- Ticker -->
-            <div id="ticker-container" class="p-2 rounded-lg text-sm">
-                <div id="ticker-text-wrapper" class="relative w-full h-5 overflow-hidden">
-                    <span id="ticker-text">Top/Low HTP 정보가 여기에 표시됩니다.</span>
+            <div id="ticker-container">
+                <div id="ticker-text-wrapper">
+                    <div id="ticker-text">
+                        <span class="ticker-loading" style="color: var(--text-secondary); font-size: 14px;">
+                            📊 엑셀 파일을 업로드하면 PICK/PACK TOP3/LOW3가 표시됩니다
+                        </span>
+                    </div>
                 </div>
             </div>
 
@@ -3106,16 +3320,57 @@ function calculateEmployeeBadges() {
 
     function updateTicker(data) {
         if (data.length === 0) {
-            ui.tickerText.textContent = "Top/Low HTP 정보가 여기에 표시됩니다.";
+            ui.tickerText.innerHTML = '<span class="ticker-loading">🎯 데이터를 업로드하면 PICK/PACK TOP3/LOW3가 표시됩니다.</span>';
             return;
         }
-        const sortedByHtp = [...data].sort((a, b) => parseFloat(b.htp) - parseFloat(a.htp));
-        const top3 = sortedByHtp.slice(0, 3);
-        const low3 = sortedByHtp.filter(d => d.htp > 0).slice(-3).reverse();
-        const formatTickerItem = (item) => `${item.employee.split('(')[0].trim()} (${item.htp})`;
-        const topStr = "🏆Top3: " + (top3.length > 0 ? top3.map(formatTickerItem).join(', ') : '-');
-        const lowStr = "🚨Low3: " + (low3.length > 0 ? low3.map(formatTickerItem).join(', ') : '-');
-        ui.tickerText.textContent = `${topStr}        ${lowStr}`;
+        
+        // PICK과 PACK 데이터 분리
+        const pickData = data.filter(d => d.processType.includes('PICK'));
+        const packData = data.filter(d => d.processType.includes('PACK'));
+        
+        // 섹션 생성 함수
+        const createSection = (sectionData, type, isTop) => {
+            if (sectionData.length === 0) return '';
+            
+            const sorted = [...sectionData].sort((a, b) => parseFloat(b.htp) - parseFloat(a.htp));
+            const items = isTop 
+                ? sorted.slice(0, 3) 
+                : sorted.filter(d => d.htp > 0).slice(-3).reverse();
+            
+            if (items.length === 0) return '';
+            
+            const processIcon = type === 'PICK' ? '📦' : '📮';
+            const label = isTop ? `${processIcon} ${type} TOP 3` : `⚠️ ${type} LOW 3`;
+            const sectionClass = isTop ? 'top' : 'low';
+            const processClass = type.toLowerCase();
+            
+            return `
+                <div class="ticker-section ${sectionClass} ${processClass}">
+                    <span class="ticker-label">${label}</span>
+                    ${items.map((item, idx) => {
+                        const name = item.employee.split('(')[0].trim();
+                        const htp = parseFloat(item.htp).toFixed(1);
+                        return `
+                            <div class="ticker-item">
+                                <span class="ticker-rank rank-${idx + 1}">${idx + 1}</span>
+                                <span class="ticker-name">${name}</span>
+                                <span class="ticker-htp">${htp}</span>
+                            </div>
+                        `;
+                    }).join('')}
+                </div>
+            `;
+        };
+        
+        // PICK TOP3, PICK LOW3, PACK TOP3, PACK LOW3 생성
+        const pickTop = createSection(pickData, 'PICK', true);
+        const pickLow = createSection(pickData, 'PICK', false);
+        const packTop = createSection(packData, 'PACK', true);
+        const packLow = createSection(packData, 'PACK', false);
+        
+        // 모든 섹션 결합 (2번 반복해서 무한 스크롤)
+        const allSections = pickTop + pickLow + packTop + packLow;
+        ui.tickerText.innerHTML = allSections + allSections;
     }
 
     function captureTable() {
@@ -4213,6 +4468,20 @@ function calculateEmployeeBadges() {
     function exportHistoryToPDF() {
         showModal('PDF 리포트 기능 (간소화 버전)');
     }
+
+    // 🚀 페이지 로드 시 즉시 초기화
+    window.addEventListener('DOMContentLoaded', () => {
+        console.log('🎯 페이지 초기화 시작');
+        
+        // 티커 즉시 표시 (데이터 없어도 안내 메시지 표시)
+        updateTicker([]);
+        console.log('✅ 티커 초기화 완료');
+        
+        // 테마 적용
+        const savedTheme = localStorage.getItem('theme') || 'dark';
+        document.documentElement.setAttribute('data-theme', savedTheme);
+        console.log('✅ 테마 적용 완료:', savedTheme);
+    });
 </script>
 </body>
 </html>
