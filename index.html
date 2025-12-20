@@ -1170,6 +1170,138 @@
         #loading-status-text.active {
             display: block;
         }
+
+        /* 🎨 라이트 모드 사이드바 스타일 */
+        [data-theme="light"] #sidebar {
+            background: linear-gradient(to bottom, #f0f9ff, #e0f2fe) !important;
+            border-right: 2px solid #3b82f6 !important;
+        }
+
+        [data-theme="light"] #sidebar h2 {
+            background: linear-gradient(to right, #2563eb, #7c3aed) !important;
+            -webkit-background-clip: text !important;
+            background-clip: text !important;
+            color: transparent !important;
+        }
+
+        /* 숨긴 작업자 - 라이트 모드 */
+        [data-theme="light"] #sidebar > div:nth-child(2) {
+            background: linear-gradient(135deg, #f3f4f6, #e5e7eb) !important;
+            border: 1px solid #d1d5db !important;
+        }
+
+        [data-theme="light"] #sidebar > div:nth-child(2) h3 {
+            color: #1f2937 !important;
+        }
+
+        [data-theme="light"] #sidebar > div:nth-child(2) button {
+            background: linear-gradient(to right, #6b7280, #4b5563) !important;
+        }
+
+        [data-theme="light"] #hidden-count-badge {
+            background: linear-gradient(to right, #ef4444, #ec4899) !important;
+        }
+
+        /* 시간대별 필터 - 라이트 모드 (파랑) */
+        [data-theme="light"] #sidebar > div:nth-child(3) {
+            background: linear-gradient(135deg, #dbeafe, #bfdbfe) !important;
+            border: 1px solid #60a5fa !important;
+        }
+
+        [data-theme="light"] #sidebar > div:nth-child(3) h3 {
+            color: #1e3a8a !important;
+        }
+
+        [data-theme="light"] #select-day-shift {
+            background: linear-gradient(to right, #fbbf24, #f59e0b) !important;
+        }
+
+        [data-theme="light"] #select-swing-shift {
+            background: linear-gradient(to right, #8b5cf6, #7c3aed) !important;
+        }
+
+        [data-theme="light"] #all-hours-checkbox {
+            background-color: rgba(59, 130, 246, 0.1) !important;
+        }
+
+        [data-theme="light"] .hour-filter-btn {
+            background-color: #e5e7eb !important;
+            border-color: #9ca3af !important;
+            color: #4b5563 !important;
+        }
+
+        [data-theme="light"] .hour-filter-btn.bg-blue-500 {
+            background-color: #3b82f6 !important;
+            border-color: #2563eb !important;
+            color: white !important;
+        }
+
+        /* 층별 필터 - 라이트 모드 (초록) */
+        [data-theme="light"] #sidebar > div:nth-child(4) {
+            background: linear-gradient(135deg, #d1fae5, #a7f3d0) !important;
+            border: 1px solid #34d399 !important;
+        }
+
+        [data-theme="light"] #sidebar > div:nth-child(4) h3 {
+            color: #065f46 !important;
+        }
+
+        /* 팩 종류 필터 - 라이트 모드 (주황) */
+        [data-theme="light"] #sidebar > div:nth-child(5) {
+            background: linear-gradient(135deg, #fed7aa, #fdba74) !important;
+            border: 1px solid #fb923c !important;
+        }
+
+        [data-theme="light"] #sidebar > div:nth-child(5) h3 {
+            color: #7c2d12 !important;
+        }
+
+        /* Target HTP - 라이트 모드 (보라) */
+        [data-theme="light"] #sidebar > div:nth-child(6) {
+            background: linear-gradient(135deg, #e9d5ff, #d8b4fe) !important;
+            border: 1px solid #a855f7 !important;
+        }
+
+        [data-theme="light"] #sidebar > div:nth-child(6) h3 {
+            color: #581c87 !important;
+        }
+
+        /* 체크박스 라벨 - 라이트 모드 */
+        [data-theme="light"] #sidebar label {
+            background-color: rgba(255, 255, 255, 0.6) !important;
+        }
+
+        [data-theme="light"] #sidebar label:hover {
+            background-color: rgba(255, 255, 255, 0.9) !important;
+        }
+
+        [data-theme="light"] #sidebar label span {
+            color: #1f2937 !important;
+        }
+
+        /* 버튼 - 라이트 모드 */
+        [data-theme="light"] #select-all-hours,
+        [data-theme="light"] #select-all-floors,
+        [data-theme="light"] #select-all-packtypes {
+            background: linear-gradient(to right, #10b981, #059669) !important;
+        }
+
+        [data-theme="light"] #deselect-all-hours,
+        [data-theme="light"] #deselect-all-floors,
+        [data-theme="light"] #deselect-all-packtypes {
+            background: linear-gradient(to right, #ef4444, #dc2626) !important;
+        }
+
+        /* 체크박스 - 라이트 모드 */
+        [data-theme="light"] .form-checkbox {
+            border-color: #9ca3af !important;
+            background-color: white !important;
+        }
+
+        [data-theme="light"] .form-checkbox:checked {
+            background-color: #3b82f6 !important;
+            border-color: #2563eb !important;
+        }
     </style>
 </head>
 
@@ -1183,9 +1315,9 @@
 
 <div id="app-container" class="app-container">
     <!-- Sidebar -->
-    <aside id="sidebar" class="bg-gray-800 p-4 flex-shrink-0 flex flex-col space-y-4 overflow-y-auto">
-        <div class="flex items-center justify-between border-b pb-3" style="border-color: var(--border-color);">
-            <h2 class="text-xl font-bold text-white">⚙️ 필터 및 설정</h2>
+    <aside id="sidebar" class="bg-gradient-to-b from-gray-800 to-gray-900 p-4 flex-shrink-0 flex flex-col space-y-4 overflow-y-auto border-r-2 border-purple-500">
+        <div class="flex items-center justify-between pb-3 border-b-2 border-purple-500">
+            <h2 class="text-xl font-bold bg-gradient-to-r from-purple-400 to-pink-400 bg-clip-text text-transparent">⚙️ 필터 및 설정</h2>
             <!-- Theme Toggle -->
             <div class="theme-toggle" id="theme-toggle">
                 <div class="theme-toggle-slider">
@@ -1195,12 +1327,15 @@
         </div>
         
         <!-- 🆕 Hidden Employees Management -->
-        <div class="bg-gray-700 p-3 rounded-lg">
-            <div class="flex justify-between items-center mb-2">
-                <h3 class="font-semibold text-white">👻 숨긴 작업자</h3>
-                <span id="hidden-count-badge" class="bg-red-500 text-white px-2 py-1 rounded-full text-xs font-bold">0</span>
+        <div class="bg-gradient-to-br from-gray-700 to-gray-800 p-4 rounded-xl shadow-lg border border-gray-600">
+            <div class="flex justify-between items-center mb-3">
+                <h3 class="font-bold text-white flex items-center gap-2">
+                    <span class="text-2xl">👻</span>
+                    <span>숨긴 작업자</span>
+                </h3>
+                <span id="hidden-count-badge" class="bg-gradient-to-r from-red-500 to-pink-500 text-white px-3 py-1 rounded-full text-xs font-bold shadow-lg">0</span>
             </div>
-            <button id="manage-hidden-btn" class="w-full py-2 px-3 text-sm font-semibold rounded-md bg-gray-600 hover:bg-gray-500">
+            <button id="manage-hidden-btn" class="w-full py-2.5 px-4 text-sm font-bold rounded-lg bg-gradient-to-r from-gray-600 to-gray-700 hover:from-gray-500 hover:to-gray-600 text-white shadow-md transition-all duration-200 transform hover:scale-105">
                 관리하기
             </button>
             <div id="hidden-employees-list" class="hidden-employees-panel hidden mt-3">
@@ -1209,42 +1344,90 @@
         </div>
 
         <!-- Time Filters -->
-        <div class="bg-gray-700 p-3 rounded-lg">
-            <h3 class="font-semibold mb-2 text-white">⏰ 시간대별 필터</h3>
+        <div class="bg-gradient-to-br from-blue-900 to-purple-900 p-4 rounded-xl shadow-lg border border-blue-500">
+            <h3 class="font-bold mb-3 text-white flex items-center gap-2">
+                <span class="text-2xl">⏰</span>
+                <span>시간대별 필터</span>
+            </h3>
+            
+            <!-- DAY/SWING 빠른 선택 -->
+            <div class="grid grid-cols-2 gap-3 mb-4">
+                <button id="select-day-shift" class="shift-quick-btn group relative overflow-hidden py-3 px-4 rounded-xl font-bold text-sm transition-all duration-300 bg-gradient-to-r from-yellow-500 to-orange-500 hover:from-yellow-400 hover:to-orange-400 text-white shadow-lg transform hover:scale-105">
+                    <div class="relative z-10">
+                        <div class="text-xl mb-1">☀️</div>
+                        <div class="font-extrabold">DAY</div>
+                        <div class="text-xs opacity-90">09-18시</div>
+                    </div>
+                    <div class="absolute inset-0 bg-white opacity-0 group-hover:opacity-20 transition-opacity"></div>
+                </button>
+                <button id="select-swing-shift" class="shift-quick-btn group relative overflow-hidden py-3 px-4 rounded-xl font-bold text-sm transition-all duration-300 bg-gradient-to-r from-indigo-600 to-purple-600 hover:from-indigo-500 hover:to-purple-500 text-white shadow-lg transform hover:scale-105">
+                    <div class="relative z-10">
+                        <div class="text-xl mb-1">🌙</div>
+                        <div class="font-extrabold">SWING</div>
+                        <div class="text-xs opacity-90">19-08시</div>
+                    </div>
+                    <div class="absolute inset-0 bg-white opacity-0 group-hover:opacity-20 transition-opacity"></div>
+                </button>
+            </div>
+            
             <div class="space-y-2">
-                <label class="flex items-center space-x-2 text-sm cursor-pointer"><input type="checkbox" id="all-hours-checkbox" class="form-checkbox" checked><span>전체 시간</span></label>
-                <div id="hour-filters" class="filter-group-grid pt-2 border-t" style="border-color: var(--border-color);"></div>
-                <div class="flex space-x-2 pt-2 border-t" style="border-color: var(--border-color);">
-                    <button id="select-all-hours" class="text-xs py-1 px-2 rounded w-full">모두 선택</button>
-                    <button id="deselect-all-hours" class="text-xs py-1 px-2 rounded w-full">모두 해제</button>
+                <label class="flex items-center gap-3 text-sm cursor-pointer bg-gray-800 bg-opacity-50 px-3 py-2 rounded-lg hover:bg-opacity-70 transition-all">
+                    <input type="checkbox" id="all-hours-checkbox" class="form-checkbox w-5 h-5 rounded border-2 border-purple-400 text-purple-500 focus:ring-2 focus:ring-purple-400" checked>
+                    <span class="font-bold text-white">전체 시간</span>
+                </label>
+                <div id="hour-filters" class="grid grid-cols-4 gap-1.5 pt-2"></div>
+                <div class="flex gap-2 pt-3 border-t border-blue-400">
+                    <button id="select-all-hours" class="flex-1 py-2 px-3 text-xs font-bold rounded-lg bg-gradient-to-r from-green-600 to-emerald-600 hover:from-green-500 hover:to-emerald-500 text-white shadow-md transition-all duration-200 transform hover:scale-105">
+                        ✓ 모두
+                    </button>
+                    <button id="deselect-all-hours" class="flex-1 py-2 px-3 text-xs font-bold rounded-lg bg-gradient-to-r from-red-600 to-pink-600 hover:from-red-500 hover:to-pink-500 text-white shadow-md transition-all duration-200 transform hover:scale-105">
+                        ✗ 해제
+                    </button>
                 </div>
             </div>
         </div>
 
         <!-- Floor Filters -->
-        <div class="bg-gray-700 p-3 rounded-lg">
-            <h3 class="font-semibold mb-2 text-white">📶 층별 필터 (집품)</h3>
-            <div id="floor-filters" class="space-y-2"></div>
-            <div class="flex space-x-2 pt-2 mt-2 border-t" style="border-color: var(--border-color);">
-                <button id="select-all-floors" class="text-xs py-1 px-2 rounded w-full">모두 선택</button>
-                <button id="deselect-all-floors" class="text-xs py-1 px-2 rounded w-full">모두 해제</button>
+        <div class="bg-gradient-to-br from-green-900 to-teal-900 p-4 rounded-xl shadow-lg border border-green-500">
+            <h3 class="font-bold mb-3 text-white flex items-center gap-2">
+                <span class="text-2xl">📶</span>
+                <span>층별 필터 (집품)</span>
+            </h3>
+            <div id="floor-filters" class="space-y-1"></div>
+            <div class="flex gap-2 pt-3 mt-2 border-t border-green-400">
+                <button id="select-all-floors" class="flex-1 py-2 px-3 text-xs font-bold rounded-lg bg-gradient-to-r from-green-600 to-emerald-600 hover:from-green-500 hover:to-emerald-500 text-white shadow-md transition-all duration-200 transform hover:scale-105">
+                    ✓ 모두
+                </button>
+                <button id="deselect-all-floors" class="flex-1 py-2 px-3 text-xs font-bold rounded-lg bg-gradient-to-r from-red-600 to-pink-600 hover:from-red-500 hover:to-pink-500 text-white shadow-md transition-all duration-200 transform hover:scale-105">
+                    ✗ 해제
+                </button>
             </div>
         </div>
 
         <!-- Pack Type Filters -->
-        <div class="bg-gray-700 p-3 rounded-lg">
-            <h3 class="font-semibold mb-2 text-white">📦 팩 종류 필터 (포장)</h3>
-            <div id="pack-type-filters" class="space-y-2"></div>
-             <div class="flex space-x-2 pt-2 mt-2 border-t" style="border-color: var(--border-color);">
-                <button id="select-all-packtypes" class="text-xs py-1 px-2 rounded w-full">모두 선택</button>
-                <button id="deselect-all-packtypes" class="text-xs py-1 px-2 rounded w-full">모두 해제</button>
+        <div class="bg-gradient-to-br from-orange-900 to-red-900 p-4 rounded-xl shadow-lg border border-orange-500">
+            <h3 class="font-bold mb-3 text-white flex items-center gap-2">
+                <span class="text-2xl">📦</span>
+                <span>팩 종류 필터 (포장)</span>
+            </h3>
+            <div id="pack-type-filters" class="space-y-1"></div>
+             <div class="flex gap-2 pt-3 mt-2 border-t border-orange-400">
+                <button id="select-all-packtypes" class="flex-1 py-2 px-3 text-xs font-bold rounded-lg bg-gradient-to-r from-green-600 to-emerald-600 hover:from-green-500 hover:to-emerald-500 text-white shadow-md transition-all duration-200 transform hover:scale-105">
+                    ✓ 모두
+                </button>
+                <button id="deselect-all-packtypes" class="flex-1 py-2 px-3 text-xs font-bold rounded-lg bg-gradient-to-r from-red-600 to-pink-600 hover:from-red-500 hover:to-pink-500 text-white shadow-md transition-all duration-200 transform hover:scale-105">
+                    ✗ 해제
+                </button>
             </div>
         </div>
         
         <!-- Target HTP Settings -->
-        <div class="bg-gray-700 p-3 rounded-lg">
-            <h3 class="font-semibold mb-2 text-white">🎯 Target HTP 설정</h3>
-            <div id="target-htp-settings" class="space-y-2 text-sm"></div>
+        <div class="bg-gradient-to-br from-purple-900 to-pink-900 p-4 rounded-xl shadow-lg border border-purple-500">
+            <h3 class="font-bold mb-3 text-white flex items-center gap-2">
+                <span class="text-2xl">🎯</span>
+                <span>Target HTP 설정</span>
+            </h3>
+            <div id="target-htp-settings" class="space-y-1 text-sm"></div>
         </div>
     </aside>
     
@@ -2027,11 +2210,6 @@
         "Autobagger 4.0": { value: 280, keywords: ['Autobag4.0', '179_1.3F_AB_R4.0_OG_'] },
         "Autobagger RTPB": { value: 150, keywords: ['Autobag_RTPB1', '179_1.3F_AB_T1_OG_'] },
         "Auto MULTI": { value: 250, keywords: ['AGV_Multi_Autobag4.0', '179_1.3F_AB_M_OG_'] },
-        "CFC Manual S": { value: 100, keywords: ['190_6.2F_MA_S_OG_'] },
-        "CFC Manual M": { value: 120, keywords: ['190_6.2F_MA_M_OG_'] },
-        "CFC Autobag 2.5": { value: 350, keywords: ['190_6.2F_AB_R2.5_OG_'] },
-        "CFC Autobag 4.0": { value: 280, keywords: ['190_6.2F_AB_R4.0_OG_'] },
-        "CFC Autobag RTPB": { value: 150, keywords: ['190_6.2G_AB_T1_OG_'] },
         "PICK": { value: 90, keywords: [] }
     };
     for(const key in TARGET_HTP_DEFAULTS) {
@@ -3099,46 +3277,100 @@ function calculateEmployeeBadges() {
         ui.hourFilters.innerHTML = '';
         for (let i = 0; i < 24; i++) {
             const hour = i.toString().padStart(2, '0');
-            const label = document.createElement('label');
-            label.className = 'flex items-center space-x-2 text-sm cursor-pointer';
-            const checkbox = document.createElement('input');
-            checkbox.type = 'checkbox'; checkbox.value = i;
-            checkbox.className = 'form-checkbox hour-checkbox';
-            checkbox.addEventListener('change', (e) => {
-                const hourVal = parseInt(e.target.value);
-                if (e.target.checked) {
-                    state.filters.hours.add(hourVal);
-                    allHoursCheckbox.checked = false;
-                } else {
+            
+            // 버튼 스타일 체크박스로 변경
+            const button = document.createElement('button');
+            button.type = 'button';
+            button.className = 'hour-filter-btn text-xs font-bold py-2 px-1 rounded-lg transition-all duration-200 bg-gray-700 hover:bg-gray-600 text-gray-300 border-2 border-gray-600';
+            button.dataset.hour = i;
+            button.textContent = hour;
+            
+            button.addEventListener('click', (e) => {
+                const hourVal = parseInt(e.currentTarget.dataset.hour);
+                const isActive = state.filters.hours.has(hourVal);
+                
+                if (isActive) {
                     state.filters.hours.delete(hourVal);
+                    e.currentTarget.classList.remove('bg-blue-500', 'border-blue-400', 'text-white', 'shadow-lg', 'scale-110');
+                    e.currentTarget.classList.add('bg-gray-700', 'border-gray-600', 'text-gray-300');
+                } else {
+                    state.filters.hours.add(hourVal);
+                    e.currentTarget.classList.remove('bg-gray-700', 'border-gray-600', 'text-gray-300');
+                    e.currentTarget.classList.add('bg-blue-500', 'border-blue-400', 'text-white', 'shadow-lg', 'scale-110');
+                    allHoursCheckbox.checked = false;
                 }
+                
                 if (state.filters.hours.size === 0) allHoursCheckbox.checked = true;
                 applyFiltersAndRender();
             });
-            label.appendChild(checkbox);
-            const text = document.createElement('span');
-            text.textContent = hour;
-            label.appendChild(text);
-            ui.hourFilters.appendChild(label);
+            
+            ui.hourFilters.appendChild(button);
         }
+        
         allHoursCheckbox.addEventListener('change', (e) => {
             if (e.target.checked) {
-                document.querySelectorAll('.hour-checkbox').forEach(cb => cb.checked = false);
+                document.querySelectorAll('.hour-filter-btn').forEach(btn => {
+                    btn.classList.remove('bg-blue-500', 'border-blue-400', 'text-white', 'shadow-lg', 'scale-110');
+                    btn.classList.add('bg-gray-700', 'border-gray-600', 'text-gray-300');
+                });
                 state.filters.hours.clear();
                 applyFiltersAndRender();
             }
         });
-        document.getElementById('select-all-hours').addEventListener('click', () => {
+        
+        // DAY 조 선택 버튼 (09시-18시)
+        document.getElementById('select-day-shift').addEventListener('click', () => {
             allHoursCheckbox.checked = false;
-            document.querySelectorAll('.hour-checkbox').forEach(cb => {
-                cb.checked = true;
-                state.filters.hours.add(parseInt(cb.value));
+            state.filters.hours.clear();
+            document.querySelectorAll('.hour-filter-btn').forEach(btn => {
+                const hour = parseInt(btn.dataset.hour);
+                if (hour >= 9 && hour <= 18) {
+                    btn.classList.remove('bg-gray-700', 'border-gray-600', 'text-gray-300');
+                    btn.classList.add('bg-blue-500', 'border-blue-400', 'text-white', 'shadow-lg', 'scale-110');
+                    state.filters.hours.add(hour);
+                } else {
+                    btn.classList.remove('bg-blue-500', 'border-blue-400', 'text-white', 'shadow-lg', 'scale-110');
+                    btn.classList.add('bg-gray-700', 'border-gray-600', 'text-gray-300');
+                }
             });
             applyFiltersAndRender();
         });
+        
+        // SWING 조 선택 버튼 (19시-08시)
+        document.getElementById('select-swing-shift').addEventListener('click', () => {
+            allHoursCheckbox.checked = false;
+            state.filters.hours.clear();
+            document.querySelectorAll('.hour-filter-btn').forEach(btn => {
+                const hour = parseInt(btn.dataset.hour);
+                if (hour >= 19 || hour <= 8) {
+                    btn.classList.remove('bg-gray-700', 'border-gray-600', 'text-gray-300');
+                    btn.classList.add('bg-blue-500', 'border-blue-400', 'text-white', 'shadow-lg', 'scale-110');
+                    state.filters.hours.add(hour);
+                } else {
+                    btn.classList.remove('bg-blue-500', 'border-blue-400', 'text-white', 'shadow-lg', 'scale-110');
+                    btn.classList.add('bg-gray-700', 'border-gray-600', 'text-gray-300');
+                }
+            });
+            applyFiltersAndRender();
+        });
+        
+        document.getElementById('select-all-hours').addEventListener('click', () => {
+            allHoursCheckbox.checked = false;
+            document.querySelectorAll('.hour-filter-btn').forEach(btn => {
+                const hour = parseInt(btn.dataset.hour);
+                btn.classList.remove('bg-gray-700', 'border-gray-600', 'text-gray-300');
+                btn.classList.add('bg-blue-500', 'border-blue-400', 'text-white', 'shadow-lg', 'scale-110');
+                state.filters.hours.add(hour);
+            });
+            applyFiltersAndRender();
+        });
+        
         document.getElementById('deselect-all-hours').addEventListener('click', () => {
             allHoursCheckbox.checked = true;
-            document.querySelectorAll('.hour-checkbox').forEach(cb => cb.checked = false);
+            document.querySelectorAll('.hour-filter-btn').forEach(btn => {
+                btn.classList.remove('bg-blue-500', 'border-blue-400', 'text-white', 'shadow-lg', 'scale-110');
+                btn.classList.add('bg-gray-700', 'border-gray-600', 'text-gray-300');
+            });
             state.filters.hours.clear();
             applyFiltersAndRender();
         });
@@ -3151,17 +3383,20 @@ function calculateEmployeeBadges() {
         
         items.forEach(item => {
             const label = document.createElement('label');
-            label.className = 'flex items-center space-x-2 text-sm cursor-pointer';
+            label.className = 'flex items-center gap-3 text-sm cursor-pointer bg-gray-800 bg-opacity-40 px-3 py-2.5 rounded-lg hover:bg-opacity-60 transition-all border border-transparent hover:border-gray-500';
             const checkbox = document.createElement('input');
             checkbox.type = 'checkbox'; checkbox.value = item;
-            checkbox.className = `form-checkbox ${type}-checkbox`;
+            checkbox.className = `form-checkbox ${type}-checkbox w-5 h-5 rounded border-2 border-gray-500 text-blue-500 focus:ring-2 focus:ring-blue-400`;
             checkbox.addEventListener('change', (e) => {
                 if (e.target.checked) state.filters[filterType].add(item);
                 else state.filters[filterType].delete(item);
                 applyFiltersAndRender();
             });
             label.appendChild(checkbox);
-            label.appendChild(document.createTextNode(` ${item}`));
+            const text = document.createElement('span');
+            text.textContent = item;
+            text.className = 'font-bold text-white';
+            label.appendChild(text);
             fragment.appendChild(label); // ⚡ fragment에 추가
         });
         
