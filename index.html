@@ -1489,7 +1489,7 @@
                     <button id="filter-pack" class="filter-btn flex-1 py-2 px-3 text-sm font-semibold rounded-md">🟨 PACK</button>
                 </div>
                 <div class="bg-gray-800 p-3 rounded-lg flex items-center">
-                    <input type="text" id="search-input" placeholder="🔍 이름(원바코드) 검색..." class="w-full rounded-md py-2 px-3 text-sm focus:ring-blue-500 focus:border-blue-500">
+                    <input type="text" id="search-input" placeholder="🔍 이름(큐코드) 검색..." class="w-full rounded-md py-2 px-3 text-sm focus:ring-blue-500 focus:border-blue-500">
                 </div>
                 <div class="bg-gray-800 p-3 rounded-lg flex items-center space-x-2">
                     <label class="flex items-center cursor-pointer">
@@ -1551,7 +1551,7 @@
                     <thead class="text-xs text-gray-300 uppercase bg-gray-700 sticky top-0 z-10">
                         <tr>
                             <th scope="col" class="px-4 py-3 sortable" data-sort-key="processType">집품/포장<span class="sort-indicator"></span></th>
-                            <th scope="col" class="px-4 py-3 sortable" data-sort-key="employee">이름(원바코드)<span class="sort-indicator"></span></th>
+                            <th scope="col" class="px-4 py-3 sortable" data-sort-key="employee">이름(큐코드)<span class="sort-indicator"></span></th>
                             <th scope="col" class="px-4 py-3 sortable" data-sort-key="unitQty">작업량<span class="sort-indicator"></span></th>
                             <th scope="col" class="px-4 py-3 sortable" data-sort-key="location">로케이션 및 작업대<span class="sort-indicator"></span></th>
                             <th scope="col" class="px-4 py-3 sortable" data-sort-key="processPathName">PP<span class="sort-indicator"></span></th>
@@ -1670,7 +1670,7 @@
                         <input 
                             type="text" 
                             id="history-employee-search" 
-                            placeholder="🔍 이름 또는 원바코드 검색..." 
+                            placeholder="🔍 이름 또는 큐코드 검색..." 
                             class="py-2 px-4 rounded-md text-sm w-80"
                             style="background: var(--bg-tertiary); border: 2px solid var(--border-color); color: var(--text-primary);"
                         >
@@ -3790,7 +3790,7 @@ function calculateEmployeeBadges() {
         dataToExport.forEach(item => {
             const rowData = {
                 '집품/포장': item.processType,
-                '이름(원바코드)': item.employee.replace(/[👑🔥🐢🥇🥈🥉]\s*/g, ''),
+                '이름(큐코드)': item.employee.replace(/[👑🔥🐢🥇🥈🥉]\s*/g, ''),
                 '계약직 여부': item.isPerm ? 'PERM' : 'TEMP',
                 '작업량': Number(item.unitQty),
                 '로케이션 및 작업대': item.location || '-',
