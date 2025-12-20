@@ -1296,7 +1296,7 @@
                     <button id="filter-pack" class="filter-btn flex-1 py-2 px-3 text-sm font-semibold rounded-md">🟨 PACK</button>
                 </div>
                 <div class="bg-gray-800 p-3 rounded-lg flex items-center">
-                    <input type="text" id="search-input" placeholder="🔍 이름(쿠코드) 검색..." class="w-full rounded-md py-2 px-3 text-sm focus:ring-blue-500 focus:border-blue-500">
+                    <input type="text" id="search-input" placeholder="🔍 이름(원바코드) 검색..." class="w-full rounded-md py-2 px-3 text-sm focus:ring-blue-500 focus:border-blue-500">
                 </div>
                 <div class="bg-gray-800 p-3 rounded-lg flex items-center space-x-2">
                     <label class="flex items-center cursor-pointer">
@@ -1358,7 +1358,7 @@
                     <thead class="text-xs text-gray-300 uppercase bg-gray-700 sticky top-0 z-10">
                         <tr>
                             <th scope="col" class="px-4 py-3 sortable" data-sort-key="processType">집품/포장<span class="sort-indicator"></span></th>
-                            <th scope="col" class="px-4 py-3 sortable" data-sort-key="employee">이름(쿠코드)<span class="sort-indicator"></span></th>
+                            <th scope="col" class="px-4 py-3 sortable" data-sort-key="employee">이름(원바코드)<span class="sort-indicator"></span></th>
                             <th scope="col" class="px-4 py-3 sortable" data-sort-key="unitQty">작업량<span class="sort-indicator"></span></th>
                             <th scope="col" class="px-4 py-3 sortable" data-sort-key="location">로케이션 및 작업대<span class="sort-indicator"></span></th>
                             <th scope="col" class="px-4 py-3 sortable" data-sort-key="processPathName">PP<span class="sort-indicator"></span></th>
@@ -1477,7 +1477,7 @@
                         <input 
                             type="text" 
                             id="history-employee-search" 
-                            placeholder="🔍 이름 또는 쿠코드 검색..." 
+                            placeholder="🔍 이름 또는 원바코드 검색..." 
                             class="py-2 px-4 rounded-md text-sm w-80"
                             style="background: var(--bg-tertiary); border: 2px solid var(--border-color); color: var(--text-primary);"
                         >
@@ -2303,29 +2303,65 @@ function calculateEmployeeBadges() {
     
     employeeBadges = {};
     
-    // 🆕 히스토리 데이터 OR 일반 데이터 사용
+    // 🆕 히스토리 데이터 구조: historyData[date] = [items]
     let dataSource = 'none';
     let allEmployees = new Set();
-    let employeeDataMap = {}; // 사원별 데이터 저장
+    let employeeDataMap = {}; // 사원별 데이터: {employee: [{date, htp, qty, processType}]}
     
     if (Object.keys(historyData).length > 0) {
-        // 히스토리 데이터 사용 (30일)
+        // 히스토리 데이터 사용 (날짜별 → 사원별로 재구성)
         dataSource = 'history';
         const sortedDates = Object.keys(historyData).sort();
         const recentDates = sortedDates.slice(-30);
         
         recentDates.forEach(date => {
-            const dayData = historyData[date];
+            const dayData = historyData[date]; // 해당 날짜의 모든 데이터
+            if (!Array.isArray(dayData)) return;
+            
+            // 날짜별 사원별 집계 (같은 날짜의 여러 작업을 합침)
+            const dailyEmployeeStats = {};
+            
             dayData.forEach(item => {
-                allEmployees.add(item.employee);
-                if (!employeeDataMap[item.employee]) {
-                    employeeDataMap[item.employee] = [];
+                if (!item || !item.employee) return;
+                
+                const empName = item.employee;
+                allEmployees.add(empName);
+                
+                if (!dailyEmployeeStats[empName]) {
+                    dailyEmployeeStats[empName] = {
+                        totalQty: 0,
+                        totalSeconds: 0,
+                        processTypes: new Set()
+                    };
                 }
-                employeeDataMap[item.employee].push({
+                
+                const durationSeconds = (item.htpEnd - item.htpStart) / 1000;
+                if (durationSeconds > 0) {
+                    dailyEmployeeStats[empName].totalQty += item.unitQty || 0;
+                    dailyEmployeeStats[empName].totalSeconds += durationSeconds;
+                    dailyEmployeeStats[empName].processTypes.add(item.processTask || item.processType || '');
+                }
+            });
+            
+            // 각 사원의 일일 집계를 employeeDataMap에 저장
+            Object.keys(dailyEmployeeStats).forEach(empName => {
+                if (!employeeDataMap[empName]) {
+                    employeeDataMap[empName] = [];
+                }
+                
+                const stats = dailyEmployeeStats[empName];
+                const dailyHtp = stats.totalSeconds > 0 
+                    ? (stats.totalQty / (stats.totalSeconds / 3600)) 
+                    : 0;
+                
+                // 주요 프로세스 타입 결정
+                const processType = Array.from(stats.processTypes).join(',');
+                
+                employeeDataMap[empName].push({
                     date: date,
-                    htp: item.htp,
-                    qty: item.qty,
-                    processType: item.processType
+                    htp: parseFloat(dailyHtp.toFixed(1)),
+                    qty: stats.totalQty,
+                    processType: processType
                 });
             });
         });
@@ -2379,16 +2415,26 @@ function calculateEmployeeBadges() {
         let currentStreak = 0;
         let lastDate = null;
         
-        // 데이터 수집
-        recentDates.forEach(date => {
-            const dayData = historyData[date];
-            const employeeData = dayData.filter(d => d.employee === employeeName);
-            
-            if (employeeData.length === 0) {
-                currentStreak = 0;
-                return;
+        // 사원별 데이터 가져오기
+        const employeeRecords = employeeDataMap[employeeName] || [];
+        
+        // 날짜별로 그룹화
+        const dateGroups = {};
+        employeeRecords.forEach(record => {
+            if (!dateGroups[record.date]) {
+                dateGroups[record.date] = [];
             }
+            dateGroups[record.date].push(record);
+        });
+        
+        // 날짜 정렬
+        const employeeDates = Object.keys(dateGroups).sort();
+        
+        // 날짜별 데이터 처리
+        employeeDates.forEach(date => {
+            const dayRecords = dateGroups[date];
             
+            // 근무일수 증가
             records.totalDays++;
             
             // 연속 근무일 계산
@@ -2410,15 +2456,17 @@ function calculateEmployeeBadges() {
             }
             lastDate = date;
             
-            const aggregated = aggregateData(employeeData);
+            // 하루 집계 변수
             let dayMaxHtp = 0;
             let dayTotalQty = 0;
             let dayPerfect = true;
+            let dayHasWork = dayRecords.length > 0;
             
-            aggregated.forEach(item => {
-                const htp = parseFloat(item.htp);
-                const qty = item.unitQty;
-                const targetHtp = getTargetHtp(item);
+            dayRecords.forEach(record => {
+                const htp = parseFloat(record.htp) || 0;
+                const qty = parseInt(record.qty) || 0;
+                const processType = record.processType || '';
+                const targetHtp = processType.includes('PICK') ? 90 : 180;
                 
                 htpHistory.push(htp);
                 dayTotalQty += qty;
@@ -2435,17 +2483,33 @@ function calculateEmployeeBadges() {
                 }
                 
                 // 공정별 집계
-                if (item.processType.includes('PICK')) records.pickDays++;
-                if (item.processType.includes('PACK')) records.packDays++;
+                if (processType.includes('PICK')) records.pickDays++;
+                if (processType.includes('PACK')) records.packDays++;
             });
             
-            records.totalQty += dayTotalQty;
-            if (dayPerfect) records.perfectDays++;
+            // 하루 집계 완료
+            if (dayHasWork) {
+                records.totalQty += dayTotalQty;
+                if (dayPerfect && dayMaxHtp > 0) {
+                    records.perfectDays++;
+                }
+            }
         });
         
         // 평균 HTP 계산
         if (htpHistory.length > 0) {
             records.avgHtp = htpHistory.reduce((a, b) => a + b, 0) / htpHistory.length;
+        }
+        
+        // 디버깅: 사원별 records 출력 (처음 3명만)
+        if (Object.keys(employeeBadges).length < 3) {
+            console.log(`  ${employeeName}:`, {
+                maxHtp: records.maxHtp,
+                totalDays: records.totalDays,
+                avgHtp: records.avgHtp.toFixed(1),
+                perfectDays: records.perfectDays,
+                maxStreak: records.maxConsecutiveDays
+            });
         }
         
         // 전문 공정 판단
@@ -3478,7 +3542,7 @@ function calculateEmployeeBadges() {
         dataToExport.forEach(item => {
             const rowData = {
                 '집품/포장': item.processType,
-                '이름(쿠코드)': item.employee.replace(/[👑🔥🐢🥇🥈🥉]\s*/g, ''),
+                '이름(원바코드)': item.employee.replace(/[👑🔥🐢🥇🥈🥉]\s*/g, ''),
                 '계약직 여부': item.isPerm ? 'PERM' : 'TEMP',
                 '작업량': Number(item.unitQty),
                 '로케이션 및 작업대': item.location || '-',
@@ -4058,32 +4122,47 @@ function calculateEmployeeBadges() {
             return;
         }
         
-        let allAggregatedData = [];
+        // 히스토리 데이터에서 직접 처리
+        const processFilter = state.rankingProcessType === 'pick' ? 'PICK' : 'PACK';
+        const employeeStats = new Map();
+        
         filteredDates.forEach(date => {
             const dayData = historyData[date];
-            if (dayData) {
-                const aggregated = aggregateData(dayData);
-                allAggregatedData = allAggregatedData.concat(aggregated.map(item => ({ ...item, date })));
-            }
-        });
-        
-        const processFilter = state.rankingProcessType === 'pick' ? 'PICK(집품)' : 'PACK(포장)';
-        const filteredData = allAggregatedData.filter(d => d.processType === processFilter);
-        
-        const employeeStats = new Map();
-        filteredData.forEach(item => {
-            if (!employeeStats.has(item.employee)) {
-                employeeStats.set(item.employee, { totalQty: 0, totalMh: 0 });
-            }
-            const stats = employeeStats.get(item.employee);
-            stats.totalQty += item.unitQty;
-            stats.totalMh += parseFloat(item.mh);
+            if (!Array.isArray(dayData)) return;
+            
+            dayData.forEach(item => {
+                if (!item || !item.employee) return;
+                
+                const processTask = item.processTask || item.processType || '';
+                if (!processTask.includes(processFilter)) return;
+                
+                // HTP 계산
+                const durationSeconds = (item.htpEnd - item.htpStart) / 1000;
+                if (durationSeconds <= 0) return;
+                
+                const htp = item.unitQty / (durationSeconds / 3600);
+                const qty = item.unitQty || 0;
+                const mh = durationSeconds / 3600;
+                
+                if (!employeeStats.has(item.employee)) {
+                    employeeStats.set(item.employee, { totalQty: 0, totalMh: 0, htpList: [] });
+                }
+                const stats = employeeStats.get(item.employee);
+                stats.totalQty += qty;
+                stats.totalMh += mh;
+                stats.htpList.push(htp);
+            });
         });
         
         const rankings = [];
         employeeStats.forEach((stats, employee) => {
             const avgHtp = stats.totalMh > 0 ? (stats.totalQty / stats.totalMh) : 0;
-            rankings.push({ employee, avgHtp: avgHtp.toFixed(1), totalQty: stats.totalQty });
+            rankings.push({ 
+                employee, 
+                avgHtp: avgHtp.toFixed(1), 
+                totalQty: stats.totalQty,
+                workDays: stats.htpList.length 
+            });
         });
         
         rankings.sort((a, b) => parseFloat(b.avgHtp) - parseFloat(a.avgHtp));
