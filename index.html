@@ -2206,7 +2206,7 @@
     let isHistoryLoaded = false; // 히스토리 로드 완료 플래그
     let badgesCalculated = false;
 
-    async function loadHistoryData() {
+    async function loadHistoryData(days = 90) {
         if (isLoadingHistory) return;
         isLoadingHistory = true;
         
@@ -2214,12 +2214,12 @@
         updateLoadingProgress(10, '히스토리 데이터 조회 중...');
         
         try {
-            const ninetyDaysAgo = new Date();
-            ninetyDaysAgo.setDate(ninetyDaysAgo.getDate() - 90);
+            const daysAgo = new Date();
+            daysAgo.setDate(daysAgo.getDate() - days);
             
             const q = query(
                 historyCollectionRef,
-                where('date', '>=', ninetyDaysAgo.toISOString().split('T')[0]),
+                where('date', '>=', daysAgo.toISOString().split('T')[0]),
                 orderBy('date', 'desc')
             );
             
@@ -2366,16 +2366,19 @@ function calculateEmployeeBadges() {
             });
         });
     } else if (globalRawData && globalRawData.length > 0) {
-        // 일반 데이터 사용 (오늘)
+        // 일반 데이터 사용 (오늘) - aggregateData 사용
         dataSource = 'today';
         const today = new Date().toISOString().split('T')[0];
         
+        // globalRawData는 이미 집계된 데이터 (aggregateData 결과)
         globalRawData.forEach(item => {
             if (item.employee) {
                 allEmployees.add(item.employee);
                 if (!employeeDataMap[item.employee]) {
                     employeeDataMap[item.employee] = [];
                 }
+                
+                // item.htp는 이미 계산된 평균 HTP
                 employeeDataMap[item.employee].push({
                     date: today,
                     htp: parseFloat(item.htp) || 0,
@@ -4623,6 +4626,18 @@ function calculateEmployeeBadges() {
         const savedTheme = localStorage.getItem('theme') || 'dark';
         document.documentElement.setAttribute('data-theme', savedTheme);
         console.log('✅ 테마 적용 완료:', savedTheme);
+        
+        // 🆕 자동으로 최근 7일 히스토리 로드
+        console.log('📦 최근 7일 히스토리 자동 로드 시작...');
+        setTimeout(() => {
+            if (typeof loadHistoryData === 'function') {
+                loadHistoryData(7).then(() => {
+                    console.log('✅ 초기 히스토리 로드 완료');
+                }).catch(err => {
+                    console.log('⚠️ 초기 히스토리 로드 실패:', err.message);
+                });
+            }
+        }, 500); // 0.5초 후 실행 (Firebase 초기화 대기)
     }
 </script>
 </body>
