@@ -3882,21 +3882,24 @@ function calculateEmployeeBadges() {
         const existingModal = document.getElementById('employee-detail-modal');
         if (existingModal) existingModal.remove();
         
+        // 현재 테마 확인
+        const isDark = document.documentElement.getAttribute('data-theme') === 'dark';
+        
         // 모달 배경
         const modalBg = document.createElement('div');
         modalBg.id = 'employee-detail-modal';
-        modalBg.className = 'fixed inset-0 bg-black bg-opacity-75 flex items-center justify-center z-50';
+        modalBg.className = `fixed inset-0 ${isDark ? 'bg-black bg-opacity-75' : 'bg-gray-900 bg-opacity-60'} flex items-center justify-center z-50`;
         modalBg.style.backdropFilter = 'blur(4px)';
         
-        // 모달 컨테이너
+        // 모달 컨테이너 - 테마별 배경색
         const modalContainer = document.createElement('div');
-        modalContainer.className = 'bg-gray-900 rounded-lg shadow-2xl max-w-2xl w-full max-h-[90vh] overflow-y-auto';
+        modalContainer.className = `${isDark ? 'bg-gray-900' : 'bg-white'} rounded-lg shadow-2xl max-w-2xl w-full max-h-[90vh] overflow-y-auto`;
         modalContainer.innerHTML = htmlContent;
         
-        // 닫기 버튼 추가
+        // 닫기 버튼 추가 - 테마별 색상
         const closeBtn = document.createElement('button');
         closeBtn.innerHTML = '✕';
-        closeBtn.className = 'absolute top-4 right-4 text-white text-2xl hover:text-red-400 transition-colors';
+        closeBtn.className = `absolute top-4 right-4 ${isDark ? 'text-white hover:text-red-400' : 'text-gray-700 hover:text-red-600'} text-2xl transition-colors font-bold`;
         closeBtn.onclick = () => modalBg.remove();
         modalContainer.style.position = 'relative';
         modalContainer.insertBefore(closeBtn, modalContainer.firstChild);
@@ -4883,6 +4886,34 @@ function calculateEmployeeBadges() {
         const badges = employeeBadge.badges || [];
         const records = employeeBadge.records || {};
         
+        // 현재 테마 확인
+        const isDark = document.documentElement.getAttribute('data-theme') === 'dark';
+        
+        // 테마별 색상 정의
+        const colors = isDark ? {
+            title: 'text-white',
+            subtitle: 'text-yellow-400',
+            noBadge: 'text-gray-400',
+            cardBg: 'bg-gray-800',
+            labelText: 'text-gray-400',
+            valueGreen: 'text-green-400',
+            valueBlue: 'text-blue-400',
+            valuePurple: 'text-purple-400',
+            valueOrange: 'text-orange-400',
+            valueRed: 'text-red-400'
+        } : {
+            title: 'text-gray-900',
+            subtitle: 'text-orange-600',
+            noBadge: 'text-gray-500',
+            cardBg: 'bg-gradient-to-br from-blue-50 to-purple-50',
+            labelText: 'text-gray-600',
+            valueGreen: 'text-green-600',
+            valueBlue: 'text-blue-600',
+            valuePurple: 'text-purple-600',
+            valueOrange: 'text-orange-600',
+            valueRed: 'text-red-600'
+        };
+        
         // 뱃지 HTML 생성
         let badgesHTML = '';
         if (badges.length > 0) {
@@ -4892,43 +4923,43 @@ function calculateEmployeeBadges() {
                 </span>`
             ).join('');
         } else {
-            badgesHTML = '<p class="text-gray-400">아직 획득한 뱃지가 없습니다.</p>';
+            badgesHTML = `<p class="${colors.noBadge}">아직 획득한 뱃지가 없습니다.</p>`;
         }
         
         // 모달 내용 생성
         const modalContent = `
             <div class="p-6">
-                <h2 class="text-2xl font-bold mb-4 text-white">👤 ${employeeName}</h2>
+                <h2 class="text-2xl font-bold mb-4 ${colors.title}">👤 ${employeeName}</h2>
                 
                 <div class="mb-6">
-                    <h3 class="text-lg font-semibold mb-2 text-yellow-400">🏅 획득 뱃지</h3>
+                    <h3 class="text-lg font-semibold mb-2 ${colors.subtitle}">🏅 획득 뱃지</h3>
                     <div class="flex flex-wrap">
                         ${badgesHTML}
                     </div>
                 </div>
                 
                 <div class="grid grid-cols-2 gap-4 mb-4">
-                    <div class="bg-gray-800 p-4 rounded-lg">
-                        <p class="text-gray-400 text-sm">최고 HTP</p>
-                        <p class="text-2xl font-bold text-green-400">${records.maxHtp || 0}</p>
+                    <div class="${colors.cardBg} p-4 rounded-lg shadow-md border ${isDark ? 'border-gray-700' : 'border-blue-200'}">
+                        <p class="${colors.labelText} text-sm font-semibold">최고 HTP</p>
+                        <p class="text-2xl font-bold ${colors.valueGreen}">${records.maxHtp || 0}</p>
                     </div>
-                    <div class="bg-gray-800 p-4 rounded-lg">
-                        <p class="text-gray-400 text-sm">평균 HTP</p>
-                        <p class="text-2xl font-bold text-blue-400">${records.avgHtp ? records.avgHtp.toFixed(1) : 0}</p>
+                    <div class="${colors.cardBg} p-4 rounded-lg shadow-md border ${isDark ? 'border-gray-700' : 'border-blue-200'}">
+                        <p class="${colors.labelText} text-sm font-semibold">평균 HTP</p>
+                        <p class="text-2xl font-bold ${colors.valueBlue}">${records.avgHtp ? records.avgHtp.toFixed(1) : 0}</p>
                     </div>
-                    <div class="bg-gray-800 p-4 rounded-lg">
-                        <p class="text-gray-400 text-sm">총 근무일</p>
-                        <p class="text-2xl font-bold text-purple-400">${records.totalDays || 0}일</p>
+                    <div class="${colors.cardBg} p-4 rounded-lg shadow-md border ${isDark ? 'border-gray-700' : 'border-blue-200'}">
+                        <p class="${colors.labelText} text-sm font-semibold">총 근무일</p>
+                        <p class="text-2xl font-bold ${colors.valuePurple}">${records.totalDays || 0}일</p>
                     </div>
-                    <div class="bg-gray-800 p-4 rounded-lg">
-                        <p class="text-gray-400 text-sm">총 작업량</p>
-                        <p class="text-2xl font-bold text-orange-400">${(records.totalQty || 0).toLocaleString()}</p>
+                    <div class="${colors.cardBg} p-4 rounded-lg shadow-md border ${isDark ? 'border-gray-700' : 'border-blue-200'}">
+                        <p class="${colors.labelText} text-sm font-semibold">총 작업량</p>
+                        <p class="text-2xl font-bold ${colors.valueOrange}">${(records.totalQty || 0).toLocaleString()}</p>
                     </div>
                 </div>
                 
-                <div class="bg-gray-800 p-4 rounded-lg">
-                    <p class="text-gray-400 text-sm">연속 근무 최대</p>
-                    <p class="text-xl font-bold text-red-400">${records.maxConsecutiveDays || 0}일 🔥</p>
+                <div class="${colors.cardBg} p-4 rounded-lg shadow-md border ${isDark ? 'border-gray-700' : 'border-blue-200'}">
+                    <p class="${colors.labelText} text-sm font-semibold">연속 근무 최대</p>
+                    <p class="text-xl font-bold ${colors.valueRed}">${records.maxConsecutiveDays || 0}일 🔥</p>
                 </div>
             </div>
         `;
