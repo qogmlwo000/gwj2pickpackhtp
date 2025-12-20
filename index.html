@@ -1302,6 +1302,16 @@
             background-color: #3b82f6 !important;
             border-color: #2563eb !important;
         }
+
+        /* 🎯 뱃지 툴팁 스타일 */
+        .cursor-help {
+            cursor: help;
+        }
+
+        /* 툴팁이 잘 보이도록 추가 스타일 */
+        [title] {
+            position: relative;
+        }
     </style>
 </head>
 
@@ -4171,7 +4181,7 @@ function calculateEmployeeBadges() {
 
         const employeeBadge = employeeBadges[employeeName] || { badges: [], streaks: {}, records: {} };
         const badgesHtml = employeeBadge.badges.length > 0 
-            ? employeeBadge.badges.map(b => `<span class="badge badge-${b.level}">${b.name}</span>`).join(' ')
+            ? employeeBadge.badges.map(b => `<span class="badge badge-${b.level} cursor-help" title="📌 ${b.desc || '특별한 뱃지'}" style="transition: transform 0.2s; cursor: help;" onmouseover="this.style.transform='scale(1.1)'" onmouseout="this.style.transform='scale(1)'">${b.name}</span>`).join(' ')
             : '<span class="text-gray-500">획득한 뱃지가 없습니다</span>';
 
         ui.chartModalTitle.textContent = `${employeeName} 님의 상세 분석 (${processType.split('(')[0]})`;
@@ -4918,7 +4928,7 @@ function calculateEmployeeBadges() {
         let badgesHTML = '';
         if (badges.length > 0) {
             badgesHTML = badges.map(badge => 
-                `<span class="inline-block px-3 py-1 m-1 rounded-lg bg-gradient-to-r from-yellow-500 to-orange-500 text-white font-bold shadow-lg">
+                `<span class="inline-block px-3 py-1 m-1 rounded-lg bg-gradient-to-r from-yellow-500 to-orange-500 text-white font-bold shadow-lg cursor-help transition-transform hover:scale-110" title="📌 ${badge.desc || '특별한 뱃지'}">
                     ${badge.name}
                 </span>`
             ).join('');
