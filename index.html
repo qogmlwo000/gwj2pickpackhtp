@@ -3642,6 +3642,49 @@ function calculateEmployeeBadges() {
         setTimeout(() => { modal.remove(); style.remove(); }, duration);
     }
 
+    function showEmployeeModal(htmlContent) {
+        // 기존 모달 제거
+        const existingModal = document.getElementById('employee-detail-modal');
+        if (existingModal) existingModal.remove();
+        
+        // 모달 배경
+        const modalBg = document.createElement('div');
+        modalBg.id = 'employee-detail-modal';
+        modalBg.className = 'fixed inset-0 bg-black bg-opacity-75 flex items-center justify-center z-50';
+        modalBg.style.backdropFilter = 'blur(4px)';
+        
+        // 모달 컨테이너
+        const modalContainer = document.createElement('div');
+        modalContainer.className = 'bg-gray-900 rounded-lg shadow-2xl max-w-2xl w-full max-h-[90vh] overflow-y-auto';
+        modalContainer.innerHTML = htmlContent;
+        
+        // 닫기 버튼 추가
+        const closeBtn = document.createElement('button');
+        closeBtn.innerHTML = '✕';
+        closeBtn.className = 'absolute top-4 right-4 text-white text-2xl hover:text-red-400 transition-colors';
+        closeBtn.onclick = () => modalBg.remove();
+        modalContainer.style.position = 'relative';
+        modalContainer.insertBefore(closeBtn, modalContainer.firstChild);
+        
+        modalBg.appendChild(modalContainer);
+        
+        // 배경 클릭 시 닫기
+        modalBg.onclick = (e) => {
+            if (e.target === modalBg) modalBg.remove();
+        };
+        
+        // ESC 키로 닫기
+        const escHandler = (e) => {
+            if (e.key === 'Escape') {
+                modalBg.remove();
+                document.removeEventListener('keydown', escHandler);
+            }
+        };
+        document.addEventListener('keydown', escHandler);
+        
+        document.body.appendChild(modalBg);
+    }
+
     initializeFiltersFromData([]);
 
     Chart.register(ChartDataLabels);
@@ -4591,15 +4634,79 @@ function calculateEmployeeBadges() {
     }
 
     function showEmployeeDetailModal(employeeName, processType) {
-        showModal('사원 상세 모달은 간소화 버전입니다.');
+        // 뱃지 먼저 계산
+        ensureBadgesCalculated();
+        
+        // 사원 정보 가져오기
+        const employeeBadge = employeeBadges[employeeName];
+        
+        if (!employeeBadge) {
+            showModal(`${employeeName}의 정보를 찾을 수 없습니다.`);
+            return;
+        }
+        
+        const badges = employeeBadge.badges || [];
+        const records = employeeBadge.records || {};
+        
+        // 뱃지 HTML 생성
+        let badgesHTML = '';
+        if (badges.length > 0) {
+            badgesHTML = badges.map(badge => 
+                `<span class="inline-block px-3 py-1 m-1 rounded-lg bg-gradient-to-r from-yellow-500 to-orange-500 text-white font-bold shadow-lg">
+                    ${badge.name}
+                </span>`
+            ).join('');
+        } else {
+            badgesHTML = '<p class="text-gray-400">아직 획득한 뱃지가 없습니다.</p>';
+        }
+        
+        // 모달 내용 생성
+        const modalContent = `
+            <div class="p-6">
+                <h2 class="text-2xl font-bold mb-4 text-white">👤 ${employeeName}</h2>
+                
+                <div class="mb-6">
+                    <h3 class="text-lg font-semibold mb-2 text-yellow-400">🏅 획득 뱃지</h3>
+                    <div class="flex flex-wrap">
+                        ${badgesHTML}
+                    </div>
+                </div>
+                
+                <div class="grid grid-cols-2 gap-4 mb-4">
+                    <div class="bg-gray-800 p-4 rounded-lg">
+                        <p class="text-gray-400 text-sm">최고 HTP</p>
+                        <p class="text-2xl font-bold text-green-400">${records.maxHtp || 0}</p>
+                    </div>
+                    <div class="bg-gray-800 p-4 rounded-lg">
+                        <p class="text-gray-400 text-sm">평균 HTP</p>
+                        <p class="text-2xl font-bold text-blue-400">${records.avgHtp ? records.avgHtp.toFixed(1) : 0}</p>
+                    </div>
+                    <div class="bg-gray-800 p-4 rounded-lg">
+                        <p class="text-gray-400 text-sm">총 근무일</p>
+                        <p class="text-2xl font-bold text-purple-400">${records.totalDays || 0}일</p>
+                    </div>
+                    <div class="bg-gray-800 p-4 rounded-lg">
+                        <p class="text-gray-400 text-sm">총 작업량</p>
+                        <p class="text-2xl font-bold text-orange-400">${(records.totalQty || 0).toLocaleString()}</p>
+                    </div>
+                </div>
+                
+                <div class="bg-gray-800 p-4 rounded-lg">
+                    <p class="text-gray-400 text-sm">연속 근무 최대</p>
+                    <p class="text-xl font-bold text-red-400">${records.maxConsecutiveDays || 0}일 🔥</p>
+                </div>
+            </div>
+        `;
+        
+        showEmployeeModal(modalContent);
     }
 
     function exportHistoryToExcel() {
-        showModal('히스토리 엑셀 다운로드 기능 (간소화 버전)');
+        showModal('엑셀 다운로드 기능은 곧 추가될 예정입니다.');
     }
 
     function exportHistoryToPDF() {
-        showModal('PDF 리포트 기능 (간소화 버전)');
+        showModal('PDF 리포트 기능은 곧 추가될 예정입니다.');
     }
 
     // 🚀 페이지 로드 시 즉시 초기화
