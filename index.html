@@ -1312,6 +1312,253 @@
         [title] {
             position: relative;
         }
+		
+		/* 🆕 History Top Performers Enhanced Styles */
+        .top-performer-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            background: linear-gradient(135deg, var(--bg-tertiary) 0%, var(--bg-secondary) 100%);
+            padding: 12px 16px;
+            border-radius: 10px;
+            cursor: pointer;
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            position: relative;
+            overflow: hidden;
+            border: 2px solid transparent;
+        }
+
+        .top-performer-item::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: -100%;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.1), transparent);
+            transition: left 0.5s;
+        }
+
+        .top-performer-item:hover::before {
+            left: 100%;
+        }
+
+        .top-performer-item:hover {
+            transform: translateX(8px) scale(1.02);
+            box-shadow: 0 8px 24px rgba(0, 0, 0, 0.3);
+        }
+
+        /* 🥇 1위 스타일 */
+        .top-performer-item.rank-1 {
+            background: linear-gradient(135deg, rgba(251, 191, 36, 0.2) 0%, rgba(245, 158, 11, 0.2) 100%);
+            border-color: #fbbf24;
+            animation: pulse-gold 2s infinite;
+        }
+
+        .top-performer-item.rank-1 .performer-name {
+            background: linear-gradient(135deg, #fbbf24, #f59e0b, #d97706);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            font-weight: 800;
+            text-shadow: 0 0 20px rgba(251, 191, 36, 0.5);
+        }
+
+        .top-performer-item.rank-1 .performer-htp {
+            color: #fbbf24;
+            font-weight: 800;
+            text-shadow: 0 0 10px rgba(251, 191, 36, 0.6);
+            animation: glow-gold 1.5s infinite alternate;
+        }
+
+        .top-performer-item.rank-1 .medal-icon {
+            font-size: 2rem;
+            animation: rotate-medal 3s infinite;
+        }
+
+        @keyframes pulse-gold {
+            0%, 100% { 
+                box-shadow: 0 0 20px rgba(251, 191, 36, 0.4);
+            }
+            50% { 
+                box-shadow: 0 0 40px rgba(251, 191, 36, 0.8);
+            }
+        }
+
+        @keyframes glow-gold {
+            from { text-shadow: 0 0 10px rgba(251, 191, 36, 0.6); }
+            to { text-shadow: 0 0 20px rgba(251, 191, 36, 1); }
+        }
+
+        @keyframes rotate-medal {
+            0%, 100% { transform: rotate(0deg) scale(1); }
+            25% { transform: rotate(-15deg) scale(1.1); }
+            75% { transform: rotate(15deg) scale(1.1); }
+        }
+
+        /* 🥈 2위 스타일 */
+        .top-performer-item.rank-2 {
+            background: linear-gradient(135deg, rgba(229, 231, 235, 0.2) 0%, rgba(156, 163, 175, 0.2) 100%);
+            border-color: #9ca3af;
+            animation: pulse-silver 2s infinite;
+        }
+
+        .top-performer-item.rank-2 .performer-name {
+            background: linear-gradient(135deg, #f3f4f6, #9ca3af, #6b7280);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            font-weight: 700;
+        }
+
+        .top-performer-item.rank-2 .performer-htp {
+            color: #d1d5db;
+            font-weight: 700;
+            animation: glow-silver 1.5s infinite alternate;
+        }
+
+        .top-performer-item.rank-2 .medal-icon {
+            font-size: 1.8rem;
+            animation: bounce-medal 2s infinite;
+        }
+
+        @keyframes pulse-silver {
+            0%, 100% { 
+                box-shadow: 0 0 15px rgba(156, 163, 175, 0.3);
+            }
+            50% { 
+                box-shadow: 0 0 30px rgba(156, 163, 175, 0.6);
+            }
+        }
+
+        @keyframes glow-silver {
+            from { text-shadow: 0 0 8px rgba(209, 213, 219, 0.5); }
+            to { text-shadow: 0 0 16px rgba(209, 213, 219, 0.9); }
+        }
+
+        @keyframes bounce-medal {
+            0%, 100% { transform: translateY(0); }
+            50% { transform: translateY(-8px); }
+        }
+
+        /* 🥉 3위 스타일 */
+        .top-performer-item.rank-3 {
+            background: linear-gradient(135deg, rgba(251, 146, 60, 0.2) 0%, rgba(249, 115, 22, 0.2) 100%);
+            border-color: #fb923c;
+            animation: pulse-bronze 2s infinite;
+        }
+
+        .top-performer-item.rank-3 .performer-name {
+            background: linear-gradient(135deg, #fb923c, #f97316, #ea580c);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            font-weight: 700;
+        }
+
+        .top-performer-item.rank-3 .performer-htp {
+            color: #fb923c;
+            font-weight: 700;
+            animation: glow-bronze 1.5s infinite alternate;
+        }
+
+        .top-performer-item.rank-3 .medal-icon {
+            font-size: 1.6rem;
+            animation: swing-medal 2s infinite;
+        }
+
+        @keyframes pulse-bronze {
+            0%, 100% { 
+                box-shadow: 0 0 15px rgba(251, 146, 60, 0.3);
+            }
+            50% { 
+                box-shadow: 0 0 30px rgba(251, 146, 60, 0.6);
+            }
+        }
+
+        @keyframes glow-bronze {
+            from { text-shadow: 0 0 8px rgba(251, 146, 60, 0.5); }
+            to { text-shadow: 0 0 16px rgba(251, 146, 60, 0.9); }
+        }
+
+        @keyframes swing-medal {
+            0%, 100% { transform: rotate(0deg); }
+            25% { transform: rotate(-10deg); }
+            75% { transform: rotate(10deg); }
+        }
+
+        /* 4-10위 스타일 */
+        .top-performer-item.rank-other {
+            background: linear-gradient(135deg, var(--bg-tertiary) 0%, var(--bg-secondary) 100%);
+            border-color: var(--border-color);
+        }
+
+        .top-performer-item.rank-other:hover {
+            border-color: var(--accent-primary);
+        }
+
+        .top-performer-item.rank-other .performer-name {
+            color: var(--text-primary);
+            font-weight: 600;
+        }
+
+        .top-performer-item.rank-other .performer-htp {
+            color: var(--success);
+            font-weight: 600;
+        }
+
+        .top-performer-item.rank-other .rank-number {
+            color: var(--text-secondary);
+            font-weight: 700;
+            font-size: 1.2rem;
+        }
+
+        /* 공통 요소 */
+        .performer-name {
+            font-size: 1rem;
+            flex-grow: 1;
+            margin-left: 12px;
+        }
+
+        .performer-htp {
+            font-size: 1.1rem;
+            min-width: 80px;
+            text-align: right;
+        }
+
+        .medal-icon {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            min-width: 36px;
+        }
+
+        .rank-number {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            min-width: 36px;
+            font-size: 1.1rem;
+        }
+
+        /* 라이트 모드 조정 */
+        [data-theme="light"] .top-performer-item.rank-1 .performer-name {
+            background: linear-gradient(135deg, #d97706, #b45309, #92400e);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+
+        [data-theme="light"] .top-performer-item.rank-2 .performer-name {
+            background: linear-gradient(135deg, #4b5563, #374151, #1f2937);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+
+        [data-theme="light"] .top-performer-item.rank-3 .performer-name {
+            background: linear-gradient(135deg, #c2410c, #9a3412, #7c2d12);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
     </style>
 </head>
 
@@ -2202,12 +2449,12 @@
 
     // --- Constants ---
     const PACK_TYPE_MAP = {
-        "메뉴얼팩": "179_1.3F_MA_S_OG_", "메뉴얼팩 멀티": "179_1.3F_MA_M_OG_", "ACE LINE": "179-1.2F-MA-ACE-OG-",
-        "오토백 1.2": "179_1.3F_AB_R1.2_OG_", "오토백 2.5": "179_1.3F_AB_R2.5_OG_", "오토백 4.0": "179_1.3F_AB_R4.0_OG_",
-        "오토백 RTPB": "179_1.3F_AB_T1_OG_", "오토백 멀티": "179_1.3F_AB_M_OG_", "CFC 메뉴얼팩": "190_6.2F_MA_S_OG_",
-        "CFC 메뉴얼팩 멀티": "190_6.2F_MA_M_OG_", "CFC 오토백 2.5": "190_6.2F_AB_R2.5_OG_", "CFC 오토백 4.0": "190_6.2F_AB_R4.0_OG_",
-        "CFC 오토백 RTPB": "190_6.2G_AB_T1_OG_"
-    };
+		"메뉴얼팩": "179_1.3F_MA_S_OG_", "메뉴얼팩 멀티": "179_1.3F_MA_M_OG_", "ACE LINE": "179-1.2F-MA-ACE-OG-",
+		"오토백 1.2": "AB_R1.2_", "오토백 2.5": "AB_2.5_", "오토백 4.0": "AB_4.0_",
+		"오토백 RTPB": "AB_T1_OG_", "오토백 멀티": "179_1.3F_AB_M_OG_", "CFC 메뉴얼팩": "190_6.2F_MA_S_OG_",
+		"CFC 메뉴얼팩 멀티": "190_6.2F_MA_M_OG_", "CFC 오토백 2.5": "190_6.2F_AB_R2.5_OG_", "CFC 오토백 4.0": "190_6.2F_AB_R4.0_OG_",
+		"CFC 오토백 RTPB": "190_6.2G_AB_T1_OG_"
+	};
     const DEFAULT_PACK_TYPE = "기타";
     const MANAGERS_LIST = ['R5370913', 'E4992491', 'Z7386388', 'Z5406388', 'B3706369', 'S4461023', 'V6568216', 'X4033164', 'X7694762', 'A1943868', 'D5012685', 'N2086791', 'W9345496', 'T5941917', 'K9270657', 'P1637348', 'H6239751', 'X9075186', 'H4633331', 'G4094768', 'R9635160', 'R2637601', 'T9383022', 'V4296863', 'G9236102', 'U7306474', 'P9738071', 'L5291847', 'D9063832', 'R8788212', 'S1827358', 'M9279634', 'H3088014', 'V8173681', 'J7268590', 'G2791563', 'N2607464', 'Y5651563', 'H3614867', 'Q2813675', 'U2554263', 'T9060243', 'G2345755', 'A3511520', 'T3138750'];
     
@@ -4759,12 +5006,26 @@ function calculateEmployeeBadges() {
             ui.historyTopPickList.innerHTML = '<div class="text-gray-500 text-center py-4">데이터 없음</div>';
         } else {
             pickList.forEach((item, index) => {
-                const medal = index === 0 ? '🥇' : index === 1 ? '🥈' : index === 2 ? '🥉' : `${index + 1}.`;
+                const rank = index + 1;
+                const rankClass = rank === 1 ? 'rank-1' : rank === 2 ? 'rank-2' : rank === 3 ? 'rank-3' : 'rank-other';
+                
+                let medalOrNumber = '';
+                if (rank === 1) {
+                    medalOrNumber = '<span class="medal-icon">🥇</span>';
+                } else if (rank === 2) {
+                    medalOrNumber = '<span class="medal-icon">🥈</span>';
+                } else if (rank === 3) {
+                    medalOrNumber = '<span class="medal-icon">🥉</span>';
+                } else {
+                    medalOrNumber = `<span class="rank-number">${rank}</span>`;
+                }
+                
                 const div = document.createElement('div');
-                div.className = 'flex justify-between items-center bg-gray-700 p-3 rounded-md cursor-pointer hover:bg-gray-600';
+                div.className = `top-performer-item ${rankClass}`;
                 div.innerHTML = `
-                    <span class="font-semibold">${medal} ${item.employee.split('(')[0].trim()}</span>
-                    <span class="text-green-400 font-bold">${item.avgHtp.toFixed(1)} HTP</span>
+                    ${medalOrNumber}
+                    <span class="performer-name">${item.employee.split('(')[0].trim()}</span>
+                    <span class="performer-htp">${item.avgHtp.toFixed(1)} HTP</span>
                 `;
                 div.addEventListener('click', () => showEmployeeDetailModal(item.employee, 'PICK(집품)'));
                 ui.historyTopPickList.appendChild(div);
@@ -4775,12 +5036,26 @@ function calculateEmployeeBadges() {
             ui.historyTopPackList.innerHTML = '<div class="text-gray-500 text-center py-4">데이터 없음</div>';
         } else {
             packList.forEach((item, index) => {
-                const medal = index === 0 ? '🥇' : index === 1 ? '🥈' : index === 2 ? '🥉' : `${index + 1}.`;
+                const rank = index + 1;
+                const rankClass = rank === 1 ? 'rank-1' : rank === 2 ? 'rank-2' : rank === 3 ? 'rank-3' : 'rank-other';
+                
+                let medalOrNumber = '';
+                if (rank === 1) {
+                    medalOrNumber = '<span class="medal-icon">🥇</span>';
+                } else if (rank === 2) {
+                    medalOrNumber = '<span class="medal-icon">🥈</span>';
+                } else if (rank === 3) {
+                    medalOrNumber = '<span class="medal-icon">🥉</span>';
+                } else {
+                    medalOrNumber = `<span class="rank-number">${rank}</span>`;
+                }
+                
                 const div = document.createElement('div');
-                div.className = 'flex justify-between items-center bg-gray-700 p-3 rounded-md cursor-pointer hover:bg-gray-600';
+                div.className = `top-performer-item ${rankClass}`;
                 div.innerHTML = `
-                    <span class="font-semibold">${medal} ${item.employee.split('(')[0].trim()}</span>
-                    <span class="text-green-400 font-bold">${item.avgHtp.toFixed(1)} HTP</span>
+                    ${medalOrNumber}
+                    <span class="performer-name">${item.employee.split('(')[0].trim()}</span>
+                    <span class="performer-htp">${item.avgHtp.toFixed(1)} HTP</span>
                 `;
                 div.addEventListener('click', () => showEmployeeDetailModal(item.employee, 'PACK(포장)'));
                 ui.historyTopPackList.appendChild(div);
