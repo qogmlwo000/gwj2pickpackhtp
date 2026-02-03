@@ -22,7 +22,20 @@
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/chartjs-plugin-datalabels@2.2.0/dist/chartjs-plugin-datalabels.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+    <!-- Resource Hints for Performance -->
+    <link rel="preconnect" href="https://cdn.tailwindcss.com">
+    <link rel="preconnect" href="https://cdn.jsdelivr.net">
+    <link rel="preconnect" href="https://cdnjs.cloudflare.com">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link rel="dns-prefetch" href="https://www.gstatic.com">
+    
+    <!-- Fonts -->
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    
+    <!-- External CSS (Optimized) -->
+    <link rel="stylesheet" href="styles.css">
+    
     <style>
         :root {
             --transition-speed: 0s;
@@ -1812,6 +1825,13 @@
                         <tr id="placeholder-row"><td colspan="9" class="text-center py-10 text-gray-500">엑셀 파일을 업로드하여 데이터를 확인하세요.</td></tr>
                     </tbody>
                 </table>
+            </div>
+            
+            <!-- Mobile Card View (hidden on desktop) -->
+            <div class="mobile-card-view hidden">
+                <div id="mobile-cards-container">
+                    <!-- Cards will be dynamically inserted here -->
+                </div>
             </div>
         </div>
 
@@ -3891,6 +3911,67 @@ function calculateEmployeeBadges() {
             `;
             ui.tableBody.appendChild(row);
         });
+        
+        // 모바일 카드 뷰 렌더링
+        renderMobileCards(data);
+    }
+    
+    function renderMobileCards(data) {
+        const mobileContainer = document.getElementById('mobile-cards-container');
+        if (!mobileContainer) return;
+        
+        mobileContainer.innerHTML = '';
+        
+        if (data.length === 0) {
+            mobileContainer.innerHTML = '<div class="text-center py-10 text-gray-500">엑셀 파일을 업로드하여 데이터를 확인하세요.</div>';
+            return;
+        }
+        
+        data.forEach(item => {
+            const isHidden = hiddenEmployees.has(item.employee);
+            const targetHtp = getTargetHtp(item);
+            const isLowPerformer = parseFloat(item.htp) < targetHtp;
+            const isDark = document.documentElement.getAttribute('data-theme') === 'dark';
+            
+            const card = document.createElement('div');
+            card.className = `employee-card ${isHidden ? 'hidden-employee' : ''}`;
+            
+            const processClass = item.processType.includes('PICK') ? 'pick' : 'pack';
+            const htpClass = isLowPerformer ? 'low' : '';
+            
+            let empDisplay = item.employee;
+            if (item.isManager) {
+                empDisplay = `👑 ${item.employee}`;
+            }
+            
+            card.innerHTML = `
+                <div class="employee-card-header">
+                    <div class="employee-card-name">${empDisplay}</div>
+                    <div class="employee-card-process ${processClass}">${item.processType}</div>
+                </div>
+                <div class="employee-card-stats">
+                    <div class="stat-item">
+                        <div class="stat-label">작업량</div>
+                        <div class="stat-value">${item.unitQty}</div>
+                    </div>
+                    <div class="stat-item">
+                        <div class="stat-label">HTP</div>
+                        <div class="stat-value htp ${htpClass}">${isLowPerformer ? '🚨 ' : ''}${item.htp}</div>
+                    </div>
+                    <div class="stat-item">
+                        <div class="stat-label">M/H</div>
+                        <div class="stat-value">${item.mh}</div>
+                    </div>
+                    <div class="stat-item">
+                        <div class="stat-label">팩 종류</div>
+                        <div class="stat-value">${item.packType}</div>
+                    </div>
+                </div>
+                ${isHidden ? '<div class="hidden-employee-indicator">숨김</div>' : ''}
+            `;
+            
+            mobileContainer.appendChild(card);
+        });
     }
 
     function updateColumnVisibility(data) {
@@ -5271,6 +5352,12 @@ function calculateEmployeeBadges() {
     
     function initializePage() {
         console.log('🎯 페이지 초기화 시작');
+        
+        // 초기 로딩 후 transition 활성화
+        setTimeout(() => {
+            document.documentElement.style.setProperty('--transition-speed', '0.3s');
+            console.log('✅ Transition 활성화');
+        }, 100);
         
         // 티커 즉시 표시 (데이터 없어도 안내 메시지 표시)
         if (typeof updateTicker === 'function') {
