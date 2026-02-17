@@ -1836,158 +1836,283 @@
         </div>
 
         <!-- Dashboard View -->
-        <div id="dashboard-view" class="hidden flex-col flex-grow min-h-0 p-4 space-y-4 overflow-y-auto">
-            <!-- KPI Cards -->
-            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
-                <div class="kpi-card p-4 rounded-lg shadow">
-                    <h4 class="text-gray-400 text-sm font-medium">총 작업자 수</h4>
-                    <p id="kpi-total-workers" class="text-3xl font-bold text-white">0</p>
+        <div id="dashboard-view" class="hidden flex-col flex-grow min-h-0 p-4 space-y-5 overflow-y-auto">
+            <!-- KPI Cards - Enhanced -->
+            <div class="grid grid-cols-2 lg:grid-cols-4 gap-4">
+                <div class="dash-kpi-card dash-kpi-blue">
+                    <div class="dash-kpi-icon">👥</div>
+                    <div class="dash-kpi-content">
+                        <span class="dash-kpi-label">총 작업자 수</span>
+                        <span id="kpi-total-workers" class="dash-kpi-value">0</span>
+                    </div>
+                    <div class="dash-kpi-bar" style="--kpi-color: var(--accent-primary);"></div>
                 </div>
-                <div class="kpi-card p-4 rounded-lg shadow">
-                    <h4 class="text-gray-400 text-sm font-medium">총 작업량 (Unit)</h4>
-                    <p id="kpi-total-qty" class="text-3xl font-bold text-white">0</p>
+                <div class="dash-kpi-card dash-kpi-green">
+                    <div class="dash-kpi-icon">📦</div>
+                    <div class="dash-kpi-content">
+                        <span class="dash-kpi-label">총 작업량 (Unit)</span>
+                        <span id="kpi-total-qty" class="dash-kpi-value">0</span>
+                    </div>
+                    <div class="dash-kpi-bar" style="--kpi-color: var(--success);"></div>
                 </div>
-                <div class="kpi-card p-4 rounded-lg shadow">
-                    <h4 class="text-gray-400 text-sm font-medium">전체 평균 HTP</h4>
-                    <p id="kpi-avg-htp" class="text-3xl font-bold text-white">0.0</p>
+                <div class="dash-kpi-card dash-kpi-purple">
+                    <div class="dash-kpi-icon">📊</div>
+                    <div class="dash-kpi-content">
+                        <span class="dash-kpi-label">전체 평균 HTP</span>
+                        <span id="kpi-avg-htp" class="dash-kpi-value">0.0</span>
+                    </div>
+                    <div class="dash-kpi-bar" style="--kpi-color: var(--accent-secondary);"></div>
                 </div>
-                <div class="kpi-card p-4 rounded-lg shadow border-l-red-500">
-                    <h4 class="text-gray-400 text-sm font-medium">저조자 수</h4>
-                    <p id="kpi-low-performers" class="text-3xl font-bold text-red-400">0</p>
+                <div class="dash-kpi-card dash-kpi-red">
+                    <div class="dash-kpi-icon">🚨</div>
+                    <div class="dash-kpi-content">
+                        <span class="dash-kpi-label">저조자 수</span>
+                        <span id="kpi-low-performers" class="dash-kpi-value">0</span>
+                    </div>
+                    <div class="dash-kpi-bar" style="--kpi-color: var(--error);"></div>
                 </div>
             </div>
 
-            <!-- Charts Grid -->
-            <div class="grid grid-cols-1 lg:grid-cols-2 xl:grid-cols-3 gap-4">
-                <div class="bg-gray-800 p-4 rounded-lg xl:col-span-1">
-                    <h3 class="text-lg font-semibold mb-2 text-white">프로세스별 비교</h3>
-                    <div class="relative h-64 md:h-80"><canvas id="process-comparison-chart"></canvas></div>
-                </div>
-                <div class="bg-gray-800 p-4 rounded-lg xl:col-span-2">
-                    <h3 class="text-lg font-semibold mb-2 text-white">시간대별 HTP 트렌드</h3>
-                    <div class="relative h-64 md:h-80"><canvas id="hourly-htp-chart"></canvas></div>
-                </div>
-                <div class="bg-gray-800 p-4 rounded-lg">
-                    <h3 class="text-lg font-semibold mb-2 text-white">층별 평균 HTP (집품)</h3>
-                    <div class="relative h-96"><canvas id="floor-htp-chart"></canvas></div>
-                </div>
-                <div class="bg-gray-800 p-4 rounded-lg">
-                    <h3 class="text-lg font-semibold mb-2 text-white">팩 종류별 작업량 (포장)</h3>
-                    <div class="relative h-96"><canvas id="pack-type-chart"></canvas></div>
-                </div>
-                <div class="bg-gray-800 p-4 rounded-lg lg:col-span-2 xl:col-span-1">
-                     <div class="grid grid-cols-1 sm:grid-cols-2 gap-4 h-full">
-                        <div>
-                            <h3 class="text-lg font-semibold mb-3 text-white">🏆 Top 5 PICK</h3>
-                            <ul id="top-pick-performers-list" class="space-y-2 text-sm"></ul>
+            <!-- PICK vs PACK Summary Bar -->
+            <div class="dash-process-summary">
+                <div class="dash-process-item pick">
+                    <div class="dash-process-header">
+                        <span class="dash-process-tag pick">PICK</span>
+                        <span class="dash-process-label">집품</span>
+                    </div>
+                    <div class="dash-process-stats">
+                        <div class="dash-process-stat">
+                            <span class="dash-process-stat-label">작업량</span>
+                            <span id="dash-pick-qty" class="dash-process-stat-value">0</span>
                         </div>
-                        <div>
-                            <h3 class="text-lg font-semibold mb-3 text-white">🏆 Top 5 PACK</h3>
-                            <ul id="top-pack-performers-list" class="space-y-2 text-sm"></ul>
+                        <div class="dash-process-stat">
+                            <span class="dash-process-stat-label">평균 HTP</span>
+                            <span id="dash-pick-htp" class="dash-process-stat-value">0.0</span>
+                        </div>
+                        <div class="dash-process-stat">
+                            <span class="dash-process-stat-label">작업자</span>
+                            <span id="dash-pick-workers" class="dash-process-stat-value">0</span>
+                        </div>
+                    </div>
+                </div>
+                <div class="dash-process-divider">
+                    <span>VS</span>
+                </div>
+                <div class="dash-process-item pack">
+                    <div class="dash-process-header">
+                        <span class="dash-process-tag pack">PACK</span>
+                        <span class="dash-process-label">포장</span>
+                    </div>
+                    <div class="dash-process-stats">
+                        <div class="dash-process-stat">
+                            <span class="dash-process-stat-label">작업량</span>
+                            <span id="dash-pack-qty" class="dash-process-stat-value">0</span>
+                        </div>
+                        <div class="dash-process-stat">
+                            <span class="dash-process-stat-label">평균 HTP</span>
+                            <span id="dash-pack-htp" class="dash-process-stat-value">0.0</span>
+                        </div>
+                        <div class="dash-process-stat">
+                            <span class="dash-process-stat-label">작업자</span>
+                            <span id="dash-pack-workers" class="dash-process-stat-value">0</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Charts Grid - Improved Layout -->
+            <div class="grid grid-cols-1 lg:grid-cols-2 gap-4">
+                <!-- Hourly Trend - Full Width -->
+                <div class="dash-chart-card lg:col-span-2">
+                    <div class="dash-chart-header">
+                        <h3 class="dash-chart-title">📈 시간대별 HTP 트렌드</h3>
+                        <span class="dash-chart-subtitle">시간별 작업 효율 변화</span>
+                    </div>
+                    <div class="relative h-64 md:h-72"><canvas id="hourly-htp-chart"></canvas></div>
+                </div>
+
+                <!-- Process Comparison -->
+                <div class="dash-chart-card">
+                    <div class="dash-chart-header">
+                        <h3 class="dash-chart-title">🔄 프로세스별 비교</h3>
+                        <span class="dash-chart-subtitle">PICK vs PACK 작업량 비율</span>
+                    </div>
+                    <div class="relative h-64 md:h-72"><canvas id="process-comparison-chart"></canvas></div>
+                </div>
+
+                <!-- Pack Type -->
+                <div class="dash-chart-card">
+                    <div class="dash-chart-header">
+                        <h3 class="dash-chart-title">📋 팩 종류별 작업량</h3>
+                        <span class="dash-chart-subtitle">포장 유형 분포</span>
+                    </div>
+                    <div class="relative h-64 md:h-72"><canvas id="pack-type-chart"></canvas></div>
+                </div>
+
+                <!-- Floor HTP -->
+                <div class="dash-chart-card">
+                    <div class="dash-chart-header">
+                        <h3 class="dash-chart-title">🏢 층별 평균 HTP</h3>
+                        <span class="dash-chart-subtitle">집품 층별 효율</span>
+                    </div>
+                    <div class="relative h-72 md:h-80"><canvas id="floor-htp-chart"></canvas></div>
+                </div>
+
+                <!-- Top Performers - Enhanced -->
+                <div class="dash-chart-card">
+                    <div class="dash-chart-header">
+                        <h3 class="dash-chart-title">🏆 Top 5 작업자</h3>
+                        <span class="dash-chart-subtitle">공정별 우수 성과자</span>
+                    </div>
+                    <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                        <div class="dash-top-section">
+                            <div class="dash-top-header pick">PICK TOP 5</div>
+                            <ul id="top-pick-performers-list" class="dash-top-list"></ul>
+                        </div>
+                        <div class="dash-top-section">
+                            <div class="dash-top-header pack">PACK TOP 5</div>
+                            <ul id="top-pack-performers-list" class="dash-top-list"></ul>
                         </div>
                     </div>
                 </div>
             </div>
         </div>
 
-        <!-- History View -->
-        <div id="history-view" class="hidden flex-col flex-grow min-h-0 p-4 space-y-4 overflow-y-auto">
-            <!-- Period Selector -->
-            <div class="bg-gray-800 p-4 rounded-lg">
-                <h3 class="text-lg font-semibold mb-3 text-white">📅 기간 선택</h3>
-                <div class="period-selector">
-                    <button id="period-week" class="period-btn filter-btn active">최근 7일</button>
-                    <button id="period-month" class="period-btn filter-btn">최근 30일</button>
-                    <button id="period-all" class="period-btn filter-btn">전체 기간</button>
-                    <button id="period-custom" class="period-btn filter-btn">사용자 지정</button>
+        <!-- History View - Redesigned -->
+        <div id="history-view" class="hidden flex-col flex-grow min-h-0 p-4 space-y-5 overflow-y-auto">
+            <!-- Period Selector - Enhanced -->
+            <div class="hist-period-card">
+                <div class="hist-period-header">
+                    <h3 class="hist-section-title">📅 분석 기간</h3>
+                    <div class="hist-period-badges">
+                        <button id="period-week" class="hist-period-btn active" data-period="week">
+                            <span class="hist-period-icon">7</span>
+                            <span>최근 7일</span>
+                        </button>
+                        <button id="period-month" class="hist-period-btn" data-period="month">
+                            <span class="hist-period-icon">30</span>
+                            <span>최근 30일</span>
+                        </button>
+                        <button id="period-all" class="hist-period-btn" data-period="all">
+                            <span class="hist-period-icon">∞</span>
+                            <span>전체</span>
+                        </button>
+                        <button id="period-custom" class="hist-period-btn" data-period="custom">
+                            <span class="hist-period-icon">📆</span>
+                            <span>사용자 지정</span>
+                        </button>
+                    </div>
                 </div>
-                <div id="custom-date-range" class="date-range-picker hidden mt-3">
-                    <input type="date" id="start-date" class="rounded-md py-2 px-3">
-                    <span class="text-gray-400">~</span>
-                    <input type="date" id="end-date" class="rounded-md py-2 px-3">
-                    <button id="apply-custom-range" class="py-2 px-4 bg-blue-600 text-white rounded-md">적용</button>
-                </div>
-            </div>
-
-            <!-- History KPI Cards -->
-            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
-                <div class="kpi-card p-4 rounded-lg shadow">
-                    <h4 class="text-gray-400 text-sm font-medium">총 작업 일수</h4>
-                    <p id="history-kpi-days" class="text-3xl font-bold text-white">0</p>
-                </div>
-                <div class="kpi-card p-4 rounded-lg shadow">
-                    <h4 class="text-gray-400 text-sm font-medium">누적 작업량</h4>
-                    <p id="history-kpi-total-qty" class="text-3xl font-bold text-white">0</p>
-                </div>
-                <div class="kpi-card p-4 rounded-lg shadow">
-                    <h4 class="text-gray-400 text-sm font-medium">평균 HTP</h4>
-                    <p id="history-kpi-avg-htp" class="text-3xl font-bold text-white">0.0</p>
-                </div>
-                <div class="kpi-card p-4 rounded-lg shadow border-l-purple-500">
-                    <h4 class="text-gray-400 text-sm font-medium">최고 HTP</h4>
-                    <p id="history-kpi-max-htp" class="text-3xl font-bold text-purple-400">0.0</p>
+                <div id="custom-date-range" class="hist-date-range hidden">
+                    <input type="date" id="start-date" class="hist-date-input">
+                    <span class="hist-date-separator">~</span>
+                    <input type="date" id="end-date" class="hist-date-input">
+                    <button id="apply-custom-range" class="hist-date-apply">적용</button>
                 </div>
             </div>
 
-            <!-- 🆕 Employee Search & Analysis Section -->
-            <div class="bg-gray-800 p-4 rounded-lg">
-                <div class="flex justify-between items-center mb-4">
-                    <h3 class="text-lg font-semibold text-white">👤 사원별 상세 분석</h3>
-                    <div class="flex items-center gap-2">
-                        <input 
-                            type="text" 
-                            id="history-employee-search" 
-                            placeholder="🔍 이름 또는 쿠코드 검색..." 
-                            class="py-2 px-4 rounded-md text-sm w-80"
-                            style="background: var(--bg-tertiary); border: 2px solid var(--border-color); color: var(--text-primary);"
-                        >
-                        <button id="history-show-all-btn" class="py-2 px-4 bg-blue-600 text-white rounded-md text-sm font-semibold hover:bg-blue-700">
+            <!-- History KPI Cards - Enhanced -->
+            <div class="grid grid-cols-2 lg:grid-cols-4 gap-4">
+                <div class="hist-kpi-card">
+                    <div class="hist-kpi-icon-wrap blue">📅</div>
+                    <div class="hist-kpi-info">
+                        <span class="hist-kpi-label">총 작업 일수</span>
+                        <span id="history-kpi-days" class="hist-kpi-value">0</span>
+                        <span class="hist-kpi-unit">일</span>
+                    </div>
+                </div>
+                <div class="hist-kpi-card">
+                    <div class="hist-kpi-icon-wrap green">📦</div>
+                    <div class="hist-kpi-info">
+                        <span class="hist-kpi-label">누적 작업량</span>
+                        <span id="history-kpi-total-qty" class="hist-kpi-value">0</span>
+                        <span class="hist-kpi-unit">Unit</span>
+                    </div>
+                </div>
+                <div class="hist-kpi-card">
+                    <div class="hist-kpi-icon-wrap orange">📊</div>
+                    <div class="hist-kpi-info">
+                        <span class="hist-kpi-label">평균 HTP</span>
+                        <span id="history-kpi-avg-htp" class="hist-kpi-value">0.0</span>
+                    </div>
+                </div>
+                <div class="hist-kpi-card">
+                    <div class="hist-kpi-icon-wrap purple">🏅</div>
+                    <div class="hist-kpi-info">
+                        <span class="hist-kpi-label">최고 HTP</span>
+                        <span id="history-kpi-max-htp" class="hist-kpi-value highlight">0.0</span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Employee Search & Analysis Section - Enhanced -->
+            <div class="hist-section-card">
+                <div class="hist-section-header">
+                    <h3 class="hist-section-title">👤 사원별 상세 분석</h3>
+                    <div class="hist-search-bar">
+                        <div class="hist-search-input-wrap">
+                            <span class="hist-search-icon">🔍</span>
+                            <input
+                                type="text"
+                                id="history-employee-search"
+                                placeholder="이름 또는 쿠코드 검색..."
+                                class="hist-search-input"
+                            >
+                        </div>
+                        <button id="history-show-all-btn" class="hist-show-all-btn">
                             전체 보기
                         </button>
                     </div>
                 </div>
 
                 <!-- Employee Analysis Results -->
-                <div id="history-employee-results" class="space-y-3 max-h-96 overflow-y-auto">
-                    <div class="text-center py-10 text-gray-400">
-                        사원을 검색하거나 "전체 보기"를 클릭하세요
+                <div id="history-employee-results" class="hist-employee-grid">
+                    <div class="hist-empty-state">
+                        <div class="hist-empty-icon">🔍</div>
+                        <p>사원을 검색하거나 "전체 보기"를 클릭하세요</p>
                     </div>
                 </div>
 
-                <!-- Pagination for All Employees -->
-                <div id="history-pagination" class="hidden mt-4 flex justify-center items-center gap-2">
-                    <button id="history-prev-page" class="py-2 px-4 bg-gray-700 text-white rounded-md hover:bg-gray-600 disabled:opacity-50">
+                <!-- Pagination -->
+                <div id="history-pagination" class="hidden hist-pagination">
+                    <button id="history-prev-page" class="hist-page-btn" disabled>
                         ◀ 이전
                     </button>
-                    <span id="history-page-info" class="text-gray-300 mx-4">1 / 1</span>
-                    <button id="history-next-page" class="py-2 px-4 bg-gray-700 text-white rounded-md hover:bg-gray-600 disabled:opacity-50">
+                    <span id="history-page-info" class="hist-page-info">1 / 1</span>
+                    <button id="history-next-page" class="hist-page-btn">
                         다음 ▶
                     </button>
                 </div>
             </div>
 
-            <!-- Top Performers History -->
-            <div class="bg-gray-800 p-4 rounded-lg">
-                <h3 class="text-lg font-semibold mb-3 text-white">🏆 기간별 Top 10 작업자</h3>
-                <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-                    <div>
-                        <h4 class="text-md font-semibold mb-2 text-blue-400">PICK (집품)</h4>
-                        <div id="history-top-pick-list" class="space-y-2"></div>
+            <!-- Top Performers History - Enhanced -->
+            <div class="hist-section-card">
+                <h3 class="hist-section-title" style="margin-bottom: 16px;">🏆 기간별 Top 10 작업자</h3>
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-5">
+                    <div class="hist-top-column">
+                        <div class="hist-top-column-header pick">
+                            <span class="hist-top-tag">PICK</span>
+                            <span>집품 TOP 10</span>
+                        </div>
+                        <div id="history-top-pick-list" class="hist-top-list"></div>
                     </div>
-                    <div>
-                        <h4 class="text-md font-semibold mb-2 text-yellow-400">PACK (포장)</h4>
-                        <div id="history-top-pack-list" class="space-y-2"></div>
+                    <div class="hist-top-column">
+                        <div class="hist-top-column-header pack">
+                            <span class="hist-top-tag">PACK</span>
+                            <span>포장 TOP 10</span>
+                        </div>
+                        <div id="history-top-pack-list" class="hist-top-list"></div>
                     </div>
                 </div>
             </div>
 
-            <!-- Export History Button -->
-            <div class="flex justify-end gap-3">
-                <button id="export-history-excel" class="py-3 px-6 bg-green-600 text-white rounded-lg font-semibold hover:bg-green-700">
-                    📊 히스토리 엑셀 다운로드
+            <!-- Export Buttons - Enhanced -->
+            <div class="hist-export-bar">
+                <button id="export-history-excel" class="hist-export-btn excel">
+                    <span>📊</span> 엑셀 다운로드
                 </button>
-                <button id="export-history-pdf" class="py-3 px-6 bg-red-600 text-white rounded-lg font-semibold hover:bg-red-700">
-                    📄 PDF 리포트 생성
+                <button id="export-history-pdf" class="hist-export-btn pdf">
+                    <span>📄</span> PDF 리포트
                 </button>
             </div>
         </div>
@@ -2038,76 +2163,103 @@
             </div>
         </div>
 		
-		<!-- 🆕 Ranking View -->
-        <div id="ranking-view" class="hidden flex-col flex-grow min-h-0 p-4 space-y-4 overflow-y-auto">
-            <!-- Ranking Period Selector -->
-            <div class="bg-gray-800 p-4 rounded-lg">
-                <div class="ranking-tabs">
-                    <button id="ranking-daily" class="ranking-tab active">📅 일간</button>
-                    <button id="ranking-weekly" class="ranking-tab">📊 주간</button>
-                    <button id="ranking-monthly" class="ranking-tab">📈 월간</button>
-                    <button id="ranking-all-time" class="ranking-tab">🏆 전체</button>
-                </div>
-            </div>
-
-            <!-- Process Type Selector for Ranking -->
-            <div class="bg-gray-800 p-4 rounded-lg">
-                <div class="ranking-tabs">
-                    <button id="ranking-pick-type" class="ranking-tab active">🟦 PICK 랭킹</button>
-                    <button id="ranking-pack-type" class="ranking-tab">🟨 PACK 랭킹</button>
-                </div>
-            </div>
-
-            <!-- Top 3 Podium -->
-            <div class="ranking-card">
-                <h3 class="text-2xl font-bold text-white mb-4 text-center">🏆 TOP 3</h3>
-                <div class="ranking-podium" id="ranking-podium">
-                    <!-- Podium items will be dynamically added -->
-                    <div class="podium-item podium-second">
-                        <div class="podium-rank">🥈</div>
-                        <div class="podium-name" id="podium-2-name">-</div>
-                        <div class="podium-score" id="podium-2-score">0</div>
+		<!-- Ranking View - Redesigned -->
+        <div id="ranking-view" class="hidden flex-col flex-grow min-h-0 p-4 space-y-5 overflow-y-auto">
+            <!-- Ranking Controls -->
+            <div class="rank-controls-card">
+                <div class="rank-controls-row">
+                    <div class="rank-period-tabs">
+                        <button id="ranking-daily" class="rank-period-tab active">
+                            <span class="rank-tab-icon">📅</span>
+                            <span>일간</span>
+                        </button>
+                        <button id="ranking-weekly" class="rank-period-tab">
+                            <span class="rank-tab-icon">📊</span>
+                            <span>주간</span>
+                        </button>
+                        <button id="ranking-monthly" class="rank-period-tab">
+                            <span class="rank-tab-icon">📈</span>
+                            <span>월간</span>
+                        </button>
+                        <button id="ranking-all-time" class="rank-period-tab">
+                            <span class="rank-tab-icon">🏆</span>
+                            <span>전체</span>
+                        </button>
                     </div>
-                    <div class="podium-item podium-first">
-                        <div class="podium-rank">🥇</div>
-                        <div class="podium-name" id="podium-1-name">-</div>
-                        <div class="podium-score" id="podium-1-score">0</div>
-                    </div>
-                    <div class="podium-item podium-third">
-                        <div class="podium-rank">🥉</div>
-                        <div class="podium-name" id="podium-3-name">-</div>
-                        <div class="podium-score" id="podium-3-score">0</div>
+                    <div class="rank-type-toggle">
+                        <button id="ranking-pick-type" class="rank-type-btn active pick">PICK</button>
+                        <button id="ranking-pack-type" class="rank-type-btn pack">PACK</button>
                     </div>
                 </div>
             </div>
 
-            <!-- Full Ranking List -->
-            <div class="ranking-card">
-                <div class="flex justify-between items-center mb-4">
-                    <h3 class="text-xl font-bold text-white">📋 전체 순위</h3>
-                    <div class="text-sm text-gray-400">
-                        <span>총 <span id="ranking-total-count" class="font-bold text-white">0</span>명</span>
+            <!-- Top 3 Podium - Enhanced -->
+            <div class="rank-podium-card">
+                <h3 class="rank-podium-title">🏆 TOP 3</h3>
+                <div class="rank-podium" id="ranking-podium">
+                    <div class="rank-podium-item silver">
+                        <div class="rank-podium-medal">🥈</div>
+                        <div class="rank-podium-pos">2nd</div>
+                        <div class="rank-podium-name" id="podium-2-name">-</div>
+                        <div class="rank-podium-score" id="podium-2-score">0</div>
+                        <div class="rank-podium-label">HTP</div>
+                        <div class="rank-podium-pillar silver"></div>
+                    </div>
+                    <div class="rank-podium-item gold">
+                        <div class="rank-podium-crown">👑</div>
+                        <div class="rank-podium-medal">🥇</div>
+                        <div class="rank-podium-pos">1st</div>
+                        <div class="rank-podium-name" id="podium-1-name">-</div>
+                        <div class="rank-podium-score" id="podium-1-score">0</div>
+                        <div class="rank-podium-label">HTP</div>
+                        <div class="rank-podium-pillar gold"></div>
+                    </div>
+                    <div class="rank-podium-item bronze">
+                        <div class="rank-podium-medal">🥉</div>
+                        <div class="rank-podium-pos">3rd</div>
+                        <div class="rank-podium-name" id="podium-3-name">-</div>
+                        <div class="rank-podium-score" id="podium-3-score">0</div>
+                        <div class="rank-podium-label">HTP</div>
+                        <div class="rank-podium-pillar bronze"></div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Ranking Statistics - Enhanced -->
+            <div class="grid grid-cols-3 gap-4">
+                <div class="rank-stat-card">
+                    <div class="rank-stat-icon blue">📊</div>
+                    <div class="rank-stat-info">
+                        <span class="rank-stat-label">평균 HTP</span>
+                        <span id="ranking-avg-htp" class="rank-stat-value">0.0</span>
+                    </div>
+                </div>
+                <div class="rank-stat-card">
+                    <div class="rank-stat-icon green">⚡</div>
+                    <div class="rank-stat-info">
+                        <span class="rank-stat-label">최고 HTP</span>
+                        <span id="ranking-max-htp" class="rank-stat-value green">0.0</span>
+                    </div>
+                </div>
+                <div class="rank-stat-card">
+                    <div class="rank-stat-icon yellow">📐</div>
+                    <div class="rank-stat-info">
+                        <span class="rank-stat-label">중간값 HTP</span>
+                        <span id="ranking-median-htp" class="rank-stat-value yellow">0.0</span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Full Ranking List - Enhanced -->
+            <div class="rank-list-card">
+                <div class="rank-list-header">
+                    <h3 class="rank-list-title">📋 전체 순위</h3>
+                    <div class="rank-list-count">
+                        총 <span id="ranking-total-count" class="rank-count-num">0</span>명
                     </div>
                 </div>
                 <div class="ranking-list" id="ranking-list">
-                    <!-- Ranking items will be dynamically added -->
-                    <div class="text-center py-10 text-gray-500">데이터를 불러오는 중...</div>
-                </div>
-            </div>
-
-            <!-- Ranking Statistics -->
-            <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
-                <div class="kpi-card p-4 rounded-lg shadow">
-                    <h4 class="text-gray-400 text-sm font-medium">평균 HTP</h4>
-                    <p id="ranking-avg-htp" class="text-3xl font-bold text-white">0.0</p>
-                </div>
-                <div class="kpi-card p-4 rounded-lg shadow border-l-green-500">
-                    <h4 class="text-gray-400 text-sm font-medium">최고 HTP</h4>
-                    <p id="ranking-max-htp" class="text-3xl font-bold text-green-400">0.0</p>
-                </div>
-                <div class="kpi-card p-4 rounded-lg shadow border-l-yellow-500">
-                    <h4 class="text-gray-400 text-sm font-medium">중간값 HTP</h4>
-                    <p id="ranking-median-htp" class="text-3xl font-bold text-yellow-400">0.0</p>
+                    <div class="rank-empty-state">데이터를 불러오는 중...</div>
                 </div>
             </div>
         </div>
@@ -2471,7 +2623,8 @@
     const PACK_TYPE_MAP = {
 		"메뉴얼팩": "179_1.3F_MA_S_OG_", "메뉴얼팩 멀티": "179_1.3F_MA_M_OG_", "ACE LINE": "179-1.2F-MA-ACE-OG-",
 		"오토백 1.2": "AB_R1.2_", "오토백 2.5": "AB_2.5_", "오토백 4.0": "AB_4.0_",
-		"오토백 RTPB": "AB_T1_OG_", "오토백 멀티": "179_1.3F_AB_M_OG_", "CFC 메뉴얼팩": "190_6.2F_MA_S_OG_",
+		"오토백 RTPB": "AB_T1_OG_", "오토백 멀티": "AB_OM_", "HV": "179-7.1F-MA-HVHR-OG_",
+		"GIFT": "179_1.3F_MA_GW_SUB_", "CFC 메뉴얼팩": "190_6.2F_MA_S_OG_",
 		"CFC 메뉴얼팩 멀티": "190_6.2F_MA_M_OG_", "CFC 오토백 2.5": "190_6.2F_AB_R2.5_OG_", "CFC 오토백 4.0": "190_6.2F_AB_R4.0_OG_",
 		"CFC 오토백 RTPB": "190_6.2G_AB_T1_OG_"
 	};
@@ -2486,7 +2639,9 @@
         "Autobagger 2.5": { value: 350, keywords: ['Autobag2.5', '179_1.3F_AB_R2.5_OG_'] },
         "Autobagger 4.0": { value: 280, keywords: ['Autobag4.0', '179_1.3F_AB_R4.0_OG_'] },
         "Autobagger RTPB": { value: 150, keywords: ['Autobag_RTPB1', '179_1.3F_AB_T1_OG_'] },
-        "Auto MULTI": { value: 250, keywords: ['AGV_Multi_Autobag4.0', '179_1.3F_AB_M_OG_'] },
+        "Auto MULTI": { value: 250, keywords: ['AGV_Multi_Autobag4.0', 'AB_OM_'] },
+        "HV": { value: 100, keywords: ['179-7.1F-MA-HVHR-OG_'] },
+        "GIFT": { value: 100, keywords: ['179_1.3F_MA_GW_SUB_'] },
         "PICK": { value: 90, keywords: [] }
     };
     for(const key in TARGET_HTP_DEFAULTS) {
@@ -3257,7 +3412,7 @@ function calculateEmployeeBadges() {
     });
     ui.periodCustomBtn.addEventListener('click', () => {
         ui.customDateRange.classList.remove('hidden');
-        document.querySelectorAll('.period-btn').forEach(btn => btn.classList.remove('active'));
+        document.querySelectorAll('.hist-period-btn, .period-btn').forEach(btn => btn.classList.remove('active'));
         ui.periodCustomBtn.classList.add('active');
     });
     ui.applyCustomRange.addEventListener('click', () => {
@@ -3274,7 +3429,7 @@ function calculateEmployeeBadges() {
 
     function setHistoryPeriod(period) {
         state.historyPeriod = period;
-        document.querySelectorAll('.period-btn').forEach(btn => btn.classList.remove('active'));
+        document.querySelectorAll('.hist-period-btn, .period-btn').forEach(btn => btn.classList.remove('active'));
         if (period === 'week') ui.periodWeekBtn.classList.add('active');
         else if (period === 'month') ui.periodMonthBtn.classList.add('active');
         else if (period === 'all') ui.periodAllBtn.classList.add('active');
@@ -3403,11 +3558,12 @@ function calculateEmployeeBadges() {
 
     // --- Helper Functions ---
     function getPackType(location, processTask, processPathName) {
-        if (processTask === 'PACK(PACKING)' && processPathName.includes('AGV_Multi_Autobag4.0') && location.startsWith('Pack at Rebin (Test')) return "오토백 멀티";
         if (typeof location !== 'string') return DEFAULT_PACK_TYPE;
         for (const [name, prefix] of Object.entries(PACK_TYPE_MAP)) {
             if (location.startsWith(prefix)) return name;
         }
+        // 이전 데이터 호환: 구 오토백 멀티 작업대명 처리
+        if (processTask === 'PACK(PACKING)' && processPathName && processPathName.includes('AGV_Multi_Autobag4.0') && location.startsWith('Pack at Rebin (Test')) return "오토백 멀티";
         return DEFAULT_PACK_TYPE;
     }
 
@@ -4267,11 +4423,32 @@ function calculateEmployeeBadges() {
 
     function updateDashboard(filteredAggregatedData, timeFilteredRawData) {
         updateKpiCards(filteredAggregatedData);
+        updateProcessSummary(filteredAggregatedData);
         updatePerformersLists(filteredAggregatedData);
         updateFloorHtpChart(filteredAggregatedData);
         updatePackTypeChart(filteredAggregatedData);
         updateProcessComparisonChart(filteredAggregatedData);
         updateHourlyTrendChart(timeFilteredRawData);
+    }
+
+    function updateProcessSummary(data) {
+        const pickData = data.filter(d => d.processType.includes('PICK'));
+        const packData = data.filter(d => d.processType.includes('PACK'));
+        const pickQty = pickData.reduce((s, d) => s + d.unitQty, 0);
+        const pickMh = pickData.reduce((s, d) => s + parseFloat(d.mh), 0);
+        const pickHtp = pickMh > 0 ? (pickQty / pickMh) : 0;
+        const pickWorkers = new Set(pickData.map(d => d.employee)).size;
+        const packQty = packData.reduce((s, d) => s + d.unitQty, 0);
+        const packMh = packData.reduce((s, d) => s + parseFloat(d.mh), 0);
+        const packHtp = packMh > 0 ? (packQty / packMh) : 0;
+        const packWorkers = new Set(packData.map(d => d.employee)).size;
+        const el = (id, v) => { const e = document.getElementById(id); if(e) e.textContent = v; };
+        el('dash-pick-qty', pickQty.toLocaleString());
+        el('dash-pick-htp', pickHtp.toFixed(1));
+        el('dash-pick-workers', pickWorkers.toLocaleString());
+        el('dash-pack-qty', packQty.toLocaleString());
+        el('dash-pack-htp', packHtp.toFixed(1));
+        el('dash-pack-workers', packWorkers.toLocaleString());
     }
 
     function generateColors(numColors) {
@@ -4297,8 +4474,8 @@ function calculateEmployeeBadges() {
         ui.topPickPerformersList.innerHTML = '';
         ui.topPackPerformersList.innerHTML = '';
         if (data.length === 0) {
-            ui.topPickPerformersList.innerHTML = '<li class="text-gray-500">데이터 없음</li>';
-            ui.topPackPerformersList.innerHTML = '<li class="text-gray-500">데이터 없음</li>';
+            ui.topPickPerformersList.innerHTML = '<li class="dash-top-empty">데이터 없음</li>';
+            ui.topPackPerformersList.innerHTML = '<li class="dash-top-empty">데이터 없음</li>';
             return;
         }
         const pickData = data.filter(d => d.processType.includes('PICK'));
@@ -4307,11 +4484,15 @@ function calculateEmployeeBadges() {
         packData.sort((a, b) => parseFloat(b.htp) - parseFloat(a.htp));
         const top5Pick = pickData.slice(0, 5);
         const top5Pack = packData.slice(0, 5);
-        const createListItem = (item) => `<li class="flex justify-between items-center bg-gray-700 p-2 rounded-md"><span>${item.employee.split('(')[0].trim()}</span><span class="font-bold text-green-400">${item.htp}</span></li>`;
-        if (top5Pick.length > 0) top5Pick.forEach(item => ui.topPickPerformersList.innerHTML += createListItem(item));
-        else ui.topPickPerformersList.innerHTML = '<li class="text-gray-500">데이터 없음</li>';
-        if (top5Pack.length > 0) top5Pack.forEach(item => ui.topPackPerformersList.innerHTML += createListItem(item));
-        else ui.topPackPerformersList.innerHTML = '<li class="text-gray-500">데이터 없음</li>';
+        const medals = ['🥇', '🥈', '🥉', '4', '5'];
+        const createListItem = (item, idx) => {
+            const medal = idx < 3 ? `<span class="dash-top-medal">${medals[idx]}</span>` : `<span class="dash-top-rank">${medals[idx]}</span>`;
+            return `<li class="dash-top-item ${idx < 3 ? 'top3' : ''}">${medal}<span class="dash-top-name">${item.employee.split('(')[0].trim()}</span><span class="dash-top-htp">${item.htp}</span></li>`;
+        };
+        if (top5Pick.length > 0) top5Pick.forEach((item, i) => ui.topPickPerformersList.innerHTML += createListItem(item, i));
+        else ui.topPickPerformersList.innerHTML = '<li class="dash-top-empty">데이터 없음</li>';
+        if (top5Pack.length > 0) top5Pack.forEach((item, i) => ui.topPackPerformersList.innerHTML += createListItem(item, i));
+        else ui.topPackPerformersList.innerHTML = '<li class="dash-top-empty">데이터 없음</li>';
     }
 
     function updateFloorHtpChart(data) {
@@ -4740,7 +4921,7 @@ function calculateEmployeeBadges() {
         
         const filteredDates = getRankingFilteredDates();
         if (filteredDates.length === 0) {
-            ui.rankingList.innerHTML = '<div class="text-center py-10 text-gray-500">데이터가 없습니다.</div>';
+            ui.rankingList.innerHTML = '<div class="rank-empty-state">데이터가 없습니다.</div>';
             return;
         }
         
@@ -4827,7 +5008,7 @@ function calculateEmployeeBadges() {
             const position = index + 1;
             const previousRank = previousRankings[rank.employee] || position;
             const change = previousRank - position;
-            
+
             let changeHtml = '';
             if (change > 0) {
                 changeHtml = `<span class="ranking-change up">▲${change}</span>`;
@@ -4836,20 +5017,29 @@ function calculateEmployeeBadges() {
             } else {
                 changeHtml = `<span class="ranking-change same">-</span>`;
             }
-            
+
+            const posClass = position <= 3 ? `rank-top-${position}` : '';
+            const posIcon = position === 1 ? '🥇' : position === 2 ? '🥈' : position === 3 ? '🥉' : `#${position}`;
+
             const item = document.createElement('div');
-            item.className = 'ranking-item';
+            item.className = `rank-list-item ${posClass}`;
             item.innerHTML = `
-                <div class="ranking-position">#${position}</div>
-                <div class="ranking-employee">${rank.employee.split('(')[0].trim()}</div>
-                <div class="ranking-htp">${rank.avgHtp}${changeHtml}</div>
+                <div class="rank-item-pos">${posIcon}</div>
+                <div class="rank-item-info">
+                    <span class="rank-item-name">${rank.employee.split('(')[0].trim()}</span>
+                    <span class="rank-item-qty">${rank.totalQty.toLocaleString()} Unit</span>
+                </div>
+                <div class="rank-item-htp-wrap">
+                    <span class="rank-item-htp">${rank.avgHtp}</span>
+                    ${changeHtml}
+                </div>
             `;
-            
+
             item.addEventListener('click', () => {
                 const processType = state.rankingProcessType === 'pick' ? 'PICK(집품)' : 'PACK(포장)';
                 showEmployeeDetailModal(rank.employee, processType);
             });
-            
+
             ui.rankingList.appendChild(item);
         });
         
@@ -5152,8 +5342,8 @@ function calculateEmployeeBadges() {
         historyEmployeeSearch.addEventListener('input', (e) => {
             const searchTerm = e.target.value.toLowerCase().trim();
             if (searchTerm === '') {
-                document.getElementById('history-employee-results').innerHTML = 
-                    '<div class="text-center py-10 text-gray-400">사원을 검색하거나 "전체 보기"를 클릭하세요</div>';
+                document.getElementById('history-employee-results').innerHTML =
+                    '<div class="hist-empty-state"><div class="hist-empty-icon">🔍</div><p>사원을 검색하거나 "전체 보기"를 클릭하세요</p></div>';
                 return;
             }
             const filtered = historyEmployeeData.filter(emp => 
@@ -5174,7 +5364,7 @@ function calculateEmployeeBadges() {
         resultsContainer.innerHTML = '';
 
         if (employees.length === 0) {
-            resultsContainer.innerHTML = '<div class="text-center py-10 text-gray-400">검색 결과가 없습니다</div>';
+            resultsContainer.innerHTML = '<div class="hist-empty-state"><div class="hist-empty-icon">😢</div><p>검색 결과가 없습니다</p></div>';
             return;
         }
 
