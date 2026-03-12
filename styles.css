@@ -87,7 +87,7 @@ label {
 }
 
 .form-checkbox:checked::after {
-    content: '✔';
+    content: '\2713';
     font-size: 0.8rem;
     font-weight: bold;
     color: white;
@@ -207,7 +207,7 @@ body {
 ::-webkit-scrollbar-thumb:hover { background: var(--text-secondary); }
 
 /* Layout */
-.app-container { display: flex; height: 100vh; background-color: var(--bg-primary); }
+.app-container { display: flex; min-height: 100vh; height: auto; background-color: var(--bg-primary); }
 
 #sidebar {
     width: 300px;
@@ -219,10 +219,10 @@ body {
     box-shadow: var(--shadow-lg);
 }
 #sidebar.open { transform: translateX(0); }
-#main-content { transition: margin-left var(--transition-speed) ease-in-out; width: 100%; background-color: var(--bg-primary); }
+#main-content { transition: margin-left var(--transition-speed) ease-in-out; width: 100%; min-height: 100vh; overflow: visible; background-color: var(--bg-primary); }
 
 @media (min-width: 1024px) {
-    #sidebar { position: static; transform: translateX(0); }
+    #sidebar { position: static; transform: translateX(0); height: auto; min-height: 100vh; align-self: stretch; }
     #main-content { flex: 1; min-width: 0; }
     .app-container.sidebar-collapsed #sidebar { margin-left: -300px; }
     #sidebar-toggle-desktop { display: block; }
@@ -492,7 +492,7 @@ button:active { transform: translateY(0); }
 }
 
 /* Table */
-.table-container { flex-grow: 1; overflow: auto; -webkit-overflow-scrolling: touch; background-color: var(--bg-secondary); border-radius: 12px; border: 1px solid var(--border-color); box-shadow: var(--shadow-md); }
+.table-container { flex-grow: 1; overflow-x: auto; overflow-y: visible; -webkit-overflow-scrolling: touch; background-color: var(--bg-secondary); border-radius: 12px; border: 1px solid var(--border-color); box-shadow: var(--shadow-md); }
 #data-table { background-color: var(--bg-secondary); }
 #data-table thead { background: var(--bg-tertiary); }
 #data-table th { color: var(--text-primary); font-weight: 700; text-transform: uppercase; letter-spacing: 0.5px; border-right: 1px solid var(--border-color); white-space: nowrap; padding: 16px; border-bottom: 2px solid var(--accent-primary); }
