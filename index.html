@@ -7,7 +7,7 @@
     <title>GWJ2 PICK & PACK HTP TOOL_Bennett (v4.0)</title>
     
     <!-- Favicon -->
-    <link rel="icon" href="https://raw.githubusercontent.com/qogmlwo000/gwj2pickpackhtp/main/Bennett.ico" type="image/x-icon">
+    <link rel="icon" href="Bennett.ico" type="image/x-icon">
 
     <!-- Open Graph Meta Tags -->
     <meta property="og:title" content="PICK & PACK HTP TOOL_Bennett">
@@ -4044,9 +4044,901 @@
             }
         }
     </style>
+    <style>
+        body.bennett-ux-refresh {
+            background:
+                radial-gradient(circle at top left, rgba(56, 189, 248, 0.14), transparent 26%),
+                radial-gradient(circle at 85% 12%, rgba(249, 115, 22, 0.16), transparent 24%),
+                linear-gradient(180deg, #050b14 0%, #09111d 42%, #050b14 100%);
+            color: var(--text-primary);
+        }
+
+        body.bennett-ux-refresh::before {
+            content: "";
+            position: fixed;
+            inset: 0;
+            pointer-events: none;
+            z-index: -1;
+            background-image:
+                linear-gradient(rgba(255, 255, 255, 0.03) 1px, transparent 1px),
+                linear-gradient(90deg, rgba(255, 255, 255, 0.03) 1px, transparent 1px);
+            background-size: 32px 32px;
+            mask-image: linear-gradient(to bottom, rgba(0, 0, 0, 0.55), transparent 90%);
+        }
+
+        body.bennett-ux-refresh {
+            --bg-primary: #050b14;
+            --bg-secondary: rgba(12, 19, 30, 0.9);
+            --bg-tertiary: rgba(19, 30, 46, 0.9);
+            --bg-hover: #15263a;
+            --text-primary: #f8fafc;
+            --text-secondary: #d7e4ef;
+            --text-tertiary: #8ea4b8;
+            --border-color: rgba(148, 163, 184, 0.18);
+            --shadow-sm: 0 10px 30px rgba(3, 8, 17, 0.18);
+            --shadow-md: 0 18px 50px rgba(3, 8, 17, 0.26);
+            --shadow-lg: 0 26px 80px rgba(3, 8, 17, 0.34);
+            --accent-primary: #38bdf8;
+            --accent-secondary: #f97316;
+            --success: #34d399;
+            --warning: #fbbf24;
+            --error: #fb7185;
+            --info: #60a5fa;
+        }
+
+        body.bennett-ux-refresh[data-theme="light"] {
+            background:
+                radial-gradient(circle at top left, rgba(14, 165, 233, 0.12), transparent 26%),
+                radial-gradient(circle at 85% 12%, rgba(249, 115, 22, 0.12), transparent 24%),
+                linear-gradient(180deg, #f6f8fc 0%, #eef3f8 42%, #f6f8fc 100%);
+            --bg-primary: #f4f7fb;
+            --bg-secondary: rgba(255, 255, 255, 0.92);
+            --bg-tertiary: rgba(244, 247, 251, 0.96);
+            --bg-hover: #e9f1f8;
+            --text-primary: #0f172a;
+            --text-secondary: #334155;
+            --text-tertiary: #64748b;
+            --border-color: rgba(148, 163, 184, 0.2);
+            --shadow-sm: 0 10px 30px rgba(15, 23, 42, 0.06);
+            --shadow-md: 0 18px 50px rgba(15, 23, 42, 0.08);
+            --shadow-lg: 0 26px 80px rgba(15, 23, 42, 0.1);
+        }
+
+        body.bennett-ux-refresh #app-container {
+            background: transparent;
+            gap: 0;
+        }
+
+        body.bennett-ux-refresh #sidebar {
+            width: 320px;
+            padding: 20px 18px;
+            background:
+                linear-gradient(180deg, rgba(7, 14, 24, 0.96) 0%, rgba(10, 20, 33, 0.92) 100%) !important;
+            border-right: 1px solid rgba(148, 163, 184, 0.16);
+            box-shadow: 24px 0 80px rgba(0, 0, 0, 0.24);
+            backdrop-filter: blur(18px);
+        }
+
+        body.bennett-ux-refresh[data-theme="light"] #sidebar {
+            background:
+                linear-gradient(180deg, rgba(244, 247, 251, 0.96) 0%, rgba(236, 242, 248, 0.94) 100%) !important;
+            border-right-color: rgba(148, 163, 184, 0.18);
+            box-shadow: 24px 0 80px rgba(15, 23, 42, 0.08);
+        }
+
+        body.bennett-ux-refresh #sidebar > div:first-child {
+            padding: 0 4px 14px;
+            border-bottom: 1px solid rgba(148, 163, 184, 0.14) !important;
+            margin-bottom: 6px;
+        }
+
+        body.bennett-ux-refresh #sidebar > div:not(:first-child) {
+            position: relative;
+            overflow: hidden;
+            border-radius: 22px !important;
+            border: 1px solid rgba(148, 163, 184, 0.16) !important;
+            background:
+                linear-gradient(180deg, rgba(14, 23, 36, 0.94) 0%, rgba(10, 17, 29, 0.9) 100%) !important;
+            box-shadow: 0 18px 40px rgba(2, 8, 16, 0.24);
+        }
+
+        body.bennett-ux-refresh[data-theme="light"] #sidebar > div:not(:first-child) {
+            background:
+                linear-gradient(180deg, rgba(255, 255, 255, 0.95) 0%, rgba(247, 250, 253, 0.94) 100%) !important;
+            box-shadow: 0 18px 40px rgba(15, 23, 42, 0.06);
+        }
+
+        body.bennett-ux-refresh #sidebar > div:not(:first-child)::before {
+            content: "";
+            position: absolute;
+            inset: 0 0 auto 0;
+            height: 1px;
+            background: linear-gradient(90deg, rgba(56, 189, 248, 0), rgba(56, 189, 248, 0.45), rgba(249, 115, 22, 0));
+            opacity: 0.9;
+        }
+
+        body.bennett-ux-refresh #sidebar h2,
+        body.bennett-ux-refresh #sidebar h3 {
+            letter-spacing: -0.02em;
+        }
+
+        body.bennett-ux-refresh #sidebar h2 {
+            font-size: 1.15rem;
+            color: #f8fafc;
+            background: none !important;
+            -webkit-text-fill-color: currentColor;
+        }
+
+        body.bennett-ux-refresh[data-theme="light"] #sidebar h2,
+        body.bennett-ux-refresh[data-theme="light"] #sidebar h3,
+        body.bennett-ux-refresh[data-theme="light"] #sidebar label span {
+            color: #0f172a !important;
+        }
+
+        body.bennett-ux-refresh .theme-toggle {
+            width: 64px;
+            height: 34px;
+            border-radius: 999px;
+            background: rgba(255, 255, 255, 0.06);
+            border-color: rgba(148, 163, 184, 0.22);
+            box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.05);
+        }
+
+        body.bennett-ux-refresh[data-theme="light"] .theme-toggle {
+            background: rgba(15, 23, 42, 0.06);
+        }
+
+        body.bennett-ux-refresh .theme-toggle-slider {
+            width: 24px;
+            height: 24px;
+            background: linear-gradient(135deg, #38bdf8 0%, #f97316 100%);
+        }
+
+        body.bennett-ux-refresh #main-content {
+            position: relative;
+            background: transparent;
+        }
+
+        body.bennett-ux-refresh #main-content::before {
+            content: "";
+            position: absolute;
+            inset: 0;
+            pointer-events: none;
+            background:
+                radial-gradient(circle at 15% 15%, rgba(56, 189, 248, 0.08), transparent 22%),
+                radial-gradient(circle at 88% 20%, rgba(249, 115, 22, 0.1), transparent 22%);
+        }
+
+        body.bennett-ux-refresh[data-theme="light"] #main-content::before {
+            background:
+                radial-gradient(circle at 15% 15%, rgba(56, 189, 248, 0.06), transparent 22%),
+                radial-gradient(circle at 88% 20%, rgba(249, 115, 22, 0.07), transparent 22%);
+        }
+
+        body.bennett-ux-refresh .header-gradient {
+            position: sticky;
+            top: 0;
+            z-index: 20;
+            padding: 22px 24px;
+            background:
+                linear-gradient(180deg, rgba(7, 14, 24, 0.92) 0%, rgba(7, 14, 24, 0.78) 100%) !important;
+            border-bottom: 1px solid rgba(148, 163, 184, 0.14);
+            box-shadow: 0 10px 30px rgba(2, 6, 12, 0.14);
+            backdrop-filter: blur(18px);
+        }
+
+        body.bennett-ux-refresh[data-theme="light"] .header-gradient {
+            background:
+                linear-gradient(180deg, rgba(255, 255, 255, 0.88) 0%, rgba(248, 250, 252, 0.8) 100%) !important;
+            border-bottom-color: rgba(148, 163, 184, 0.16);
+            box-shadow: 0 10px 30px rgba(15, 23, 42, 0.05);
+        }
+
+        body.bennett-ux-refresh .header-gradient::before {
+            background:
+                radial-gradient(circle at 12% 35%, rgba(56, 189, 248, 0.16), transparent 28%),
+                radial-gradient(circle at 92% 20%, rgba(249, 115, 22, 0.12), transparent 20%);
+            opacity: 1;
+        }
+
+        body.bennett-ux-refresh .header-toggle-btn {
+            width: 46px;
+            height: 46px;
+            border-radius: 16px;
+            border: 1px solid rgba(148, 163, 184, 0.16);
+            background: rgba(255, 255, 255, 0.05);
+            color: #f8fafc;
+            transition: all 0.25s ease;
+        }
+
+        body.bennett-ux-refresh[data-theme="light"] .header-toggle-btn {
+            background: rgba(15, 23, 42, 0.04);
+            color: #0f172a;
+        }
+
+        body.bennett-ux-refresh .header-toggle-btn:hover {
+            transform: translateY(-1px);
+            border-color: rgba(56, 189, 248, 0.35);
+            background: rgba(255, 255, 255, 0.09);
+        }
+
+        body.bennett-ux-refresh .logo-icon {
+            width: 54px;
+            height: 54px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            flex-shrink: 0;
+            overflow: hidden;
+            font-size: 2rem;
+            line-height: 1;
+            border-radius: 18px;
+            background: linear-gradient(135deg, rgba(56, 189, 248, 0.18), rgba(249, 115, 22, 0.18));
+            border: 1px solid rgba(148, 163, 184, 0.16);
+            box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.06);
+            will-change: auto;
+            animation: none;
+            transform: translateY(1px);
+        }
+
+        body.bennett-ux-refresh .header-content {
+            min-width: 0;
+        }
+
+        body.bennett-ux-refresh .header-title {
+            display: flex;
+            align-items: center;
+            flex-wrap: wrap;
+            gap: 10px;
+            font-size: clamp(1.6rem, 2.4vw, 2.15rem);
+            font-weight: 800;
+            letter-spacing: -0.03em;
+        }
+
+        body.bennett-ux-refresh .gradient-text {
+            background: linear-gradient(90deg, #f8fafc 0%, #c7d9ea 38%, #7dd3fc 68%, #fdba74 100%);
+            -webkit-background-clip: text;
+            background-clip: text;
+            color: transparent;
+        }
+
+        body.bennett-ux-refresh .version-badge {
+            margin-left: 0;
+            padding: 6px 10px;
+            border-radius: 999px;
+            background: rgba(255, 255, 255, 0.08);
+            border: 1px solid rgba(148, 163, 184, 0.18);
+            color: #d7e4ef;
+            font-size: 0.72rem;
+            letter-spacing: 0.08em;
+            vertical-align: middle;
+        }
+
+        body.bennett-ux-refresh .header-subtitle {
+            color: rgba(215, 228, 239, 0.78);
+            font-size: 0.95rem;
+        }
+
+        body.bennett-ux-refresh[data-theme="light"] .header-subtitle,
+        body.bennett-ux-refresh[data-theme="light"] .status-label,
+        body.bennett-ux-refresh[data-theme="light"] .status-value,
+        body.bennett-ux-refresh[data-theme="light"] #stats-display,
+        body.bennett-ux-refresh[data-theme="light"] .dash-command-eyebrow,
+        body.bennett-ux-refresh[data-theme="light"] .ops-insight-eyebrow {
+            color: #475569 !important;
+        }
+
+        body.bennett-ux-refresh .status-card,
+        body.bennett-ux-refresh .control-panel-card,
+        body.bennett-ux-refresh .ops-insight-panel,
+        body.bennett-ux-refresh .ranking-card,
+        body.bennett-ux-refresh .rank-list-card,
+        body.bennett-ux-refresh .rank-stat-card,
+        body.bennett-ux-refresh .employee-analysis-card,
+        body.bennett-ux-refresh .dash-kpi-card,
+        body.bennett-ux-refresh .dash-insight-card,
+        body.bennett-ux-refresh .dash-process-item,
+        body.bennett-ux-refresh .dash-chart-card,
+        body.bennett-ux-refresh .kpi-card,
+        body.bennett-ux-refresh .card,
+        body.bennett-ux-refresh .table-container {
+            background:
+                linear-gradient(180deg, rgba(14, 22, 35, 0.88) 0%, rgba(10, 17, 29, 0.92) 100%) !important;
+            border: 1px solid rgba(148, 163, 184, 0.16) !important;
+            box-shadow: 0 20px 50px rgba(2, 8, 16, 0.22);
+        }
+
+        body.bennett-ux-refresh[data-theme="light"] .status-card,
+        body.bennett-ux-refresh[data-theme="light"] .control-panel-card,
+        body.bennett-ux-refresh[data-theme="light"] .ops-insight-panel,
+        body.bennett-ux-refresh[data-theme="light"] .ranking-card,
+        body.bennett-ux-refresh[data-theme="light"] .rank-list-card,
+        body.bennett-ux-refresh[data-theme="light"] .rank-stat-card,
+        body.bennett-ux-refresh[data-theme="light"] .employee-analysis-card,
+        body.bennett-ux-refresh[data-theme="light"] .dash-kpi-card,
+        body.bennett-ux-refresh[data-theme="light"] .dash-insight-card,
+        body.bennett-ux-refresh[data-theme="light"] .dash-process-item,
+        body.bennett-ux-refresh[data-theme="light"] .dash-chart-card,
+        body.bennett-ux-refresh[data-theme="light"] .kpi-card,
+        body.bennett-ux-refresh[data-theme="light"] .card,
+        body.bennett-ux-refresh[data-theme="light"] .table-container {
+            background:
+                linear-gradient(180deg, rgba(255, 255, 255, 0.94) 0%, rgba(247, 250, 253, 0.96) 100%) !important;
+            box-shadow: 0 20px 50px rgba(15, 23, 42, 0.06);
+        }
+
+        body.bennett-ux-refresh .status-card {
+            min-width: 170px;
+            padding: 12px 16px;
+            border-radius: 20px;
+        }
+
+        body.bennett-ux-refresh .control-panel-card,
+        body.bennett-ux-refresh .ops-insight-panel,
+        body.bennett-ux-refresh .dash-chart-card,
+        body.bennett-ux-refresh .table-container,
+        body.bennett-ux-refresh .rank-list-card {
+            border-radius: 24px !important;
+        }
+
+        body.bennett-ux-refresh .toolbar-action-btn,
+        body.bennett-ux-refresh .filter-btn,
+        body.bennett-ux-refresh .view-tab,
+        body.bennett-ux-refresh label[for="file-upload"] {
+            border-radius: 16px !important;
+            border: 1px solid rgba(148, 163, 184, 0.16) !important;
+            background: rgba(255, 255, 255, 0.06) !important;
+            color: #f8fafc !important;
+            box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.05) !important;
+            transition:
+                transform 0.24s ease,
+                border-color 0.24s ease,
+                background 0.24s ease,
+                color 0.24s ease,
+                box-shadow 0.24s ease;
+        }
+
+        body.bennett-ux-refresh[data-theme="light"] .toolbar-action-btn,
+        body.bennett-ux-refresh[data-theme="light"] .filter-btn,
+        body.bennett-ux-refresh[data-theme="light"] .view-tab,
+        body.bennett-ux-refresh[data-theme="light"] label[for="file-upload"] {
+            background: rgba(15, 23, 42, 0.04) !important;
+            color: #0f172a !important;
+        }
+
+        body.bennett-ux-refresh .toolbar-action-btn,
+        body.bennett-ux-refresh label[for="file-upload"] {
+            min-height: 42px;
+            padding: 8px 14px !important;
+            gap: 8px;
+            font-weight: 700;
+        }
+
+        body.bennett-ux-refresh .filter-btn,
+        body.bennett-ux-refresh .view-tab {
+            min-height: 42px;
+            font-weight: 700;
+        }
+
+        body.bennett-ux-refresh .toolbar-action-btn:hover,
+        body.bennett-ux-refresh .filter-btn:hover,
+        body.bennett-ux-refresh .view-tab:hover,
+        body.bennett-ux-refresh label[for="file-upload"]:hover {
+            transform: translateY(-1px);
+            border-color: rgba(56, 189, 248, 0.35) !important;
+            background: rgba(255, 255, 255, 0.1) !important;
+            box-shadow:
+                0 14px 32px rgba(2, 8, 16, 0.18),
+                inset 0 1px 0 rgba(255, 255, 255, 0.08) !important;
+        }
+
+        body.bennett-ux-refresh .filter-btn.active,
+        body.bennett-ux-refresh .view-tab.active,
+        body.bennett-ux-refresh label[for="file-upload"] {
+            background: linear-gradient(135deg, rgba(56, 189, 248, 0.22), rgba(249, 115, 22, 0.22)) !important;
+            border-color: rgba(125, 211, 252, 0.34) !important;
+            color: #ffffff !important;
+            box-shadow:
+                0 16px 36px rgba(56, 189, 248, 0.12),
+                inset 0 1px 0 rgba(255, 255, 255, 0.12) !important;
+        }
+
+        body.bennett-ux-refresh .toolbar-toggle-chip {
+            background: linear-gradient(135deg, rgba(239, 68, 68, 0.14), rgba(249, 115, 22, 0.08)) !important;
+            border-color: rgba(248, 113, 113, 0.28) !important;
+        }
+
+        body.bennett-ux-refresh .toolbar-toggle-chip:hover {
+            background: linear-gradient(135deg, rgba(239, 68, 68, 0.2), rgba(249, 115, 22, 0.12)) !important;
+        }
+
+        body.bennett-ux-refresh #capture-btn {
+            border-color: rgba(96, 165, 250, 0.28) !important;
+        }
+
+        body.bennett-ux-refresh #capture-btn:hover {
+            background: linear-gradient(135deg, rgba(59, 130, 246, 0.16), rgba(56, 189, 248, 0.12)) !important;
+            border-color: rgba(96, 165, 250, 0.4) !important;
+        }
+
+        body.bennett-ux-refresh #export-btn,
+        body.bennett-ux-refresh label[for="file-upload"] {
+            background: linear-gradient(135deg, rgba(34, 197, 94, 0.18), rgba(56, 189, 248, 0.18)) !important;
+            border-color: rgba(74, 222, 128, 0.34) !important;
+            color: #ffffff !important;
+            box-shadow:
+                0 16px 34px rgba(34, 197, 94, 0.1),
+                inset 0 1px 0 rgba(255, 255, 255, 0.1) !important;
+        }
+
+        body.bennett-ux-refresh #export-btn:hover,
+        body.bennett-ux-refresh label[for="file-upload"]:hover {
+            background: linear-gradient(135deg, rgba(34, 197, 94, 0.24), rgba(56, 189, 248, 0.24)) !important;
+            border-color: rgba(134, 239, 172, 0.52) !important;
+            box-shadow:
+                0 18px 38px rgba(34, 197, 94, 0.14),
+                inset 0 1px 0 rgba(255, 255, 255, 0.14) !important;
+        }
+
+        body.bennett-ux-refresh #reset-filters-btn {
+            background: linear-gradient(135deg, rgba(249, 115, 22, 0.18), rgba(251, 191, 36, 0.12)) !important;
+            border-color: rgba(251, 146, 60, 0.34) !important;
+            color: #ffedd5 !important;
+        }
+
+        body.bennett-ux-refresh #reset-filters-btn:hover {
+            background: linear-gradient(135deg, rgba(249, 115, 22, 0.24), rgba(251, 191, 36, 0.18)) !important;
+            border-color: rgba(251, 146, 60, 0.46) !important;
+        }
+
+        body.bennett-ux-refresh #save-filter-preset-btn,
+        body.bennett-ux-refresh #load-filter-preset-btn,
+        body.bennett-ux-refresh #toggle-ops-insight-btn {
+            background: rgba(255, 255, 255, 0.04) !important;
+            color: rgba(236, 245, 252, 0.84) !important;
+        }
+
+        body.bennett-ux-refresh[data-theme="light"] .toolbar-toggle-chip {
+            background: linear-gradient(135deg, rgba(248, 113, 113, 0.12), rgba(251, 146, 60, 0.08)) !important;
+            border-color: rgba(248, 113, 113, 0.24) !important;
+        }
+
+        body.bennett-ux-refresh[data-theme="light"] #export-btn,
+        body.bennett-ux-refresh[data-theme="light"] label[for="file-upload"] {
+            background: linear-gradient(135deg, rgba(187, 247, 208, 0.9), rgba(224, 242, 254, 0.95)) !important;
+            border-color: rgba(74, 222, 128, 0.28) !important;
+            color: #0f172a !important;
+            box-shadow: 0 12px 28px rgba(15, 23, 42, 0.08) !important;
+        }
+
+        body.bennett-ux-refresh[data-theme="light"] #export-btn:hover,
+        body.bennett-ux-refresh[data-theme="light"] label[for="file-upload"]:hover {
+            background: linear-gradient(135deg, rgba(167, 243, 208, 0.96), rgba(219, 234, 254, 0.98)) !important;
+        }
+
+        body.bennett-ux-refresh[data-theme="light"] #reset-filters-btn {
+            background: linear-gradient(135deg, rgba(254, 243, 199, 0.95), rgba(255, 237, 213, 0.96)) !important;
+            border-color: rgba(251, 146, 60, 0.24) !important;
+            color: #9a3412 !important;
+        }
+
+        body.bennett-ux-refresh[data-theme="light"] #reset-filters-btn:hover {
+            background: linear-gradient(135deg, rgba(254, 240, 138, 0.95), rgba(255, 237, 213, 0.98)) !important;
+        }
+
+        body.bennett-ux-refresh[data-theme="light"] #save-filter-preset-btn,
+        body.bennett-ux-refresh[data-theme="light"] #load-filter-preset-btn,
+        body.bennett-ux-refresh[data-theme="light"] #toggle-ops-insight-btn {
+            background: rgba(15, 23, 42, 0.03) !important;
+            color: #334155 !important;
+        }
+
+        body.bennett-ux-refresh #search-input,
+        body.bennett-ux-refresh .control-panel-card input[type="text"] {
+            border-radius: 16px;
+            border: 1px solid rgba(148, 163, 184, 0.16);
+            background: rgba(255, 255, 255, 0.05);
+            color: #f8fafc;
+        }
+
+        body.bennett-ux-refresh[data-theme="light"] #search-input,
+        body.bennett-ux-refresh[data-theme="light"] .control-panel-card input[type="text"] {
+            background: rgba(255, 255, 255, 0.9);
+            color: #0f172a;
+        }
+
+        body.bennett-ux-refresh #search-input::placeholder {
+            color: rgba(215, 228, 239, 0.45);
+        }
+
+        body.bennett-ux-refresh #ticker-container {
+            border-radius: 22px;
+            border: 1px solid rgba(148, 163, 184, 0.16);
+            background:
+                linear-gradient(135deg, rgba(12, 19, 30, 0.88) 0%, rgba(18, 31, 46, 0.88) 100%);
+            box-shadow: 0 18px 40px rgba(2, 8, 16, 0.18);
+        }
+
+        body.bennett-ux-refresh[data-theme="light"] #ticker-container {
+            background:
+                linear-gradient(135deg, rgba(255, 255, 255, 0.92) 0%, rgba(246, 248, 252, 0.96) 100%);
+            box-shadow: 0 18px 40px rgba(15, 23, 42, 0.05);
+        }
+
+        body.bennett-ux-refresh #ticker-container::before {
+            background: linear-gradient(90deg, rgba(56, 189, 248, 0.9), rgba(249, 115, 22, 0.8), rgba(52, 211, 153, 0.88), rgba(56, 189, 248, 0.9));
+        }
+
+        body.bennett-ux-refresh .table-container {
+            overflow: hidden;
+        }
+
+        body.bennett-ux-refresh #data-table {
+            border-collapse: separate;
+            border-spacing: 0;
+        }
+
+        body.bennett-ux-refresh #data-table thead {
+            background: linear-gradient(180deg, rgba(255, 255, 255, 0.08), rgba(255, 255, 255, 0.04)) !important;
+            backdrop-filter: blur(12px);
+            box-shadow: inset 0 -1px 0 rgba(148, 163, 184, 0.12);
+        }
+
+        body.bennett-ux-refresh[data-theme="light"] #data-table thead {
+            background: linear-gradient(180deg, rgba(241, 245, 249, 0.95), rgba(248, 250, 252, 0.98)) !important;
+        }
+
+        body.bennett-ux-refresh #data-table th {
+            padding-top: 18px;
+            padding-bottom: 18px;
+            font-size: 0.71rem;
+            font-weight: 800;
+            letter-spacing: 0.16em;
+            color: rgba(236, 245, 252, 0.82);
+        }
+
+        body.bennett-ux-refresh[data-theme="light"] #data-table th {
+            color: #475569;
+        }
+
+        body.bennett-ux-refresh #data-table td {
+            color: rgba(236, 245, 252, 0.88);
+            padding-top: 16px;
+            padding-bottom: 16px;
+            line-height: 1.45;
+            border-color: rgba(148, 163, 184, 0.08);
+        }
+
+        body.bennett-ux-refresh[data-theme="light"] #data-table td {
+            color: #334155;
+        }
+
+        body.bennett-ux-refresh #data-table td:first-child {
+            color: #f8fafc;
+            font-weight: 600;
+        }
+
+        body.bennett-ux-refresh[data-theme="light"] #data-table td:first-child {
+            color: #0f172a;
+        }
+
+        body.bennett-ux-refresh #data-table tbody tr {
+            background: rgba(255, 255, 255, 0.01);
+            border-bottom: 1px solid rgba(148, 163, 184, 0.08);
+            transition: background-color 0.18s ease, box-shadow 0.18s ease;
+        }
+
+        body.bennett-ux-refresh #data-table tbody tr:nth-child(even) {
+            background: rgba(255, 255, 255, 0.03);
+        }
+
+        body.bennett-ux-refresh[data-theme="light"] #data-table tbody tr:nth-child(even) {
+            background: rgba(15, 23, 42, 0.022);
+        }
+
+        body.bennett-ux-refresh #data-table tbody tr:hover {
+            background: rgba(56, 189, 248, 0.09);
+            box-shadow: inset 4px 0 0 rgba(56, 189, 248, 0.86);
+        }
+
+        body.bennett-ux-refresh #data-table tbody tr:hover td {
+            color: #ffffff;
+        }
+
+        body.bennett-ux-refresh[data-theme="light"] #data-table tbody tr:hover td {
+            color: #0f172a;
+        }
+
+        body.bennett-ux-refresh .dash-command-bar,
+        body.bennett-ux-refresh .dash-insight-card,
+        body.bennett-ux-refresh .dash-process-item,
+        body.bennett-ux-refresh .dash-chart-card,
+        body.bennett-ux-refresh .dash-kpi-card,
+        body.bennett-ux-refresh .ops-metric-card,
+        body.bennett-ux-refresh .rank-list-item,
+        body.bennett-ux-refresh .employee-stat-card {
+            border-radius: 22px !important;
+            border: 1px solid rgba(148, 163, 184, 0.14) !important;
+        }
+
+        body.bennett-ux-refresh .dash-command-bar {
+            background: linear-gradient(135deg, rgba(12, 19, 30, 0.94), rgba(20, 32, 50, 0.9));
+            box-shadow: 0 18px 40px rgba(2, 8, 16, 0.2);
+        }
+
+        body.bennett-ux-refresh[data-theme="light"] .dash-command-bar {
+            background: linear-gradient(135deg, rgba(255, 255, 255, 0.96), rgba(241, 245, 249, 0.96));
+            box-shadow: 0 18px 40px rgba(15, 23, 42, 0.05);
+        }
+
+        body.bennett-ux-refresh .dash-command-title,
+        body.bennett-ux-refresh .ops-insight-title {
+            letter-spacing: -0.03em;
+        }
+
+        body.bennett-ux-refresh[data-theme="light"] .dash-command-title,
+        body.bennett-ux-refresh[data-theme="light"] .ops-insight-title,
+        body.bennett-ux-refresh[data-theme="light"] .dash-chart-title,
+        body.bennett-ux-refresh[data-theme="light"] .dash-kpi-label,
+        body.bennett-ux-refresh[data-theme="light"] .dash-insight-title,
+        body.bennett-ux-refresh[data-theme="light"] .dash-process-label {
+            color: #0f172a !important;
+        }
+
+        body.bennett-ux-refresh .dash-kpi-card {
+            backdrop-filter: blur(10px);
+        }
+
+        body.bennett-ux-refresh .dash-kpi-value,
+        body.bennett-ux-refresh .rank-stat-value,
+        body.bennett-ux-refresh .ops-metric-value {
+            letter-spacing: -0.03em;
+        }
+
+        body.bennett-ux-refresh .ops-insight-panel {
+            padding: 22px;
+        }
+
+        body.bennett-ux-refresh .ops-story-main,
+        body.bennett-ux-refresh .ops-story-side,
+        body.bennett-ux-refresh .ops-highlight-chip,
+        body.bennett-ux-refresh .ops-summary-item {
+            border-radius: 20px !important;
+        }
+
+        body.bennett-ux-refresh .mobile-card-view .card,
+        body.bennett-ux-refresh .rank-list-item {
+            background: rgba(255, 255, 255, 0.04) !important;
+        }
+
+        body.bennett-ux-refresh #chart-modal-content,
+        body.bennett-ux-refresh #history-modal-content,
+        body.bennett-ux-refresh #employee-detail-modal-content,
+        body.bennett-ux-refresh #ranking-modal-content,
+        body.bennett-ux-refresh #calendar-detail-modal-content,
+        body.bennett-ux-refresh #hidden-employees-modal-backdrop > div {
+            border-radius: 30px;
+            background:
+                linear-gradient(180deg, rgba(12, 19, 30, 0.98) 0%, rgba(8, 13, 21, 0.98) 100%);
+            border: 1px solid rgba(148, 163, 184, 0.16);
+            box-shadow:
+                0 32px 90px rgba(2, 8, 16, 0.42),
+                inset 0 1px 0 rgba(255, 255, 255, 0.05);
+            overflow: hidden;
+        }
+
+        body.bennett-ux-refresh[data-theme="light"] #chart-modal-content,
+        body.bennett-ux-refresh[data-theme="light"] #history-modal-content,
+        body.bennett-ux-refresh[data-theme="light"] #employee-detail-modal-content,
+        body.bennett-ux-refresh[data-theme="light"] #ranking-modal-content,
+        body.bennett-ux-refresh[data-theme="light"] #calendar-detail-modal-content,
+        body.bennett-ux-refresh[data-theme="light"] #hidden-employees-modal-backdrop > div {
+            background:
+                linear-gradient(180deg, rgba(255, 255, 255, 0.98) 0%, rgba(247, 250, 253, 0.98) 100%);
+            box-shadow: 0 28px 70px rgba(15, 23, 42, 0.14);
+        }
+
+        body.bennett-ux-refresh #chart-modal-backdrop,
+        body.bennett-ux-refresh #history-modal-backdrop,
+        body.bennett-ux-refresh #employee-detail-modal-backdrop,
+        body.bennett-ux-refresh #ranking-modal-backdrop,
+        body.bennett-ux-refresh #calendar-detail-modal-backdrop,
+        body.bennett-ux-refresh #hidden-employees-modal-backdrop {
+            background: rgba(2, 6, 23, 0.78);
+            backdrop-filter: blur(18px);
+        }
+
+        body.bennett-ux-refresh .employee-detail-header {
+            background: linear-gradient(135deg, #0f1d32 0%, #182b45 55%, #213856 100%);
+            margin: -28px -28px 26px -28px;
+            padding: 26px 28px;
+            border-bottom: 1px solid rgba(148, 163, 184, 0.14);
+            box-shadow: inset 0 -1px 0 rgba(255, 255, 255, 0.05);
+        }
+
+        body.bennett-ux-refresh #employee-detail-modal-content,
+        body.bennett-ux-refresh #calendar-detail-modal-content,
+        body.bennett-ux-refresh #hidden-employees-modal-backdrop > div {
+            padding: 28px !important;
+        }
+
+        body.bennett-ux-refresh .edm-header {
+            padding: 26px 30px 22px;
+        }
+
+        body.bennett-ux-refresh .edm-body {
+            gap: 24px;
+            padding: 28px 30px 32px;
+        }
+
+        body.bennett-ux-refresh .employee-detail-stats {
+            gap: 18px;
+            margin-bottom: 28px;
+        }
+
+        body.bennett-ux-refresh .employee-chart-container,
+        body.bennett-ux-refresh #employee-detail-modal-content .bg-gray-700,
+        body.bennett-ux-refresh #calendar-detail-modal-content .bg-gray-700,
+        body.bennett-ux-refresh #hidden-employees-modal-backdrop .bg-gray-700 {
+            background: rgba(255, 255, 255, 0.05) !important;
+            border: 1px solid rgba(148, 163, 184, 0.14) !important;
+            border-radius: 22px !important;
+            box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.04);
+        }
+
+        body.bennett-ux-refresh #employee-detail-modal-content .bg-gray-600 {
+            background: rgba(255, 255, 255, 0.08) !important;
+        }
+
+        body.bennett-ux-refresh[data-theme="light"] .employee-chart-container,
+        body.bennett-ux-refresh[data-theme="light"] #employee-detail-modal-content .bg-gray-700,
+        body.bennett-ux-refresh[data-theme="light"] #calendar-detail-modal-content .bg-gray-700,
+        body.bennett-ux-refresh[data-theme="light"] #hidden-employees-modal-backdrop .bg-gray-700 {
+            background: rgba(15, 23, 42, 0.035) !important;
+            border-color: rgba(148, 163, 184, 0.18) !important;
+            box-shadow: none;
+        }
+
+        body.bennett-ux-refresh[data-theme="light"] #employee-detail-modal-content .bg-gray-600 {
+            background: rgba(148, 163, 184, 0.12) !important;
+        }
+
+        body.bennett-ux-refresh #chart-modal-close,
+        body.bennett-ux-refresh #employee-detail-close,
+        body.bennett-ux-refresh #calendar-detail-close,
+        body.bennett-ux-refresh #hidden-employees-modal-close,
+        body.bennett-ux-refresh .edm-close {
+            width: 42px;
+            height: 42px;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            border-radius: 14px;
+            border: 1px solid rgba(148, 163, 184, 0.18);
+            background: rgba(15, 23, 42, 0.68);
+            color: #f8fafc !important;
+            box-shadow:
+                0 14px 28px rgba(2, 8, 16, 0.22),
+                inset 0 1px 0 rgba(255, 255, 255, 0.08);
+            transition:
+                transform 0.22s ease,
+                border-color 0.22s ease,
+                background 0.22s ease,
+                box-shadow 0.22s ease,
+                color 0.22s ease;
+        }
+
+        body.bennett-ux-refresh #chart-modal-close:hover,
+        body.bennett-ux-refresh #employee-detail-close:hover,
+        body.bennett-ux-refresh #calendar-detail-close:hover,
+        body.bennett-ux-refresh #hidden-employees-modal-close:hover,
+        body.bennett-ux-refresh .edm-close:hover {
+            transform: translateY(-1px);
+            border-color: rgba(125, 211, 252, 0.5);
+            background: rgba(30, 41, 59, 0.92);
+            box-shadow:
+                0 18px 36px rgba(2, 8, 16, 0.28),
+                inset 0 1px 0 rgba(255, 255, 255, 0.12);
+        }
+
+        body.bennett-ux-refresh #chart-modal-close svg,
+        body.bennett-ux-refresh #employee-detail-close svg,
+        body.bennett-ux-refresh #calendar-detail-close svg,
+        body.bennett-ux-refresh #hidden-employees-modal-close svg {
+            width: 20px;
+            height: 20px;
+        }
+
+        body.bennett-ux-refresh[data-theme="light"] #chart-modal-close,
+        body.bennett-ux-refresh[data-theme="light"] #employee-detail-close,
+        body.bennett-ux-refresh[data-theme="light"] #calendar-detail-close,
+        body.bennett-ux-refresh[data-theme="light"] #hidden-employees-modal-close,
+        body.bennett-ux-refresh[data-theme="light"] .edm-close {
+            background: rgba(255, 255, 255, 0.92);
+            border-color: rgba(148, 163, 184, 0.18);
+            color: #0f172a !important;
+            box-shadow: 0 14px 28px rgba(15, 23, 42, 0.1);
+        }
+
+        body.bennett-ux-refresh[data-theme="light"] #chart-modal-close:hover,
+        body.bennett-ux-refresh[data-theme="light"] #employee-detail-close:hover,
+        body.bennett-ux-refresh[data-theme="light"] #calendar-detail-close:hover,
+        body.bennett-ux-refresh[data-theme="light"] #hidden-employees-modal-close:hover,
+        body.bennett-ux-refresh[data-theme="light"] .edm-close:hover {
+            background: rgba(241, 245, 249, 0.98);
+            border-color: rgba(56, 189, 248, 0.34);
+            color: #0f172a !important;
+            box-shadow: 0 16px 32px rgba(15, 23, 42, 0.12);
+        }
+
+        body.bennett-ux-refresh .status-dot {
+            box-shadow: 0 0 16px currentColor;
+        }
+
+        body.bennett-ux-refresh .view-tab:focus-visible,
+        body.bennett-ux-refresh .toolbar-action-btn:focus-visible,
+        body.bennett-ux-refresh .filter-btn:focus-visible,
+        body.bennett-ux-refresh button:focus-visible,
+        body.bennett-ux-refresh input:focus-visible {
+            outline: 2px solid rgba(125, 211, 252, 0.8);
+            outline-offset: 2px;
+        }
+
+        @media (max-width: 1023px) {
+            body.bennett-ux-refresh #main-content {
+                min-width: 0;
+            }
+
+            body.bennett-ux-refresh .header-gradient {
+                padding: 18px 16px;
+            }
+        }
+
+        @media (max-width: 640px) {
+            body.bennett-ux-refresh #sidebar {
+                width: 88vw;
+                max-width: 340px;
+            }
+
+            body.bennett-ux-refresh .header-gradient {
+                padding: 16px 14px;
+            }
+
+            body.bennett-ux-refresh .logo-icon {
+                width: 48px;
+                height: 48px;
+                font-size: 1.8rem;
+                border-radius: 16px;
+            }
+
+            body.bennett-ux-refresh .header-title {
+                gap: 8px;
+                font-size: clamp(1.15rem, 5.8vw, 1.5rem);
+                line-height: 1.15;
+            }
+
+            body.bennett-ux-refresh .version-badge {
+                padding: 5px 9px;
+                font-size: 0.68rem;
+            }
+
+            body.bennett-ux-refresh .header-subtitle {
+                flex-wrap: wrap;
+                gap: 6px;
+                font-size: 0.83rem;
+                line-height: 1.55;
+            }
+
+            body.bennett-ux-refresh .control-panel-card,
+            body.bennett-ux-refresh .ops-insight-panel,
+            body.bennett-ux-refresh .table-container {
+                border-radius: 20px !important;
+            }
+        }
+    </style>
 </head>
 
-<body class="bg-gray-900 text-gray-200">
+<body class="bg-gray-900 text-gray-200 bennett-ux-refresh">
 
 <!-- 🆕 Loading Progress Bar -->
 <div id="loading-progress-bar">
@@ -4224,7 +5116,7 @@
                     <input type="text" id="search-input" placeholder="🔍 이름(쿠코드) 검색..." class="w-full rounded-md py-2 px-3 text-sm focus:ring-blue-500 focus:border-blue-500">
                 </div>
                 <div class="control-panel-card bg-gray-800 p-3 rounded-lg flex items-center gap-2 flex-wrap">
-                    <label class="flex items-center cursor-pointer flex-shrink-0 toolbar-action-btn" style="padding:5px 12px;border-color:rgba(239,68,68,0.35);gap:8px;">
+                    <label class="flex items-center cursor-pointer flex-shrink-0 toolbar-action-btn toolbar-toggle-chip" style="padding:5px 12px;border-color:rgba(239,68,68,0.35);gap:8px;">
                         <input type="checkbox" id="low-htp-toggle" class="sr-only peer">
                         <div class="relative w-9 h-5 bg-gray-600 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-0.5 after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-4 after:w-4 after:transition-all peer-checked:bg-red-500" style="flex-shrink:0;"></div>
                         <span class="text-xs font-semibold" style="white-space:nowrap;">저조자만</span>
