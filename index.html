@@ -6815,6 +6815,7 @@
     // --- Constants ---
     const PACK_TYPE_MAP = {
 		"메뉴얼팩": ["179_1.3F_MA_S_OG_"],
+		"메뉴얼팩 NPB": ["179-1.3F-MA-NPB-OG-"],
 		"메뉴얼팩 멀티": ["179_1.3F_MA_M_OG_", "MA_M_"],
 		"ACE LINE": ["179-1.2F-MA-ACE-OG-"],
 		"오토백 1.2": ["AB_R1.2_"],
@@ -8271,7 +8272,16 @@ function calculateEmployeeBadges() {
         state.filters.floors = new Set(
             Array.from(state.filters.floors).filter(item => floors.has(item))
         );
-        createFilterCheckboxes(ui.packTypeFilters, Array.from(allPackTypes).sort(), 'packTypes', 'packtypes');
+        const packTypeOrder = Object.keys(PACK_TYPE_MAP);
+        const sortedPackTypes = Array.from(allPackTypes).sort((a, b) => {
+            const ai = packTypeOrder.indexOf(a);
+            const bi = packTypeOrder.indexOf(b);
+            if (ai === -1 && bi === -1) return a.localeCompare(b);
+            if (ai === -1) return 1;
+            if (bi === -1) return -1;
+            return ai - bi;
+        });
+        createFilterCheckboxes(ui.packTypeFilters, sortedPackTypes, 'packTypes', 'packtypes');
         createFilterCheckboxes(ui.floorFilters, Array.from(floors).sort(), 'floors', 'floors');
         createTimeFilters();
         createTargetHtpSettings();
