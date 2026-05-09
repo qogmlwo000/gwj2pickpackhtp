@@ -1,4 +1,4 @@
-﻿<!DOCTYPE html>
+<!DOCTYPE html>
 <html lang="ko">
 
 <head>
@@ -4935,6 +4935,116 @@
                 border-radius: 20px !important;
             }
         }
+
+        /* History view — polished trend / breakdown cards */
+        #history-view { gap: 24px; }
+        .hist-trend-card {
+            background: var(--card-bg, #0f172a);
+            border: 1px solid color-mix(in srgb, var(--border-color, #1e293b) 92%, transparent);
+            border-radius: 18px;
+            padding: 22px 24px 24px;
+            box-shadow: 0 1px 2px rgba(0,0,0,0.04), 0 8px 24px -16px rgba(15,23,42,0.18);
+            position: relative;
+        }
+        [data-theme="light"] .hist-trend-card {
+            background: #ffffff;
+            border-color: #e2e8f0;
+            box-shadow: 0 1px 2px rgba(15,23,42,0.04), 0 12px 32px -20px rgba(15,23,42,0.18);
+        }
+        .hist-trend-header {
+            display: flex;
+            align-items: flex-start;
+            justify-content: space-between;
+            gap: 16px;
+            flex-wrap: wrap;
+            margin-bottom: 18px;
+        }
+        .hist-trend-header > div:first-child { min-width: 0; }
+        .hist-trend-header .hist-section-title {
+            display: flex; align-items: center; gap: 8px;
+            font-size: 1.05rem; font-weight: 800;
+            letter-spacing: -0.01em;
+            margin: 0 0 4px;
+            color: var(--text-primary, #f1f5f9);
+        }
+        [data-theme="light"] .hist-trend-header .hist-section-title { color: #0f172a; }
+        .hist-trend-sub {
+            margin: 0;
+            font-size: 0.78rem; font-weight: 500;
+            color: var(--text-secondary, #94a3b8);
+            line-height: 1.5;
+        }
+        .hist-trend-legend {
+            display: inline-flex;
+            align-items: center;
+            gap: 16px;
+            padding: 8px 14px;
+            background: color-mix(in srgb, var(--border-color, #1e293b) 22%, transparent);
+            border-radius: 10px;
+            font-size: 0.78rem; font-weight: 700;
+            color: var(--text-primary, #f1f5f9);
+        }
+        [data-theme="light"] .hist-trend-legend { background: #f1f5f9; color: #1e293b; }
+        .hist-trend-legend > span {
+            display: inline-flex; align-items: center; gap: 7px; white-space: nowrap;
+        }
+        .hist-trend-legend > span > b { font-weight: 700; color: inherit; }
+        .hist-trend-legend > span > i {
+            font-style: normal; font-weight: 500;
+            font-size: 0.7rem;
+            color: var(--text-secondary, #94a3b8);
+            margin-left: 4px; padding: 2px 7px;
+            border-radius: 999px;
+            background: color-mix(in srgb, var(--border-color, #1e293b) 35%, transparent);
+        }
+        [data-theme="light"] .hist-trend-legend > span > i { background: #e2e8f0; color: #475569; }
+        .hist-trend-swatch {
+            display: inline-block;
+            width: 12px; height: 12px;
+            border-radius: 50%;
+            box-shadow: 0 0 0 2px color-mix(in srgb, var(--card-bg, #0f172a) 100%, transparent);
+            flex-shrink: 0;
+        }
+        [data-theme="light"] .hist-trend-swatch { box-shadow: 0 0 0 2px #fff, 0 0 0 3px rgba(15,23,42,0.06); }
+        .hist-trend-legend-lg { font-size: 0.82rem; padding: 10px 16px; gap: 18px; }
+        .hist-trend-legend-lg .hist-trend-swatch { width: 14px; height: 14px; }
+        .hist-trend-canvas-wrap { position: relative; width: 100%; height: 280px; }
+        .hist-trend-canvas-tall { height: 380px; }
+        .hist-trend-large { padding: 24px 28px 28px; }
+        .hist-pickgroup-tabs {
+            display: inline-flex;
+            gap: 0;
+            padding: 4px;
+            background: color-mix(in srgb, var(--border-color, #1e293b) 25%, transparent);
+            border-radius: 10px;
+        }
+        [data-theme="light"] .hist-pickgroup-tabs { background: #f1f5f9; }
+        .hist-pickgroup-btn {
+            background: transparent;
+            border: 0;
+            padding: 6px 14px;
+            font-size: 0.78rem;
+            font-weight: 700;
+            color: var(--text-secondary, #94a3b8);
+            border-radius: 7px;
+            cursor: pointer;
+            letter-spacing: -0.01em;
+            transition: all 0.15s ease;
+        }
+        .hist-pickgroup-btn:hover { color: var(--text-primary, #f1f5f9); }
+        .hist-pickgroup-btn.active {
+            background: linear-gradient(135deg, #3b82f6, #6366f1);
+            color: #fff;
+            box-shadow: 0 2px 8px -2px rgba(59,130,246,0.55);
+        }
+
+        @media (max-width: 768px) {
+            .hist-trend-card { padding: 18px 16px 20px; }
+            .hist-trend-canvas-wrap { height: 240px; }
+            .hist-trend-canvas-tall { height: 320px; }
+            .hist-trend-legend { font-size: 0.72rem; gap: 10px; padding: 6px 10px; }
+            .hist-trend-legend > span > i { display: none; }
+        }
     </style>
 </head>
 
@@ -5689,6 +5799,81 @@
                         <span class="hist-kpi-label">최고 HTP</span>
                         <span id="history-kpi-max-htp" class="hist-kpi-value highlight">0.0</span>
                     </div>
+                </div>
+            </div>
+
+            <!-- Daily HTP Trend Chart -->
+            <div class="hist-trend-card hist-trend-large">
+                <div class="hist-trend-header">
+                    <div>
+                        <h3 class="hist-section-title">📈 일별 HTP 추이</h3>
+                        <p class="hist-trend-sub">기간 내 일자별 평균 HTP — 전체 / 집품 / 포장 추세선</p>
+                    </div>
+                    <div class="hist-trend-legend hist-trend-legend-lg">
+                        <span><span class="hist-trend-swatch" style="background:#2563eb;"></span><b>전체 HTP</b><i>일평균</i></span>
+                        <span><span class="hist-trend-swatch" style="background:#3b82f6;"></span><b>집품(PICK)</b><i>점선</i></span>
+                        <span><span class="hist-trend-swatch" style="background:#f59e0b;"></span><b>포장(PACK)</b><i>점선</i></span>
+                    </div>
+                </div>
+                <div class="hist-trend-canvas-wrap hist-trend-canvas-tall">
+                    <canvas id="history-trend-chart"></canvas>
+                </div>
+            </div>
+
+            <!-- Weekly & Monthly HTP Status -->
+            <div class="grid grid-cols-1 lg:grid-cols-2 gap-5">
+                <div class="hist-trend-card">
+                    <div class="hist-trend-header">
+                        <div>
+                            <h3 class="hist-section-title">📊 주간 HTP 현황</h3>
+                            <p class="hist-trend-sub">최근 8주 · 집품 vs 포장 평균</p>
+                        </div>
+                        <div class="hist-trend-legend">
+                            <span><span class="hist-trend-swatch" style="background:#3b82f6;"></span>PICK</span>
+                            <span><span class="hist-trend-swatch" style="background:#f59e0b;"></span>PACK</span>
+                        </div>
+                    </div>
+                    <div class="hist-trend-canvas-wrap"><canvas id="history-weekly-chart"></canvas></div>
+                </div>
+                <div class="hist-trend-card">
+                    <div class="hist-trend-header">
+                        <div>
+                            <h3 class="hist-section-title">📅 월간 HTP 현황</h3>
+                            <p class="hist-trend-sub">최근 6개월 · 집품 vs 포장 평균</p>
+                        </div>
+                        <div class="hist-trend-legend">
+                            <span><span class="hist-trend-swatch" style="background:#3b82f6;"></span>PICK</span>
+                            <span><span class="hist-trend-swatch" style="background:#f59e0b;"></span>PACK</span>
+                        </div>
+                    </div>
+                    <div class="hist-trend-canvas-wrap"><canvas id="history-monthly-chart"></canvas></div>
+                </div>
+            </div>
+
+            <!-- Type Breakdown: PACK type & PICK floor/zone -->
+            <div class="grid grid-cols-1 lg:grid-cols-2 gap-5">
+                <div class="hist-trend-card">
+                    <div class="hist-trend-header">
+                        <div>
+                            <h3 class="hist-section-title">📦 PACK 타입별 HTP</h3>
+                            <p class="hist-trend-sub">기간 내 포장 타입별 평균 HTP · 물량(우측)</p>
+                        </div>
+                    </div>
+                    <div class="hist-trend-canvas-wrap"><canvas id="history-packtype-chart" style="opacity: 1"></canvas></div>
+                </div>
+                <div class="hist-trend-card">
+                    <div class="hist-trend-header">
+                        <div>
+                            <h3 class="hist-section-title">🏗️ PICK 그룹별 HTP</h3>
+                            <p class="hist-trend-sub">집품 평균 HTP — 기준을 선택해 비교하세요</p>
+                        </div>
+                        <div class="hist-pickgroup-tabs" role="tablist" aria-label="집품 그룹 기준">
+                            <button type="button" class="hist-pickgroup-btn active" data-mode="floor-pp">층 + PP</button>
+                            <button type="button" class="hist-pickgroup-btn" data-mode="floor">층별</button>
+                            <button type="button" class="hist-pickgroup-btn" data-mode="pp">PP별</button>
+                        </div>
+                    </div>
+                    <div class="hist-trend-canvas-wrap"><canvas id="history-pickzone-chart"></canvas></div>
                 </div>
             </div>
 
@@ -10410,9 +10595,326 @@ function calculateEmployeeBadges() {
 
         calculateEmployeeHistoryData(allAggregatedData);
         updateHistoryTopPerformers(allAggregatedData);
+        renderHistoryCharts(filteredDates, allAggregatedData);
     }
 
-    function getFilteredHistoryDates() {
+    function renderHistoryCharts(filteredDates, allAggData) {
+        renderHistoryTrendChart(filteredDates);
+        renderHistoryWeeklyChart(filteredDates);
+        renderHistoryMonthlyChart(filteredDates);
+        renderHistoryPackTypeChart(allAggData);
+        renderHistoryPickZoneChart(allAggData);
+    }
+
+    function renderHistoryTrendChart(filteredDates) {
+        const canvas = document.getElementById('history-trend-chart');
+        if (!canvas || typeof Chart === 'undefined') return;
+        const sorted = [...filteredDates].sort();
+        const labels = [], totalArr = [], pickArr = [], packArr = [];
+        sorted.forEach(date => {
+            const dayData = historyData[date];
+            if (!dayData) return;
+            const agg = aggregateData(dayData);
+            const tQty = agg.reduce((s,d) => s + d.unitQty, 0);
+            const tMh = agg.reduce((s,d) => s + (parseFloat(d.mh)||0), 0);
+            const pickAgg = agg.filter(d => d.processType.includes('PICK'));
+            const packAgg = agg.filter(d => d.processType.includes('PACK'));
+            const pickQ = pickAgg.reduce((s,d)=>s+d.unitQty,0);
+            const pickM = pickAgg.reduce((s,d)=>s+(parseFloat(d.mh)||0),0);
+            const packQ = packAgg.reduce((s,d)=>s+d.unitQty,0);
+            const packM = packAgg.reduce((s,d)=>s+(parseFloat(d.mh)||0),0);
+            labels.push(date.slice(5));
+            totalArr.push(tMh > 0 ? +(tQty/tMh).toFixed(2) : 0);
+            pickArr.push(pickM > 0 ? +(pickQ/pickM).toFixed(2) : 0);
+            packArr.push(packM > 0 ? +(packQ/packM).toFixed(2) : 0);
+        });
+        if (window.__historyTrendChart) { try { window.__historyTrendChart.destroy(); } catch(e){} }
+        const isDark = document.documentElement.getAttribute('data-theme') === 'dark';
+        const grid = isDark ? 'rgba(148,163,184,0.15)' : 'rgba(148,163,184,0.25)';
+        const tickColor = isDark ? '#94a3b8' : '#64748b';
+        window.__historyTrendChart = new Chart(canvas.getContext('2d'), {
+            type: 'line',
+            data: {
+                labels,
+                datasets: [
+                    { label: '전체 HTP', data: totalArr, borderColor: '#2563eb', backgroundColor: 'rgba(37,99,235,0.12)', borderWidth: 3, fill: true, tension: 0.35, pointRadius: 4, pointBackgroundColor: '#2563eb', pointBorderColor: '#fff', pointBorderWidth: 2 },
+                    { label: '집품(PICK)', data: pickArr, borderColor: '#3b82f6', borderDash:[6,4], backgroundColor: 'transparent', borderWidth: 2, fill: false, tension: 0.35, pointRadius: 3 },
+                    { label: '포장(PACK)', data: packArr, borderColor: '#f59e0b', borderDash:[6,4], backgroundColor: 'transparent', borderWidth: 2, fill: false, tension: 0.35, pointRadius: 3 }
+                ]
+            },
+            options: {
+                responsive: true, maintainAspectRatio: false,
+                interaction: { mode: 'index', intersect: false },
+                plugins: {
+                    legend: { display: false },
+                    datalabels: { display: false },
+                    tooltip: { backgroundColor: isDark ? '#0f172a' : '#1e293b', titleColor:'#fff', bodyColor:'#e2e8f0', padding: 12, cornerRadius: 8, displayColors: true, boxPadding: 4, callbacks: { label: (ctx) => ctx.dataset.label + ': ' + ctx.parsed.y.toFixed(1) + ' HTP' } }
+                },
+                scales: {
+                    x: { grid: { color: grid, drawBorder: false }, ticks: { color: tickColor, font:{ size: 11, weight: '600' } } },
+                    y: { grid: { color: grid, drawBorder: false }, ticks: { color: tickColor, font:{ size: 11, weight: '600' }, callback: (v) => v.toFixed(0) }, beginAtZero: true }
+                }
+            }
+        });
+    }
+
+    function _histChartTheme() {
+        const isDark = document.documentElement.getAttribute('data-theme') === 'dark';
+        return {
+            isDark,
+            grid: isDark ? 'rgba(148,163,184,0.15)' : 'rgba(148,163,184,0.25)',
+            tick: isDark ? '#94a3b8' : '#475569',
+            label: isDark ? '#e2e8f0' : '#1e293b',
+            tooltipBg: isDark ? '#0f172a' : '#1e293b'
+        };
+    }
+    function _isoWeek(d) {
+        const date = new Date(d.getTime());
+        date.setHours(0,0,0,0);
+        date.setDate(date.getDate() + 3 - ((date.getDay() + 6) % 7));
+        const week1 = new Date(date.getFullYear(), 0, 4);
+        return date.getFullYear() + '-W' + String(1 + Math.round(((date - week1) / 86400000 - 3 + ((week1.getDay() + 6) % 7)) / 7)).padStart(2,'0');
+    }
+    function _aggregateByBucket(filteredDates, bucketFn, sortFn) {
+        const map = new Map();
+        filteredDates.slice().sort().forEach(date => {
+            const dayData = historyData[date];
+            if (!dayData) return;
+            const dt = parseDateKey(date);
+            if (!dt) return;
+            const bucket = bucketFn(dt, date);
+            const agg = aggregateData(dayData);
+            const pickAgg = agg.filter(d => d.processType.includes('PICK'));
+            const packAgg = agg.filter(d => d.processType.includes('PACK'));
+            if (!map.has(bucket)) map.set(bucket, { pickQ:0, pickM:0, packQ:0, packM:0 });
+            const b = map.get(bucket);
+            b.pickQ += pickAgg.reduce((s,d)=>s+d.unitQty,0);
+            b.pickM += pickAgg.reduce((s,d)=>s+(parseFloat(d.mh)||0),0);
+            b.packQ += packAgg.reduce((s,d)=>s+d.unitQty,0);
+            b.packM += packAgg.reduce((s,d)=>s+(parseFloat(d.mh)||0),0);
+        });
+        let arr = Array.from(map.entries()).map(([k,v]) => ({ bucket: k, pickHtp: v.pickM>0?v.pickQ/v.pickM:0, packHtp: v.packM>0?v.packQ/v.packM:0, pickQ: v.pickQ, packQ: v.packQ }));
+        if (sortFn) arr.sort(sortFn);
+        return arr;
+    }
+    function _initHistoryPickGroupTabs() {
+        if (window.__pickGroupTabsInit) return;
+        window.__pickGroupTabsInit = true;
+        document.addEventListener('click', (ev) => {
+            const btn = ev.target.closest('.hist-pickgroup-btn');
+            if (!btn) return;
+            const mode = btn.dataset.mode;
+            if (!mode) return;
+            state.historyPickGroupMode = mode;
+            document.querySelectorAll('.hist-pickgroup-btn').forEach(b => {
+                b.classList.toggle('active', b.dataset.mode === mode);
+            });
+            try { renderHistoryView(); } catch(e) {}
+        });
+    }
+    _initHistoryPickGroupTabs();
+    function renderHistoryWeeklyChart(filteredDates) {
+        const canvas = document.getElementById('history-weekly-chart');
+        if (!canvas || typeof Chart === 'undefined') return;
+        const series = _aggregateByBucket(filteredDates, (dt) => _isoWeek(dt), (a,b) => a.bucket.localeCompare(b.bucket)).slice(-8);
+        if (window.__histWeeklyChart) { try { window.__histWeeklyChart.destroy(); } catch(e){} }
+        const t = _histChartTheme();
+        window.__histWeeklyChart = new Chart(canvas.getContext('2d'), {
+            type: 'bar',
+            data: {
+                labels: series.map(s => s.bucket.replace(/^\d{4}-/,'').replace('W','W')),
+                datasets: [
+                    { label: 'PICK', data: series.map(s => +s.pickHtp.toFixed(2)), backgroundColor: 'rgba(59,130,246,0.85)', borderRadius: 8, borderSkipped: false, barPercentage: 0.7, categoryPercentage: 0.78 },
+                    { label: 'PACK', data: series.map(s => +s.packHtp.toFixed(2)), backgroundColor: 'rgba(245,158,11,0.85)', borderRadius: 8, borderSkipped: false, barPercentage: 0.7, categoryPercentage: 0.78 }
+                ]
+            },
+            options: {
+                responsive: true, maintainAspectRatio: false,
+                interaction: { mode: 'index', intersect: false },
+                plugins: {
+                    legend: { display: false },
+                    datalabels: { display: false },
+                    tooltip: { backgroundColor: t.tooltipBg, titleColor:'#fff', bodyColor:'#e2e8f0', padding: 10, cornerRadius: 8, callbacks: { label: (c) => c.dataset.label + ': ' + c.parsed.y.toFixed(1) + ' HTP' } }
+                },
+                scales: {
+                    x: { grid: { display: false }, ticks: { color: t.tick, font: { size: 11, weight: '700' } } },
+                    y: { grid: { color: t.grid }, ticks: { color: t.tick, font: { size: 11, weight: '600' } }, beginAtZero: true, title: { display: true, text: 'HTP', color: t.tick, font: { size: 11, weight: '700' } } }
+                }
+            }
+        });
+    }
+    function renderHistoryMonthlyChart(filteredDates) {
+        const canvas = document.getElementById('history-monthly-chart');
+        if (!canvas || typeof Chart === 'undefined') return;
+        const series = _aggregateByBucket(filteredDates, (dt) => dt.getFullYear() + '-' + String(dt.getMonth()+1).padStart(2,'0'), (a,b) => a.bucket.localeCompare(b.bucket)).slice(-6);
+        if (window.__histMonthlyChart) { try { window.__histMonthlyChart.destroy(); } catch(e){} }
+        const t = _histChartTheme();
+        window.__histMonthlyChart = new Chart(canvas.getContext('2d'), {
+            type: 'bar',
+            data: {
+                labels: series.map(s => s.bucket.replace(/^\d{4}-/, '') + '월'),
+                datasets: [
+                    { label: 'PICK', data: series.map(s => +s.pickHtp.toFixed(2)), backgroundColor: 'rgba(59,130,246,0.85)', borderRadius: 8, borderSkipped: false, barPercentage: 0.7, categoryPercentage: 0.78 },
+                    { label: 'PACK', data: series.map(s => +s.packHtp.toFixed(2)), backgroundColor: 'rgba(245,158,11,0.85)', borderRadius: 8, borderSkipped: false, barPercentage: 0.7, categoryPercentage: 0.78 }
+                ]
+            },
+            options: {
+                responsive: true, maintainAspectRatio: false,
+                interaction: { mode: 'index', intersect: false },
+                plugins: {
+                    legend: { display: false },
+                    datalabels: { display: false },
+                    tooltip: { backgroundColor: t.tooltipBg, titleColor:'#fff', bodyColor:'#e2e8f0', padding: 10, cornerRadius: 8, callbacks: { label: (c) => c.dataset.label + ': ' + c.parsed.y.toFixed(1) + ' HTP' } }
+                },
+                scales: {
+                    x: { grid: { display: false }, ticks: { color: t.tick, font: { size: 11, weight: '700' } } },
+                    y: { grid: { color: t.grid }, ticks: { color: t.tick, font: { size: 11, weight: '600' } }, beginAtZero: true, title: { display: true, text: 'HTP', color: t.tick, font: { size: 11, weight: '700' } } }
+                }
+            }
+        });
+    }
+    function renderHistoryPackTypeChart(allAggData) {
+        const canvas = document.getElementById('history-packtype-chart');
+        if (!canvas || typeof Chart === 'undefined') return;
+        const map = new Map();
+        allAggData.filter(d => d.processType.includes('PACK')).forEach(d => {
+            const key = (d.packType || '기타').trim() || '기타';
+            if (!map.has(key)) map.set(key, { qty: 0, mh: 0 });
+            const e = map.get(key);
+            e.qty += d.unitQty; e.mh += parseFloat(d.mh)||0;
+        });
+        const rows = Array.from(map.entries()).map(([k,v]) => ({ label: k, htp: v.mh > 0 ? v.qty/v.mh : 0, qty: v.qty }))
+            .filter(r => r.htp > 0 || r.qty > 0)
+            .sort((a,b) => b.htp - a.htp).slice(0, 10);
+        if (window.__histPackTypeChart) { try { window.__histPackTypeChart.destroy(); } catch(e){} }
+        const t = _histChartTheme();
+        window.__histPackTypeChart = new Chart(canvas.getContext('2d'), {
+            type: 'bar',
+            data: {
+                labels: rows.map(r => r.label),
+                datasets: [
+                    { label: '평균 HTP', data: rows.map(r => +r.htp.toFixed(2)), backgroundColor: 'rgba(245,158,11,0.88)', borderRadius: 6, borderSkipped: false, barPercentage: 0.78, categoryPercentage: 0.85 }
+                ]
+            },
+            options: {
+                responsive: true, maintainAspectRatio: false, indexAxis: 'y',
+                layout: { padding: { right: 80 } },
+                plugins: {
+                    legend: { display: false },
+                    datalabels: { display: false },
+                    tooltip: { backgroundColor: t.tooltipBg, titleColor:'#fff', bodyColor:'#e2e8f0', padding: 10, cornerRadius: 8, callbacks: { label: (c) => '평균 ' + c.parsed.x.toFixed(1) + ' HTP · ' + (Number.isFinite(rows[c.dataIndex].qty) ? Math.round(rows[c.dataIndex].qty).toLocaleString('ko-KR') : '0') + ' Unit' } }
+                },
+                scales: {
+                    x: { grid: { color: t.grid }, ticks: { color: t.tick, font: { size: 10, weight: '600' } }, title: { display: true, text: 'HTP', color: t.tick, font: { size: 10, weight: '700' } } },
+                    y: { grid: { display: false }, ticks: { color: t.label, font: { size: 11, weight: '700' }, autoSkip: false } }
+                }
+            },
+            plugins: [{
+                id: 'packTypeValueLabels',
+                afterDatasetsDraw(chart) {
+                    const { ctx } = chart;
+                    const meta = chart.getDatasetMeta(0);
+                    if (!meta) return;
+                    ctx.save();
+                    ctx.textAlign = 'left'; ctx.textBaseline = 'middle';
+                    meta.data.forEach((bar, i) => {
+                        const r = rows[i]; if (!r) return;
+                        const x = bar.x + 8;
+                        const y = bar.y;
+                        ctx.fillStyle = t.label;
+                        ctx.font = '700 11px Pretendard, sans-serif';
+                        ctx.fillText(r.htp.toFixed(1), x, y - 6);
+                        ctx.fillStyle = t.tick;
+                        ctx.font = '600 10px Pretendard, sans-serif';
+                        const qtyStr = Number.isFinite(r.qty) ? Math.round(r.qty).toLocaleString('ko-KR') : '0';
+                        ctx.fillText(qtyStr + ' Unit', x, y + 7);
+                    });
+                    ctx.restore();
+                }
+            }]
+        });
+    }
+    function renderHistoryPickZoneChart(allAggData) {
+        const canvas = document.getElementById('history-pickzone-chart');
+        if (!canvas || typeof Chart === 'undefined') return;
+        const mode = state.historyPickGroupMode || 'floor-pp';
+        const keyFn = (d) => {
+            const floor = (d.floor || '-').toString().trim() || '-';
+            const pp = (d.processPathName || '-').toString().trim() || '-';
+            if (mode === 'floor') return floor;
+            if (mode === 'pp') return pp;
+            return floor + ' ─ ' + pp;
+        };
+        const map = new Map();
+        allAggData.filter(d => d.processType.includes('PICK')).forEach(d => {
+            const key = keyFn(d);
+            if (!map.has(key)) map.set(key, { qty: 0, mh: 0 });
+            const e = map.get(key);
+            e.qty += d.unitQty; e.mh += parseFloat(d.mh)||0;
+        });
+        const limit = mode === 'floor' ? 16 : 12;
+        const rows = Array.from(map.entries()).map(([k,v]) => ({ label: k, htp: v.mh > 0 ? v.qty/v.mh : 0, qty: v.qty }))
+            .filter(r => r.htp > 0 || r.qty > 0)
+            .sort((a,b) => mode === 'floor' ? a.label.localeCompare(b.label) : b.htp - a.htp).slice(0, limit);
+        if (window.__histPickZoneChart) { try { window.__histPickZoneChart.destroy(); } catch(e){} }
+        const t = _histChartTheme();
+        const fmt = (v) => Number.isFinite(v) ? Math.round(v).toLocaleString('ko-KR') : '0';
+        // Color per floor for visual hierarchy
+        const palette = ['#3b82f6','#6366f1','#8b5cf6','#a855f7','#06b6d4','#0ea5e9','#10b981','#22c55e','#f59e0b','#ef4444','#ec4899','#14b8a6'];
+        const floorColor = (label) => {
+            const m = label.match(/^(\d+(?:\.\d+)?)/);
+            const f = m ? m[1] : label;
+            let h = 0; for (const c of f) h = (h*31 + c.charCodeAt(0)) >>> 0;
+            return palette[h % palette.length];
+        };
+        const colors = rows.map(r => mode === 'pp' ? 'rgba(59,130,246,0.88)' : floorColor(r.label) + 'e0');
+        window.__histPickZoneChart = new Chart(canvas.getContext('2d'), {
+            type: 'bar',
+            data: {
+                labels: rows.map(r => r.label),
+                datasets: [
+                    { label: '평균 HTP', data: rows.map(r => +r.htp.toFixed(2)), backgroundColor: colors, borderRadius: 6, borderSkipped: false, barPercentage: 0.78, categoryPercentage: 0.85 }
+                ]
+            },
+            options: {
+                responsive: true, maintainAspectRatio: false, indexAxis: 'y',
+                layout: { padding: { right: 95 } },
+                plugins: {
+                    legend: { display: false },
+                    datalabels: { display: false },
+                    tooltip: { backgroundColor: t.tooltipBg, titleColor:'#fff', bodyColor:'#e2e8f0', padding: 10, cornerRadius: 8, callbacks: { label: (c) => '평균 ' + c.parsed.x.toFixed(1) + ' HTP · ' + fmt(rows[c.dataIndex].qty) + ' Unit' } }
+                },
+                scales: {
+                    x: { grid: { color: t.grid }, ticks: { color: t.tick, font: { size: 10, weight: '600' } }, title: { display: true, text: 'HTP', color: t.tick, font: { size: 10, weight: '700' } } },
+                    y: { grid: { display: false }, ticks: { color: t.label, font: { size: mode === 'floor' ? 12 : 11, weight: '700' }, autoSkip: false } }
+                }
+            },
+            plugins: [{
+                id: 'pickZoneValueLabels',
+                afterDatasetsDraw(chart) {
+                    const { ctx } = chart;
+                    const meta = chart.getDatasetMeta(0);
+                    if (!meta) return;
+                    ctx.save();
+                    ctx.textAlign = 'left'; ctx.textBaseline = 'middle';
+                    meta.data.forEach((bar, i) => {
+                        const r = rows[i]; if (!r) return;
+                        const x = bar.x + 8;
+                        const y = bar.y;
+                        ctx.fillStyle = t.label;
+                        ctx.font = '800 12px Pretendard, sans-serif';
+                        ctx.fillText(r.htp.toFixed(1) + ' HTP', x, y - 7);
+                        ctx.fillStyle = t.tick;
+                        ctx.font = '600 10px Pretendard, sans-serif';
+                        ctx.fillText(fmt(r.qty) + ' Unit', x, y + 8);
+                    });
+                    ctx.restore();
+                }
+            }]
+        });
+    }
+
+        function getFilteredHistoryDates() {
         const allDates = getSortedHistoryDates();
         if (allDates.length === 0) return [];
 
@@ -11203,809 +11705,227 @@ function calculateEmployeeBadges() {
 
     function exportHistoryToPDF() {
         if (!window.jspdf) { showModal('PDF 라이브러리 로딩 실패. 페이지를 새로고침해주세요.'); return; }
+        if (typeof Chart === 'undefined') { showModal('Chart 라이브러리 로딩 실패.'); return; }
         ensureBadgesCalculated();
-
         const filteredDates = getFilteredHistoryDates();
         if (filteredDates.length === 0) { showModal('리포트를 생성할 히스토리 데이터가 없습니다.'); return; }
+        showModal('PDF 리포트 생성 중...', 3500);
 
-        showModal('PDF 리포트 생성 중...', 3000);
-
-        const getMhValue = (item) => {
-            const value = parseFloat(item.mh);
-            return Number.isFinite(value) ? value : 0;
-        };
-        const getHtpValue = (item) => {
-            const value = parseFloat(item.htp);
-            return Number.isFinite(value) ? value : 0;
-        };
-        const getTargetValue = (item) => {
-            const value = Number(getTargetHtp(item));
-            return Number.isFinite(value) ? value : 0;
-        };
-        const formatInt = (value) => Number.isFinite(value) ? Math.round(value).toLocaleString('ko-KR') : '0';
-        const formatFloat = (value, digits = 1) => Number.isFinite(value) ? Number(value).toFixed(digits) : (0).toFixed(digits);
-        const formatSigned = (value, digits = 1) => `${value >= 0 ? '+' : ''}${formatFloat(value, digits)}`;
-        const getEmployeeDisplay = (employee) => escapeHtml((employee || '-').split('(')[0].trim() || '-');
-        const getScopeLabel = (item) => item.processType.includes('PICK')
-            ? `${escapeHtml(item.floor || '-')}F / ${escapeHtml(item.processPathName || '-')}`
-            : `${escapeHtml(item.packType || '-')} / ${escapeHtml(item.location || '-')}`;
+        const fmtInt = (v) => Number.isFinite(v) ? Math.round(v).toLocaleString('ko-KR') : '0';
+        const fmtF = (v, d=1) => Number.isFinite(v) ? Number(v).toFixed(d) : (0).toFixed(d);
+        const empName = (e) => escapeHtml((e || '-').split('(')[0].trim() || '-');
         const period = state.historyPeriod === 'week' ? '최근 7일' : state.historyPeriod === 'month' ? '최근 30일' : state.historyPeriod === 'all' ? '전체' : '사용자 지정';
         const reportGeneratedAt = new Date().toLocaleString('ko-KR');
 
-        let allAggData = [];
-        filteredDates.forEach(date => {
-            const dayData = historyData[date];
-            if (dayData) {
-                allAggData = allAggData.concat(aggregateData(dayData).map(item => ({ ...item, date })));
-            }
-        });
-        if (allAggData.length === 0) { showModal('PDF 리포트를 생성할 집계 데이터가 없습니다.'); return; }
-
-        const totalQty = allAggData.reduce((sum, item) => sum + item.unitQty, 0);
-        const totalMh = allAggData.reduce((sum, item) => sum + getMhValue(item), 0);
-        const avgHtp = totalMh > 0 ? totalQty / totalMh : 0;
-        const maxHtpVal = Math.max(...allAggData.map(item => getHtpValue(item)), 0);
-        const uniqueWorkers = new Set(allAggData.map(item => item.employee)).size;
-        const measurableGroups = allAggData.filter(item => getTargetValue(item) > 0);
-        const achievedGroups = measurableGroups.filter(item => getHtpValue(item) >= getTargetValue(item)).length;
-        const achievementRate = measurableGroups.length > 0 ? (achievedGroups / measurableGroups.length) * 100 : 0;
-        const lowWorkerCount = new Set(
-            measurableGroups.filter(item => getHtpValue(item) < getTargetValue(item)).map(item => item.employee)
-        ).size;
-
-        const dailyData = filteredDates.map(date => {
-            const dayData = historyData[date];
-            if (!dayData) return null;
+        let allAgg = [];
+        const dailySeries = [];
+        filteredDates.slice().sort().forEach(date => {
+            const dayData = historyData[date]; if (!dayData) return;
             const agg = aggregateData(dayData);
-            const workers = new Set(agg.map(item => item.employee)).size;
-            const qty = agg.reduce((sum, item) => sum + item.unitQty, 0);
-            const mh = agg.reduce((sum, item) => sum + getMhValue(item), 0);
-            const pickAgg = agg.filter(item => item.processType.includes('PICK'));
-            const packAgg = agg.filter(item => item.processType.includes('PACK'));
-            const pickMh = pickAgg.reduce((sum, item) => sum + getMhValue(item), 0);
-            const pickQty = pickAgg.reduce((sum, item) => sum + item.unitQty, 0);
-            const packMh = packAgg.reduce((sum, item) => sum + getMhValue(item), 0);
-            const packQty = packAgg.reduce((sum, item) => sum + item.unitQty, 0);
-            const dayMeasurable = agg.filter(item => getTargetValue(item) > 0);
-            const dayAchieved = dayMeasurable.filter(item => getHtpValue(item) >= getTargetValue(item)).length;
-            const dayAchievementRate = dayMeasurable.length > 0 ? (dayAchieved / dayMeasurable.length) * 100 : 0;
-            const topGroup = [...agg].sort((a, b) => getHtpValue(b) - getHtpValue(a))[0] || null;
-            const lowWorkers = new Set(
-                agg.filter(item => getTargetValue(item) > 0 && getHtpValue(item) < getTargetValue(item)).map(item => item.employee)
-            ).size;
-
-            return {
-                date,
-                workers,
-                qty,
-                mh,
-                htp: mh > 0 ? qty / mh : 0,
-                pickHtp: pickMh > 0 ? pickQty / pickMh : 0,
-                packHtp: packMh > 0 ? packQty / packMh : 0,
-                achievementRate: dayAchievementRate,
-                topPerformer: topGroup ? topGroup.employee : '-',
-                topPerformerHtp: topGroup ? getHtpValue(topGroup) : 0,
-                lowWorkers,
-            };
-        }).filter(Boolean);
-
-        const bestDay = dailyData.reduce((best, item) => (!best || item.htp > best.htp ? item : best), null);
-        const lowestDay = dailyData.reduce((worst, item) => (!worst || item.htp < worst.htp ? item : worst), null);
-        const busiestDay = dailyData.reduce((best, item) => (!best || item.qty > best.qty ? item : best), null);
-
-        const buildProcessSummary = (items) => {
-            const qty = items.reduce((sum, item) => sum + item.unitQty, 0);
-            const mh = items.reduce((sum, item) => sum + getMhValue(item), 0);
-            const avg = mh > 0 ? qty / mh : 0;
-            const workers = new Set(items.map(item => item.employee)).size;
-            const measurable = items.filter(item => getTargetValue(item) > 0);
-            const achieved = measurable.filter(item => getHtpValue(item) >= getTargetValue(item)).length;
-            const achievement = measurable.length > 0 ? (achieved / measurable.length) * 100 : 0;
-            const lowWorkers = new Set(
-                measurable.filter(item => getHtpValue(item) < getTargetValue(item)).map(item => item.employee)
-            ).size;
-            const topItem = [...items].sort((a, b) => getHtpValue(b) - getHtpValue(a))[0] || null;
-            const topVolume = [...items].sort((a, b) => b.unitQty - a.unitQty)[0] || null;
-            return {
-                qty,
-                mh,
-                avg,
-                workers,
-                achievement,
-                lowWorkers,
-                topItem,
-                topVolume,
-                share: totalQty > 0 ? (qty / totalQty) * 100 : 0,
-            };
-        };
-
-        const pickSummary = buildProcessSummary(allAggData.filter(item => item.processType.includes('PICK')));
-        const packSummary = buildProcessSummary(allAggData.filter(item => item.processType.includes('PACK')));
-
-        const processEmployeeStats = new Map();
-        allAggData.forEach(item => {
-            const processKey = item.processType.includes('PICK') ? 'PICK' : 'PACK';
-            const key = `${item.employee}|${processKey}`;
-            if (!processEmployeeStats.has(key)) {
-                processEmployeeStats.set(key, {
-                    employee: item.employee,
-                    processType: processKey,
-                    totalQty: 0,
-                    totalMh: 0,
-                    weightedTarget: 0,
-                    days: new Set(),
-                });
-            }
-            const entry = processEmployeeStats.get(key);
-            const mh = getMhValue(item);
-            entry.totalQty += item.unitQty;
-            entry.totalMh += mh;
-            entry.weightedTarget += getTargetValue(item) * mh;
-            entry.days.add(item.date);
+            allAgg = allAgg.concat(agg.map(it => ({ ...it, date })));
+            const tQ = agg.reduce((s,d)=>s+d.unitQty,0);
+            const tM = agg.reduce((s,d)=>s+(parseFloat(d.mh)||0),0);
+            const pAgg = agg.filter(d=>d.processType.includes('PICK'));
+            const kAgg = agg.filter(d=>d.processType.includes('PACK'));
+            const pQ = pAgg.reduce((s,d)=>s+d.unitQty,0), pM = pAgg.reduce((s,d)=>s+(parseFloat(d.mh)||0),0);
+            const kQ = kAgg.reduce((s,d)=>s+d.unitQty,0), kM = kAgg.reduce((s,d)=>s+(parseFloat(d.mh)||0),0);
+            dailySeries.push({ date, qty: tQ, mh: tM, htp: tM>0?tQ/tM:0, pickHtp: pM>0?pQ/pM:0, packHtp: kM>0?kQ/kM:0, workers: new Set(agg.map(d=>d.employee)).size });
         });
+        if (allAgg.length === 0) { showModal('PDF 리포트를 생성할 집계 데이터가 없습니다.'); return; }
 
-        const empList = Array.from(processEmployeeStats.values()).map(entry => {
-            const avgHtpValue = entry.totalMh > 0 ? entry.totalQty / entry.totalMh : 0;
-            const target = entry.totalMh > 0 ? entry.weightedTarget / entry.totalMh : 0;
-            return {
-                employee: entry.employee,
-                processType: entry.processType,
-                totalQty: entry.totalQty,
-                avgHtp: avgHtpValue,
-                target,
-                gap: target - avgHtpValue,
-                days: entry.days.size,
-            };
-        });
-        const rankIcon = (index) => index === 0 ? '1' : index === 1 ? '2' : index === 2 ? '3' : `${index + 1}`;
-        const sortByAvg = (a, b) => (b.avgHtp - a.avgHtp) || (b.totalQty - a.totalQty) || (b.days - a.days);
-        const pickTop = empList.filter(item => item.processType === 'PICK').sort(sortByAvg).slice(0, 12);
-        const packTop = empList.filter(item => item.processType === 'PACK').sort(sortByAvg).slice(0, 12);
-        const watchList = empList
-            .filter(item => item.target > 0 && item.avgHtp < item.target)
-            .sort((a, b) => (b.gap - a.gap) || (b.days - a.days) || (b.totalQty - a.totalQty))
-            .slice(0, 12);
+        const totalQty = allAgg.reduce((s,it)=>s+it.unitQty,0);
+        const totalMh = allAgg.reduce((s,it)=>s+(parseFloat(it.mh)||0),0);
+        const avgHtp = totalMh > 0 ? totalQty/totalMh : 0;
+        const maxHtpVal = Math.max(...allAgg.map(it=>parseFloat(it.htp)||0), 0);
+        const uniqueWorkers = new Set(allAgg.map(it=>it.employee)).size;
+        const totalDays = dailySeries.length;
+        const pickItems = allAgg.filter(it=>it.processType.includes('PICK'));
+        const packItems = allAgg.filter(it=>it.processType.includes('PACK'));
+        const pickQty = pickItems.reduce((s,d)=>s+d.unitQty,0);
+        const pickMh  = pickItems.reduce((s,d)=>s+(parseFloat(d.mh)||0),0);
+        const packQty = packItems.reduce((s,d)=>s+d.unitQty,0);
+        const packMh  = packItems.reduce((s,d)=>s+(parseFloat(d.mh)||0),0);
+        const pickHtp = pickMh > 0 ? pickQty/pickMh : 0;
+        const packHtp = packMh > 0 ? packQty/packMh : 0;
+        const bestDay = dailySeries.reduce((b,it)=>(!b||it.htp>b.htp?it:b), null);
+        const lowestDay = dailySeries.reduce((w,it)=>(!w||it.htp<w.htp?it:w), null);
+        const busiestDay = dailySeries.reduce((b,it)=>(!b||it.qty>b.qty?it:b), null);
 
-        const summarizeBuckets = (items, bucketType) => {
-            const bucketMap = new Map();
-            items.forEach(item => {
-                const key = bucketType === 'pick'
-                    ? `${item.floor || '-'}|${item.processPathName || '-'}`
-                    : `${item.packType || '-'}|${item.location || '-'}`;
-                if (!bucketMap.has(key)) {
-                    bucketMap.set(key, {
-                        label: bucketType === 'pick'
-                            ? `${escapeHtml(item.floor || '-')}F`
-                            : escapeHtml(item.packType || '-'),
-                        subLabel: bucketType === 'pick'
-                            ? escapeHtml(item.processPathName || '-')
-                            : escapeHtml(item.location || '-'),
-                        qty: 0,
-                        mh: 0,
-                        weightedTarget: 0,
-                        workers: new Set(),
-                        measurableCount: 0,
-                        achievedCount: 0,
-                        lowWorkers: new Set(),
-                        topEmployee: '-',
-                        topEmployeeHtp: 0,
-                        days: new Set(),
-                    });
-                }
-                const entry = bucketMap.get(key);
-                const mh = getMhValue(item);
-                const target = getTargetValue(item);
-                const htp = getHtpValue(item);
-                entry.qty += item.unitQty;
-                entry.mh += mh;
-                entry.weightedTarget += target * mh;
-                entry.workers.add(item.employee);
-                entry.days.add(item.date);
-                if (target > 0) {
-                    entry.measurableCount += 1;
-                    if (htp >= target) entry.achievedCount += 1;
-                    else entry.lowWorkers.add(item.employee);
-                }
-                if (htp > entry.topEmployeeHtp) {
-                    entry.topEmployeeHtp = htp;
-                    entry.topEmployee = item.employee;
-                }
+        const isoWk = (d) => { const dt = new Date(d.getTime()); dt.setHours(0,0,0,0); dt.setDate(dt.getDate()+3-((dt.getDay()+6)%7)); const w1 = new Date(dt.getFullYear(),0,4); return dt.getFullYear()+'-W'+String(1+Math.round(((dt-w1)/86400000-3+((w1.getDay()+6)%7))/7)).padStart(2,'0'); };
+        const aggBucket = (fn) => {
+            const m = new Map();
+            filteredDates.slice().sort().forEach(date => {
+                const dt = parseDateKey(date); if (!dt) return;
+                const dayData = historyData[date]; if (!dayData) return;
+                const agg = aggregateData(dayData);
+                const pA = agg.filter(d=>d.processType.includes('PICK'));
+                const kA = agg.filter(d=>d.processType.includes('PACK'));
+                const k = fn(dt);
+                if (!m.has(k)) m.set(k, { pickQ:0, pickM:0, packQ:0, packM:0 });
+                const b = m.get(k);
+                b.pickQ += pA.reduce((s,d)=>s+d.unitQty,0);
+                b.pickM += pA.reduce((s,d)=>s+(parseFloat(d.mh)||0),0);
+                b.packQ += kA.reduce((s,d)=>s+d.unitQty,0);
+                b.packM += kA.reduce((s,d)=>s+(parseFloat(d.mh)||0),0);
             });
-
-            return Array.from(bucketMap.values()).map(entry => {
-                const avg = entry.mh > 0 ? entry.qty / entry.mh : 0;
-                const target = entry.mh > 0 ? entry.weightedTarget / entry.mh : 0;
-                return {
-                    label: entry.label,
-                    subLabel: entry.subLabel,
-                    qty: entry.qty,
-                    mh: entry.mh,
-                    avgHtp: avg,
-                    target,
-                    workerCount: entry.workers.size,
-                    days: entry.days.size,
-                    achievementRate: entry.measurableCount > 0 ? (entry.achievedCount / entry.measurableCount) * 100 : 0,
-                    lowWorkerCount: entry.lowWorkers.size,
-                    topEmployee: getEmployeeDisplay(entry.topEmployee),
-                    topEmployeeHtp: entry.topEmployeeHtp,
-                };
-            });
+            return Array.from(m.entries()).map(([key,v]) => ({ bucket: key, pickHtp: v.pickM>0?v.pickQ/v.pickM:0, packHtp: v.packM>0?v.packQ/v.packM:0 })).sort((a,b)=>a.bucket.localeCompare(b.bucket));
         };
+        const weekly = aggBucket(d => isoWk(d)).slice(-8);
+        const monthly = aggBucket(d => d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')).slice(-6);
 
-        const pickFloorSummary = summarizeBuckets(
-            allAggData.filter(item => item.processType.includes('PICK')),
-            'pick'
-        ).sort((a, b) => (b.qty - a.qty) || (b.avgHtp - a.avgHtp)).slice(0, 12);
-        const packTypeSummary = summarizeBuckets(
-            allAggData.filter(item => item.processType.includes('PACK')),
-            'pack'
-        ).sort((a, b) => (b.qty - a.qty) || (b.avgHtp - a.avgHtp)).slice(0, 12);
+        const buildBreakdown = (items, keyFn) => {
+            const m = new Map();
+            items.forEach(d => { const k = keyFn(d); if (!m.has(k)) m.set(k, { qty:0, mh:0 }); const e = m.get(k); e.qty += d.unitQty; e.mh += parseFloat(d.mh)||0; });
+            return Array.from(m.entries()).map(([k,v]) => ({ label: k, htp: v.mh>0?v.qty/v.mh:0, qty: v.qty })).filter(r => r.htp > 0 || r.qty > 0).sort((a,b)=>b.htp-a.htp);
+        };
+        const packTypeRows = buildBreakdown(packItems, d => (d.packType || '기타').trim() || '기타').slice(0, 8);
+        const pickZoneRows = buildBreakdown(pickItems, d => ((d.floor||'-').trim() || '-') + 'F · ' + ((d.processPathName||'-').trim() || '-')).slice(0, 8);
 
-        const employeeDailySeries = new Map();
-        allAggData.forEach(item => {
-            const processKey = item.processType.includes('PICK') ? 'PICK' : 'PACK';
-            const entryKey = `${item.employee}|${processKey}`;
-            if (!employeeDailySeries.has(entryKey)) {
-                employeeDailySeries.set(entryKey, {
-                    employee: item.employee,
-                    processType: processKey,
-                    totalQty: 0,
-                    totalMh: 0,
-                    weightedTarget: 0,
-                    days: new Map(),
-                });
-            }
-            const entry = employeeDailySeries.get(entryKey);
-            const mh = getMhValue(item);
-            entry.totalQty += item.unitQty;
-            entry.totalMh += mh;
-            entry.weightedTarget += getTargetValue(item) * mh;
-            if (!entry.days.has(item.date)) {
-                entry.days.set(item.date, { qty: 0, mh: 0 });
-            }
-            const dayEntry = entry.days.get(item.date);
-            dayEntry.qty += item.unitQty;
-            dayEntry.mh += mh;
+        const empMap = new Map();
+        allAgg.forEach(it => {
+            const proc = it.processType.includes('PICK') ? 'PICK' : 'PACK';
+            const key = it.employee + '|' + proc;
+            if (!empMap.has(key)) empMap.set(key, { employee: it.employee, proc, qty: 0, mh: 0 });
+            const e = empMap.get(key); e.qty += it.unitQty; e.mh += parseFloat(it.mh)||0;
         });
+        const empArr = Array.from(empMap.values()).map(e => ({ ...e, htp: e.mh > 0 ? e.qty/e.mh : 0 }));
+        const topPick = empArr.filter(e=>e.proc==='PICK').sort((a,b)=>b.htp-a.htp).slice(0,8);
+        const topPack = empArr.filter(e=>e.proc==='PACK').sort((a,b)=>b.htp-a.htp).slice(0,8);
 
-        const consistencyLeaders = Array.from(employeeDailySeries.values()).map(entry => {
-            const series = Array.from(entry.days.values())
-                .map(day => day.mh > 0 ? day.qty / day.mh : 0)
-                .filter(value => Number.isFinite(value) && value > 0);
-            const avg = series.length > 0 ? series.reduce((sum, value) => sum + value, 0) / series.length : 0;
-            const variance = series.length > 0
-                ? series.reduce((sum, value) => sum + ((value - avg) ** 2), 0) / series.length
-                : 0;
-            const stdDev = Math.sqrt(variance);
-            const cv = avg > 0 ? (stdDev / avg) * 100 : 0;
-            const target = entry.totalMh > 0 ? entry.weightedTarget / entry.totalMh : 0;
-            return {
-                employee: getEmployeeDisplay(entry.employee),
-                processType: entry.processType,
-                avgHtp: avg,
-                target,
-                days: series.length,
-                stdDev,
-                cv,
-            };
-        }).filter(entry => entry.days >= 3 && entry.avgHtp > 0 && (entry.target === 0 || entry.avgHtp >= entry.target * 0.9))
-            .sort((a, b) => (a.cv - b.cv) || (b.days - a.days) || (b.avgHtp - a.avgHtp))
-            .slice(0, 10);
-
-        const badgeHolders = Object.entries(employeeBadges)
-            .filter(([, data]) => data.badges && data.badges.length > 0)
-            .map(([name, data]) => ({
-                name: getEmployeeDisplay(name),
-                totalBadges: data.badges.length,
-                badges: data.badges.slice(0, 4).map(badge => escapeHtml(badge.name)).join(' · '),
-                days: data.records.totalDays || 0,
-                avgHtp: Number(data.records.avgHtp) || 0,
-                perfectRate: data.records.totalDays > 0
-                    ? ((data.records.perfectDays || 0) / data.records.totalDays) * 100
-                    : 0,
-            }))
-            .sort((a, b) => (b.totalBadges - a.totalBadges) || (b.avgHtp - a.avgHtp))
-            .slice(0, 12);
-
-        const targetReferenceRows = Object.entries(TARGET_HTP_DEFAULTS).map(([name, config]) => ({
-            category: escapeHtml(name),
-            target: formatInt(targetHtpValues[name] || config.value),
-            keywords: escapeHtml((config.keywords || []).slice(0, 2).join(', ') || 'PICK 기본 목표'),
-        }));
-
-        const overallTopItem = [...allAggData].sort((a, b) => (getHtpValue(b) - getHtpValue(a)) || (b.unitQty - a.unitQty))[0] || null;
-        const insightCards = [
-            {
-                label: '최고 효율일',
-                value: bestDay ? bestDay.date : '-',
-                detail: bestDay ? `평균 ${formatFloat(bestDay.htp)} HTP · 달성률 ${formatFloat(bestDay.achievementRate)}%` : '집계 데이터 없음',
-                accent: '#2563EB',
-            },
-            {
-                label: '최저 효율일',
-                value: lowestDay ? lowestDay.date : '-',
-                detail: lowestDay ? `평균 ${formatFloat(lowestDay.htp)} HTP · 주의 ${formatInt(lowestDay.lowWorkers)}명` : '집계 데이터 없음',
-                accent: '#DC2626',
-            },
-            {
-                label: '최대 물량일',
-                value: busiestDay ? busiestDay.date : '-',
-                detail: busiestDay ? `${formatInt(busiestDay.qty)} Unit · 작업자 ${formatInt(busiestDay.workers)}명` : '집계 데이터 없음',
-                accent: '#0F766E',
-            },
-            {
-                label: '최고 효율 그룹',
-                value: overallTopItem ? getEmployeeDisplay(overallTopItem.employee) : '-',
-                detail: overallTopItem ? `${getScopeLabel(overallTopItem)} · ${formatFloat(getHtpValue(overallTopItem))} HTP` : '집계 데이터 없음',
-                accent: '#7C3AED',
-            },
-        ];
-
-        const executiveNarrative = [];
-        if (bestDay && lowestDay) {
-            executiveNarrative.push(`${bestDay.date}에 평균 ${formatFloat(bestDay.htp)} HTP로 가장 높은 효율을 기록했고, ${lowestDay.date}에는 평균 ${formatFloat(lowestDay.htp)} HTP로 가장 낮은 구간이 나타났습니다.`);
-        }
-        executiveNarrative.push(`전체 ${formatInt(uniqueWorkers)}명의 작업자와 ${formatInt(allAggData.length)}개 집계 그룹 중 목표가 정의된 ${formatInt(measurableGroups.length)}개 그룹을 기준으로 달성률은 ${formatFloat(achievementRate)}%이며, 기준 미달 인원은 ${formatInt(lowWorkerCount)}명입니다.`);
-        if (pickSummary.qty > 0 || packSummary.qty > 0) {
-            const leadingProcess = pickSummary.avg >= packSummary.avg ? 'PICK' : 'PACK';
-            const processGap = Math.abs(pickSummary.avg - packSummary.avg);
-            executiveNarrative.push(`${leadingProcess} 공정이 상대적으로 우세하며, PICK과 PACK의 평균 HTP 격차는 ${formatFloat(processGap)}입니다. 물량 비중은 PICK ${formatFloat(pickSummary.share)}%, PACK ${formatFloat(packSummary.share)}%입니다.`);
-        }
-        if (watchList.length > 0) {
-            executiveNarrative.push('개선 우선순위 리스트는 공정별 목표 HTP 기준으로 계산했으며, 특수 라인, 8F, 오더피커, 예외 공정은 운영 특성과 배치 조건을 함께 검토해야 합니다.');
-        }
-
-        const buildMetricCard = (label, value, subText, accent) => `
-            <div style="background:#FFFFFF;border:1px solid ${accent}22;border-radius:20px;padding:18px 20px;box-shadow:0 14px 30px rgba(15,23,42,0.07);">
-                <div style="font-size:11px;font-weight:700;letter-spacing:0.08em;text-transform:uppercase;color:#64748B;">${escapeHtml(label)}</div>
-                <div style="margin-top:10px;font-size:30px;font-weight:800;color:${accent};line-height:1.05;">${escapeHtml(value)}</div>
-                <div style="margin-top:8px;font-size:12px;color:#64748B;line-height:1.5;">${escapeHtml(subText)}</div>
-            </div>
-        `;
-
-        const buildTableHTML = (columns, rows, options = {}) => {
-            const accent = options.accent || '#2563EB';
-            const emptyLabel = options.emptyLabel || '표시할 데이터가 없습니다.';
-            if (!rows.length) {
-                return `<div style="padding:24px 18px;border:1px dashed #CBD5E1;border-radius:18px;background:#FFFFFF;color:#94A3B8;text-align:center;">${escapeHtml(emptyLabel)}</div>`;
-            }
-
-            return `
-                <table style="width:100%;border-collapse:collapse;font-size:12px;background:#FFFFFF;border-radius:18px;overflow:hidden;box-shadow:0 12px 28px rgba(15,23,42,0.06);">
-                    <thead>
-                        <tr style="background:${accent};color:#FFFFFF;">
-                            ${columns.map(column => `<th style="padding:11px 10px;border:1px solid ${accent};text-align:${column.align || 'left'};font-weight:700;${column.width ? `width:${column.width};` : ''}">${escapeHtml(column.label)}</th>`).join('')}
-                        </tr>
-                    </thead>
-                    <tbody>
-                        ${rows.map((row, rowIndex) => `
-                            <tr style="background:${rowIndex % 2 === 0 ? '#FFFFFF' : '#F8FAFC'};">
-                                ${columns.map(column => `<td style="padding:9px 10px;border:1px solid #E2E8F0;text-align:${column.align || 'left'};vertical-align:top;color:#0F172A;line-height:1.45;">${row[column.key] ?? '-'}</td>`).join('')}
-                            </tr>
-                        `).join('')}
-                    </tbody>
-                </table>
-            `;
-        };
-
-        const buildProcessCard = (title, summary, accent, tint) => {
-            if (summary.qty <= 0) {
-                return `
-                    <div style="flex:1;background:#FFFFFF;border:1px solid #E2E8F0;border-radius:22px;padding:22px;">
-                        <div style="font-size:14px;font-weight:800;color:#0F172A;">${escapeHtml(title)}</div>
-                        <div style="margin-top:18px;font-size:13px;color:#94A3B8;">집계된 데이터가 없습니다.</div>
-                    </div>
-                `;
-            }
-
-            const topItemText = summary.topItem
-                ? `${getEmployeeDisplay(summary.topItem.employee)} · ${formatFloat(getHtpValue(summary.topItem))} HTP`
-                : '-';
-            const topVolumeText = summary.topVolume
-                ? `${getEmployeeDisplay(summary.topVolume.employee)} · ${formatInt(summary.topVolume.unitQty)} Unit`
-                : '-';
-
-            return `
-                <div style="flex:1;background:linear-gradient(180deg, ${tint} 0%, #FFFFFF 42%);border:1px solid ${accent}24;border-radius:24px;padding:22px;box-shadow:0 16px 34px rgba(15,23,42,0.08);">
-                    <div style="display:flex;justify-content:space-between;align-items:flex-start;gap:12px;">
-                        <div>
-                            <div style="font-size:11px;font-weight:700;letter-spacing:0.08em;text-transform:uppercase;color:#64748B;">Process Breakdown</div>
-                            <div style="margin-top:6px;font-size:26px;font-weight:800;color:${accent};">${escapeHtml(title)}</div>
-                            <div style="margin-top:6px;font-size:13px;color:#475569;">평균 HTP <span style="font-size:22px;font-weight:800;color:${accent};">${formatFloat(summary.avg)}</span></div>
-                        </div>
-                        <div style="padding:8px 12px;border-radius:999px;background:#FFFFFF;color:${accent};font-size:12px;font-weight:700;border:1px solid ${accent}33;">
-                            물량 비중 ${formatFloat(summary.share)}%
-                        </div>
-                    </div>
-                    <div style="display:grid;grid-template-columns:repeat(2,1fr);gap:12px;margin-top:18px;">
-                        <div style="background:#FFFFFF;border-radius:16px;padding:14px;border:1px solid #E2E8F0;">
-                            <div style="font-size:11px;color:#94A3B8;">총 작업량</div>
-                            <div style="margin-top:6px;font-size:20px;font-weight:800;color:#0F172A;">${formatInt(summary.qty)}</div>
-                        </div>
-                        <div style="background:#FFFFFF;border-radius:16px;padding:14px;border:1px solid #E2E8F0;">
-                            <div style="font-size:11px;color:#94A3B8;">총 MH</div>
-                            <div style="margin-top:6px;font-size:20px;font-weight:800;color:#0F172A;">${formatFloat(summary.mh, 2)}</div>
-                        </div>
-                        <div style="background:#FFFFFF;border-radius:16px;padding:14px;border:1px solid #E2E8F0;">
-                            <div style="font-size:11px;color:#94A3B8;">작업자 수</div>
-                            <div style="margin-top:6px;font-size:20px;font-weight:800;color:#0F172A;">${formatInt(summary.workers)}명</div>
-                        </div>
-                        <div style="background:#FFFFFF;border-radius:16px;padding:14px;border:1px solid #E2E8F0;">
-                            <div style="font-size:11px;color:#94A3B8;">달성률 / 주의 인원</div>
-                            <div style="margin-top:6px;font-size:20px;font-weight:800;color:#0F172A;">${formatFloat(summary.achievement)}% / ${formatInt(summary.lowWorkers)}명</div>
-                        </div>
-                    </div>
-                    <div style="margin-top:16px;padding:14px 16px;border-radius:16px;background:#FFFFFF;border:1px solid #E2E8F0;">
-                        <div style="font-size:12px;color:#64748B;">대표 고효율 작업자</div>
-                        <div style="margin-top:5px;font-size:15px;font-weight:700;color:#0F172A;">${topItemText}</div>
-                        <div style="margin-top:12px;font-size:12px;color:#64748B;">최대 물량 작업자</div>
-                        <div style="margin-top:5px;font-size:15px;font-weight:700;color:#0F172A;">${topVolumeText}</div>
-                    </div>
-                </div>
-            `;
-        };
-
+        const W = 1190, H = 1684;
         const reportDiv = document.createElement('div');
-        reportDiv.id = 'pdf-report-container';
-        reportDiv.style.cssText = 'position:absolute;left:-10000px;top:0;width:920px;background:#F5F7FB;font-family:Pretendard,"Noto Sans KR","Segoe UI",sans-serif;color:#0F172A;';
-        reportDiv.innerHTML = `
-            <div style="background:radial-gradient(circle at top left, rgba(255,255,255,0.16), transparent 34%), linear-gradient(135deg, #0F172A 0%, #1D4ED8 52%, #0F766E 100%);padding:42px 40px 34px;color:#FFFFFF;">
-                <div style="display:flex;justify-content:space-between;align-items:flex-start;gap:20px;">
-                    <div style="max-width:620px;">
-                        <div style="font-size:12px;font-weight:700;letter-spacing:0.18em;text-transform:uppercase;opacity:0.8;">History Intelligence Report</div>
-                        <div style="margin-top:12px;font-size:34px;font-weight:900;letter-spacing:-0.04em;line-height:1.08;">PICK &amp; PACK 히스토리 정밀 리포트</div>
-                        <div style="margin-top:12px;font-size:14px;line-height:1.65;opacity:0.9;">기간별 작업량, 효율, 목표 달성률, 라인/팩 타입 분해, 개선 우선순위와 뱃지 현황까지 한 번에 검토할 수 있도록 구성한 PDF 요약본입니다.</div>
-                    </div>
-                    <div style="min-width:210px;background:rgba(255,255,255,0.12);border:1px solid rgba(255,255,255,0.22);border-radius:20px;padding:18px 18px 16px;backdrop-filter:blur(10px);">
-                        <div style="font-size:11px;letter-spacing:0.08em;text-transform:uppercase;opacity:0.7;">Report Scope</div>
-                        <div style="margin-top:10px;font-size:14px;font-weight:700;">${escapeHtml(filteredDates[0])} ~ ${escapeHtml(filteredDates[filteredDates.length - 1])}</div>
-                        <div style="margin-top:6px;font-size:12px;opacity:0.78;">조회 범위: ${escapeHtml(period)}</div>
-                        <div style="margin-top:6px;font-size:12px;opacity:0.78;">생성 시각: ${escapeHtml(reportGeneratedAt)}</div>
-                    </div>
-                </div>
-                <div style="display:flex;gap:10px;flex-wrap:wrap;margin-top:22px;">
-                    <span style="padding:8px 12px;border-radius:999px;background:rgba(255,255,255,0.12);font-size:12px;font-weight:700;">작업자 ${formatInt(uniqueWorkers)}명</span>
-                    <span style="padding:8px 12px;border-radius:999px;background:rgba(255,255,255,0.12);font-size:12px;font-weight:700;">집계 그룹 ${formatInt(allAggData.length)}개</span>
-                    <span style="padding:8px 12px;border-radius:999px;background:rgba(255,255,255,0.12);font-size:12px;font-weight:700;">평균 HTP ${formatFloat(avgHtp)}</span>
-                    <span style="padding:8px 12px;border-radius:999px;background:rgba(255,255,255,0.12);font-size:12px;font-weight:700;">목표 달성률 ${formatFloat(achievementRate)}%</span>
-                </div>
-            </div>
+        reportDiv.style.cssText = `position:absolute;left:-99999px;top:0;width:${W}px;height:${H}px;background:#f8fafc;font-family:'Pretendard Variable','Pretendard','Noto Sans KR',sans-serif;color:#0f172a;overflow:hidden;`;
 
-            <div style="padding:28px 36px 4px;">
-                <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:14px;">
-                    ${buildMetricCard('총 작업일수', `${filteredDates.length}일`, `분석 기간 ${filteredDates[0]} ~ ${filteredDates[filteredDates.length - 1]}`, '#2563EB')}
-                    ${buildMetricCard('누적 작업량', `${formatInt(totalQty)} Unit`, `총 MH ${formatFloat(totalMh, 2)} 기준`, '#0F766E')}
-                    ${buildMetricCard('전체 평균 HTP', `${formatFloat(avgHtp)}`, `최고 그룹 HTP ${formatFloat(maxHtpVal)}`, '#D97706')}
-                    ${buildMetricCard('주의 인원', `${formatInt(lowWorkerCount)}명`, `공정별 목표 기준 / 달성률 ${formatFloat(achievementRate)}%`, '#DC2626')}
-                </div>
-            </div>
+        const medal = (i) => i===0?'🥇':i===1?'🥈':i===2?'🥉':String(i+1);
+        const rankRows = (list, color) => list.length===0
+            ? '<div style="padding:20px;color:#94a3b8;text-align:center;font-size:13px;">데이터 없음</div>'
+            : list.map((e,i) => `<div style="display:flex;align-items:center;gap:12px;padding:9px 12px;background:${i<3?'linear-gradient(90deg,'+color+'14,transparent)':'transparent'};border-radius:9px;border-bottom:1px solid #f1f5f9;"><div style="width:24px;height:24px;display:flex;align-items:center;justify-content:center;font-weight:800;font-size:${i<3?'14px':'11px'};color:${i<3?color:'#64748b'};background:${i<3?'#fff':'#f1f5f9'};border-radius:50%;flex-shrink:0;${i<3?'box-shadow:0 2px 6px rgba(0,0,0,0.08);':''}">${medal(i)}</div><div style="flex:1;font-weight:700;font-size:12px;color:#1e293b;">${empName(e.employee)}</div><div style="font-weight:800;font-size:14px;color:${color};font-variant-numeric:tabular-nums;">${fmtF(e.htp)}<span style="font-size:9px;color:#94a3b8;font-weight:600;margin-left:2px;">HTP</span></div></div>`).join('');
 
-            <div style="padding:20px 36px 0;">
-                <div style="background:#FFFFFF;border:1px solid #E2E8F0;border-radius:24px;padding:24px;box-shadow:0 16px 34px rgba(15,23,42,0.06);">
-                    <div style="display:flex;justify-content:space-between;align-items:center;gap:12px;flex-wrap:wrap;">
-                        <div style="font-size:20px;font-weight:800;color:#0F172A;">Executive Summary</div>
-                        <div style="font-size:12px;color:#64748B;">집계 기준: MH 0.25h 이상, Unit 30 이상 그룹만 포함</div>
-                    </div>
-                    <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:12px;margin-top:18px;">
-                        ${insightCards.map(card => `
-                            <div style="background:#F8FAFC;border:1px solid ${card.accent}22;border-radius:18px;padding:16px 16px 15px;">
-                                <div style="font-size:11px;font-weight:700;letter-spacing:0.08em;text-transform:uppercase;color:#64748B;">${escapeHtml(card.label)}</div>
-                                <div style="margin-top:8px;font-size:22px;font-weight:800;color:${card.accent};line-height:1.2;">${card.value}</div>
-                                <div style="margin-top:7px;font-size:12px;line-height:1.5;color:#475569;">${card.detail}</div>
-                            </div>
-                        `).join('')}
-                    </div>
-                    <div style="margin-top:18px;display:grid;grid-template-columns:1.4fr 1fr;gap:18px;">
-                        <div style="background:#F8FAFC;border-radius:18px;padding:18px 18px 14px;border:1px solid #E2E8F0;">
-                            <div style="font-size:12px;font-weight:700;color:#475569;text-transform:uppercase;letter-spacing:0.08em;">운영 해석</div>
-                            <div style="margin-top:12px;display:flex;flex-direction:column;gap:10px;">
-                                ${executiveNarrative.map(text => `<div style="font-size:13px;line-height:1.7;color:#334155;">${escapeHtml(text)}</div>`).join('')}
-                            </div>
+        const breakdownRows = (rows, color) => {
+            if (rows.length===0) return '<div style="padding:14px;color:#94a3b8;text-align:center;font-size:12px;">데이터 없음</div>';
+            const maxH = Math.max(...rows.map(r => r.htp), 1);
+            return rows.map(r => `<div style="margin-bottom:7px;"><div style="display:flex;justify-content:space-between;align-items:baseline;margin-bottom:3px;"><span style="font-size:11px;font-weight:700;color:#1e293b;">${escapeHtml(r.label)}</span><span style="font-size:11px;font-weight:800;color:${color};font-variant-numeric:tabular-nums;">${fmtF(r.htp)}<span style="color:#94a3b8;font-size:9px;margin-left:2px;">HTP</span><span style="color:#cbd5e1;margin:0 6px;">|</span><span style="color:#64748b;font-size:10px;">${fmtInt(r.qty)}</span></span></div><div style="height:6px;background:#f1f5f9;border-radius:3px;overflow:hidden;"><div style="height:100%;width:${(r.htp/maxH*100).toFixed(1)}%;background:linear-gradient(90deg,${color},${color}cc);border-radius:3px;"></div></div></div>`).join('');
+        };
+
+        const kpi = (label, value, unit, accent, icon) => `<div style="background:#fff;border-radius:12px;padding:12px 14px;border:1px solid #e2e8f0;position:relative;overflow:hidden;"><div style="position:absolute;left:0;top:0;bottom:0;width:4px;background:${accent};"></div><div style="display:flex;align-items:center;gap:8px;margin-bottom:4px;"><div style="font-size:14px;">${icon}</div><div style="font-size:9px;font-weight:800;letter-spacing:0.06em;text-transform:uppercase;color:#64748b;">${label}</div></div><div style="display:flex;align-items:baseline;gap:5px;"><div style="font-size:22px;font-weight:900;color:${accent};line-height:1;font-variant-numeric:tabular-nums;letter-spacing:-0.025em;">${value}</div><div style="font-size:10px;font-weight:700;color:#94a3b8;">${unit}</div></div></div>`;
+
+        reportDiv.innerHTML = `<div style="height:140px;background:linear-gradient(135deg,#1e293b 0%,#312e81 60%,#5b21b6 100%);padding:24px 36px;color:#fff;display:flex;justify-content:space-between;align-items:center;position:relative;overflow:hidden;"><div style="position:absolute;right:-80px;top:-60px;width:280px;height:280px;border-radius:50%;background:radial-gradient(circle,rgba(168,85,247,0.4),transparent 70%);"></div><div style="position:absolute;right:140px;bottom:-50px;width:180px;height:180px;border-radius:50%;background:radial-gradient(circle,rgba(59,130,246,0.35),transparent 70%);"></div><div style="position:relative;"><div style="font-size:10px;font-weight:700;letter-spacing:0.18em;color:#a5b4fc;margin-bottom:6px;">GWJ2 · PICK & PACK PERFORMANCE</div><div style="font-size:30px;font-weight:900;letter-spacing:-0.025em;line-height:1.1;">HTP 히스토리 종합 리포트</div><div style="font-size:12px;color:#cbd5e1;margin-top:6px;font-weight:500;">기간: <strong style="color:#fff;">${escapeHtml(period)}</strong> · ${escapeHtml(reportGeneratedAt)}</div></div><div style="position:relative;text-align:right;"><div style="font-size:10px;font-weight:700;letter-spacing:0.1em;color:#a5b4fc;">전체 평균 HTP</div><div style="font-size:56px;font-weight:900;letter-spacing:-0.04em;line-height:1;background:linear-gradient(135deg,#fff 0%,#c7d2fe 100%);-webkit-background-clip:text;background-clip:text;color:transparent;">${fmtF(avgHtp)}</div><div style="font-size:11px;color:#a5b4fc;font-weight:600;margin-top:2px;">최고일 ${bestDay?fmtF(bestDay.htp):'-'} · 최대 ${fmtF(maxHtpVal)}</div></div></div>
+
+            <div style="padding:18px 28px 50px;display:flex;flex-direction:column;gap:14px;">
+                <div style="display:grid;grid-template-columns:repeat(6,1fr);gap:10px;">
+                    ${kpi('분석 일수', fmtInt(totalDays), '일', '#2563eb', '📅')}
+                    ${kpi('총 처리 물량', fmtInt(totalQty), 'Unit', '#059669', '📦')}
+                    ${kpi('투입 작업자', fmtInt(uniqueWorkers), '명', '#0891b2', '👥')}
+                    ${kpi('PICK 평균', fmtF(pickHtp), 'HTP', '#3b82f6', '🎯')}
+                    ${kpi('PACK 평균', fmtF(packHtp), 'HTP', '#f59e0b', '📦')}
+                    ${kpi('최고 효율', fmtF(maxHtpVal), 'HTP', '#7c3aed', '🏅')}
+                </div>
+                <div style="background:#fff;border:1px solid #e2e8f0;border-radius:14px;padding:16px 18px;">
+                    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:10px;">
+                        <div><div style="font-size:13px;font-weight:800;color:#0f172a;">📈 일별 HTP 추이</div><div style="font-size:10px;color:#64748b;margin-top:1px;">기간 내 일자별 평균 · 전체 / 집품 / 포장</div></div>
+                        <div style="display:flex;gap:12px;font-size:10px;font-weight:700;color:#475569;">
+                            <span><span style="display:inline-block;width:8px;height:8px;border-radius:50%;background:#2563eb;margin-right:4px;"></span>전체</span>
+                            <span><span style="display:inline-block;width:8px;height:8px;border-radius:50%;background:#3b82f6;margin-right:4px;"></span>PICK</span>
+                            <span><span style="display:inline-block;width:8px;height:8px;border-radius:50%;background:#f59e0b;margin-right:4px;"></span>PACK</span>
                         </div>
-                        <div style="background:linear-gradient(180deg, rgba(37,99,235,0.08) 0%, rgba(124,58,237,0.05) 100%);border-radius:18px;padding:18px;border:1px solid #DBEAFE;">
-                            <div style="font-size:12px;font-weight:700;color:#475569;text-transform:uppercase;letter-spacing:0.08em;">평가 메모</div>
-                            <div style="margin-top:12px;font-size:13px;line-height:1.7;color:#334155;">
-                                <div>목표 달성률은 <strong>공정별 목표 HTP 기준</strong>을 사용합니다.</div>
-                                <div style="margin-top:8px;">주의 리스트는 자동 산출이며, <strong>특수 라인 / 8F / 오더피커 / 예외 공정</strong>은 현장 해석이 필요합니다.</div>
-                                <div style="margin-top:8px;">최고 효율 작업자는 ${overallTopItem ? `<strong>${getEmployeeDisplay(overallTopItem.employee)}</strong>` : '<strong>-</strong>'} ${overallTopItem ? `(${formatFloat(getHtpValue(overallTopItem))} HTP)` : ''} 입니다.</div>
+                    </div>
+                    <div style="position:relative;height:200px;"><canvas id="__pdf_trend"></canvas></div>
+                </div>
+                <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;">
+                    <div style="background:#fff;border:1px solid #e2e8f0;border-radius:14px;padding:14px 16px;"><div style="font-size:13px;font-weight:800;color:#0f172a;">📊 주간 HTP 현황</div><div style="font-size:10px;color:#64748b;margin-bottom:8px;">최근 ${weekly.length}주 · PICK vs PACK</div><div style="position:relative;height:170px;"><canvas id="__pdf_weekly"></canvas></div></div>
+                    <div style="background:#fff;border:1px solid #e2e8f0;border-radius:14px;padding:14px 16px;"><div style="font-size:13px;font-weight:800;color:#0f172a;">📅 월간 HTP 현황</div><div style="font-size:10px;color:#64748b;margin-bottom:8px;">최근 ${monthly.length}개월 · PICK vs PACK</div><div style="position:relative;height:170px;"><canvas id="__pdf_monthly"></canvas></div></div>
+                </div>
+                <div style="display:grid;grid-template-columns:1.2fr 1fr;gap:12px;">
+                    <div style="background:#fff;border:1px solid #e2e8f0;border-radius:14px;padding:14px 16px;">
+                        <div style="font-size:13px;font-weight:800;color:#0f172a;margin-bottom:8px;">⚖️ 공정 비중 · 종합 통계</div>
+                        <div style="display:flex;gap:14px;align-items:center;">
+                            <div style="position:relative;width:160px;height:160px;flex-shrink:0;"><canvas id="__pdf_donut"></canvas></div>
+                            <div style="flex:1;display:flex;flex-direction:column;gap:8px;">
+                                <div style="background:#eff6ff;border-radius:9px;padding:9px 12px;border-left:3px solid #3b82f6;"><div style="font-size:9px;font-weight:800;color:#3b82f6;letter-spacing:0.06em;text-transform:uppercase;">PICK 집품</div><div style="display:flex;justify-content:space-between;align-items:baseline;margin-top:2px;"><span style="font-size:18px;font-weight:900;color:#1e3a8a;font-variant-numeric:tabular-nums;">${fmtF(pickHtp)} <span style="font-size:9px;color:#64748b;">HTP</span></span><span style="font-size:11px;font-weight:700;color:#2563eb;">${fmtInt(pickQty)} Unit</span></div></div>
+                                <div style="background:#fffbeb;border-radius:9px;padding:9px 12px;border-left:3px solid #f59e0b;"><div style="font-size:9px;font-weight:800;color:#d97706;letter-spacing:0.06em;text-transform:uppercase;">PACK 포장</div><div style="display:flex;justify-content:space-between;align-items:baseline;margin-top:2px;"><span style="font-size:18px;font-weight:900;color:#92400e;font-variant-numeric:tabular-nums;">${fmtF(packHtp)} <span style="font-size:9px;color:#64748b;">HTP</span></span><span style="font-size:11px;font-weight:700;color:#b45309;">${fmtInt(packQty)} Unit</span></div></div>
+                                <div style="background:#f8fafc;border-radius:9px;padding:9px 12px;border-left:3px solid #64748b;font-size:11px;color:#475569;font-weight:600;line-height:1.5;">PICK 비중 <strong style="color:#1e293b;">${fmtF(totalQty>0 ? pickQty/totalQty*100 : 0)}%</strong> · 작업자 <strong style="color:#1e293b;">${fmtInt(uniqueWorkers)}</strong>명<br/>일 평균 <strong style="color:#1e293b;">${fmtInt(totalDays>0?totalQty/totalDays:0)}</strong> Unit · 그룹 <strong style="color:#1e293b;">${fmtInt(allAgg.length)}</strong>건</div>
                             </div>
                         </div>
                     </div>
-                </div>
-            </div>
-
-            <div style="padding:20px 36px 0;">
-                <div style="font-size:20px;font-weight:800;color:#0F172A;margin-bottom:14px;">Process Breakdown</div>
-                <div style="display:flex;gap:16px;align-items:stretch;">
-                    ${buildProcessCard('PICK', pickSummary, '#2563EB', 'rgba(37,99,235,0.08)')}
-                    ${buildProcessCard('PACK', packSummary, '#D97706', 'rgba(217,119,6,0.08)')}
-                </div>
-            </div>
-
-            <div style="padding:24px 36px 0;">
-                <div style="font-size:20px;font-weight:800;color:#0F172A;margin-bottom:14px;">일별 운영 추이</div>
-                ${buildTableHTML(
-                    [
-                        { key: 'date', label: '날짜', align: 'center', width: '92px' },
-                        { key: 'workers', label: '작업자', align: 'center', width: '72px' },
-                        { key: 'qty', label: '작업량', align: 'right', width: '100px' },
-                        { key: 'mh', label: 'MH', align: 'right', width: '80px' },
-                        { key: 'htp', label: '평균 HTP', align: 'right', width: '82px' },
-                        { key: 'pick', label: 'PICK', align: 'right', width: '72px' },
-                        { key: 'pack', label: 'PACK', align: 'right', width: '72px' },
-                        { key: 'achievement', label: '달성률', align: 'right', width: '82px' },
-                        { key: 'low', label: '주의', align: 'center', width: '64px' },
-                        { key: 'top', label: '당일 최고 그룹', align: 'left' },
-                    ],
-                    dailyData.map(item => ({
-                        date: escapeHtml(item.date),
-                        workers: formatInt(item.workers),
-                        qty: formatInt(item.qty),
-                        mh: formatFloat(item.mh, 2),
-                        htp: formatFloat(item.htp),
-                        pick: formatFloat(item.pickHtp),
-                        pack: formatFloat(item.packHtp),
-                        achievement: `${formatFloat(item.achievementRate)}%`,
-                        low: formatInt(item.lowWorkers),
-                        top: `${getEmployeeDisplay(item.topPerformer)} (${formatFloat(item.topPerformerHtp)} HTP)`,
-                    })),
-                    { accent: '#2563EB', emptyLabel: '일별 집계 데이터가 없습니다.' }
-                )}
-            </div>
-
-            <div style="padding:24px 36px 0;">
-                <div style="display:flex;gap:16px;align-items:flex-start;">
-                    <div style="flex:1;">
-                        <div style="font-size:20px;font-weight:800;color:#0F172A;margin-bottom:14px;">PICK 라인 상세</div>
-                        ${buildTableHTML(
-                            [
-                                { key: 'line', label: '층', align: 'center', width: '56px' },
-                                { key: 'path', label: 'PP / 라인', align: 'left' },
-                                { key: 'qty', label: '작업량', align: 'right', width: '88px' },
-                                { key: 'avg', label: '평균 HTP', align: 'right', width: '82px' },
-                                { key: 'achievement', label: '달성률', align: 'right', width: '78px' },
-                                { key: 'low', label: '주의', align: 'center', width: '60px' },
-                                { key: 'top', label: '상위 작업자', align: 'left', width: '132px' },
-                            ],
-                            pickFloorSummary.map(item => ({
-                                line: item.label,
-                                path: item.subLabel,
-                                qty: formatInt(item.qty),
-                                avg: formatFloat(item.avgHtp),
-                                achievement: `${formatFloat(item.achievementRate)}%`,
-                                low: formatInt(item.lowWorkerCount),
-                                top: `${item.topEmployee} (${formatFloat(item.topEmployeeHtp)})`,
-                            })),
-                            { accent: '#2563EB', emptyLabel: 'PICK 라인 데이터가 없습니다.' }
-                        )}
-                    </div>
-                    <div style="flex:1;">
-                        <div style="font-size:20px;font-weight:800;color:#0F172A;margin-bottom:14px;">PACK 팩 타입 상세</div>
-                        ${buildTableHTML(
-                            [
-                                { key: 'type', label: '팩 타입', align: 'left', width: '122px' },
-                                { key: 'location', label: '위치 / 스테이션', align: 'left' },
-                                { key: 'qty', label: '작업량', align: 'right', width: '88px' },
-                                { key: 'avg', label: '평균 HTP', align: 'right', width: '82px' },
-                                { key: 'achievement', label: '달성률', align: 'right', width: '78px' },
-                                { key: 'low', label: '주의', align: 'center', width: '60px' },
-                                { key: 'top', label: '상위 작업자', align: 'left', width: '132px' },
-                            ],
-                            packTypeSummary.map(item => ({
-                                type: item.label,
-                                location: item.subLabel,
-                                qty: formatInt(item.qty),
-                                avg: formatFloat(item.avgHtp),
-                                achievement: `${formatFloat(item.achievementRate)}%`,
-                                low: formatInt(item.lowWorkerCount),
-                                top: `${item.topEmployee} (${formatFloat(item.topEmployeeHtp)})`,
-                            })),
-                            { accent: '#D97706', emptyLabel: 'PACK 팩 타입 데이터가 없습니다.' }
-                        )}
+                    <div style="background:#fff;border:1px solid #e2e8f0;border-radius:14px;padding:14px 16px;display:flex;flex-direction:column;gap:8px;">
+                        <div style="font-size:13px;font-weight:800;color:#0f172a;">💡 핵심 인사이트</div>
+                        <div style="background:linear-gradient(135deg,#dbeafe,#eff6ff);border-radius:10px;padding:9px 12px;border-left:3px solid #2563eb;"><div style="font-size:9px;font-weight:800;color:#2563eb;letter-spacing:0.06em;text-transform:uppercase;">최고 효율일</div><div style="font-size:13px;font-weight:900;color:#1e3a8a;margin-top:1px;">${bestDay?escapeHtml(bestDay.date):'-'}</div><div style="font-size:10px;color:#1e40af;font-weight:600;">${bestDay?fmtF(bestDay.htp):'-'} HTP · ${bestDay?fmtInt(bestDay.workers):0}명</div></div>
+                        <div style="background:linear-gradient(135deg,#fef3c7,#fef9c3);border-radius:10px;padding:9px 12px;border-left:3px solid #f59e0b;"><div style="font-size:9px;font-weight:800;color:#d97706;letter-spacing:0.06em;text-transform:uppercase;">최대 물량일</div><div style="font-size:13px;font-weight:900;color:#92400e;margin-top:1px;">${busiestDay?escapeHtml(busiestDay.date):'-'}</div><div style="font-size:10px;color:#b45309;font-weight:600;">${busiestDay?fmtInt(busiestDay.qty):0} Unit · ${busiestDay?fmtF(busiestDay.htp):'-'} HTP</div></div>
+                        <div style="background:linear-gradient(135deg,#fee2e2,#fef2f2);border-radius:10px;padding:9px 12px;border-left:3px solid #ef4444;"><div style="font-size:9px;font-weight:800;color:#dc2626;letter-spacing:0.06em;text-transform:uppercase;">개선 필요일</div><div style="font-size:13px;font-weight:900;color:#991b1b;margin-top:1px;">${lowestDay?escapeHtml(lowestDay.date):'-'}</div><div style="font-size:10px;color:#b91c1c;font-weight:600;">${lowestDay?fmtF(lowestDay.htp):'-'} HTP</div></div>
                     </div>
                 </div>
-            </div>
-
-            <div style="padding:24px 36px 0;">
-                <div style="display:flex;gap:16px;align-items:flex-start;">
-                    <div style="flex:1;">
-                        <div style="font-size:20px;font-weight:800;color:#0F172A;margin-bottom:14px;">PICK Top Performer</div>
-                        ${buildTableHTML(
-                            [
-                                { key: 'rank', label: '순위', align: 'center', width: '52px' },
-                                { key: 'name', label: '이름', align: 'left' },
-                                { key: 'avg', label: '평균 HTP', align: 'right', width: '82px' },
-                                { key: 'target', label: '목표', align: 'right', width: '70px' },
-                                { key: 'delta', label: '목표 대비', align: 'right', width: '82px' },
-                                { key: 'days', label: '활동일', align: 'center', width: '60px' },
-                                { key: 'qty', label: '작업량', align: 'right', width: '90px' },
-                            ],
-                            pickTop.map((item, index) => ({
-                                rank: rankIcon(index),
-                                name: getEmployeeDisplay(item.employee),
-                                avg: formatFloat(item.avgHtp),
-                                target: formatFloat(item.target),
-                                delta: formatSigned(item.avgHtp - item.target),
-                                days: formatInt(item.days),
-                                qty: formatInt(item.totalQty),
-                            })),
-                            { accent: '#1D4ED8', emptyLabel: 'PICK 상위 작업자 데이터가 없습니다.' }
-                        )}
-                    </div>
-                    <div style="flex:1;">
-                        <div style="font-size:20px;font-weight:800;color:#0F172A;margin-bottom:14px;">PACK Top Performer</div>
-                        ${buildTableHTML(
-                            [
-                                { key: 'rank', label: '순위', align: 'center', width: '52px' },
-                                { key: 'name', label: '이름', align: 'left' },
-                                { key: 'avg', label: '평균 HTP', align: 'right', width: '82px' },
-                                { key: 'target', label: '목표', align: 'right', width: '70px' },
-                                { key: 'delta', label: '목표 대비', align: 'right', width: '82px' },
-                                { key: 'days', label: '활동일', align: 'center', width: '60px' },
-                                { key: 'qty', label: '작업량', align: 'right', width: '90px' },
-                            ],
-                            packTop.map((item, index) => ({
-                                rank: rankIcon(index),
-                                name: getEmployeeDisplay(item.employee),
-                                avg: formatFloat(item.avgHtp),
-                                target: formatFloat(item.target),
-                                delta: formatSigned(item.avgHtp - item.target),
-                                days: formatInt(item.days),
-                                qty: formatInt(item.totalQty),
-                            })),
-                            { accent: '#B45309', emptyLabel: 'PACK 상위 작업자 데이터가 없습니다.' }
-                        )}
-                    </div>
+                <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;">
+                    <div style="background:#fff;border:1px solid #e2e8f0;border-radius:14px;padding:14px 16px;"><div style="font-size:13px;font-weight:800;color:#0f172a;">📦 PACK 타입별 평균 HTP</div><div style="font-size:10px;color:#64748b;margin-bottom:10px;">상위 ${packTypeRows.length}개 타입</div>${breakdownRows(packTypeRows, '#f59e0b')}</div>
+                    <div style="background:#fff;border:1px solid #e2e8f0;border-radius:14px;padding:14px 16px;"><div style="font-size:13px;font-weight:800;color:#0f172a;">🏗️ PICK 층/Zone별 평균 HTP</div><div style="font-size:10px;color:#64748b;margin-bottom:10px;">상위 ${pickZoneRows.length}개 그룹</div>${breakdownRows(pickZoneRows, '#3b82f6')}</div>
+                </div>
+                <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;">
+                    <div style="background:#fff;border:1px solid #e2e8f0;border-radius:14px;padding:14px 16px;"><div style="font-size:13px;font-weight:800;color:#0f172a;margin-bottom:8px;display:flex;align-items:center;gap:8px;"><span style="display:inline-block;width:5px;height:18px;background:#3b82f6;border-radius:3px;"></span>🏆 집품(PICK) TOP 8</div>${rankRows(topPick, '#3b82f6')}</div>
+                    <div style="background:#fff;border:1px solid #e2e8f0;border-radius:14px;padding:14px 16px;"><div style="font-size:13px;font-weight:800;color:#0f172a;margin-bottom:8px;display:flex;align-items:center;gap:8px;"><span style="display:inline-block;width:5px;height:18px;background:#f59e0b;border-radius:3px;"></span>🏆 포장(PACK) TOP 8</div>${rankRows(topPack, '#f59e0b')}</div>
                 </div>
             </div>
-
-            <div style="padding:24px 36px 0;">
-                <div style="display:flex;gap:16px;align-items:flex-start;">
-                    <div style="flex:1;">
-                        <div style="font-size:20px;font-weight:800;color:#0F172A;margin-bottom:14px;">개선 우선순위</div>
-                        ${buildTableHTML(
-                            [
-                                { key: 'name', label: '이름', align: 'left' },
-                                { key: 'process', label: '공정', align: 'center', width: '62px' },
-                                { key: 'avg', label: '평균 HTP', align: 'right', width: '82px' },
-                                { key: 'target', label: '목표', align: 'right', width: '70px' },
-                                { key: 'delta', label: '목표 대비', align: 'right', width: '84px' },
-                                { key: 'days', label: '활동일', align: 'center', width: '60px' },
-                                { key: 'qty', label: '작업량', align: 'right', width: '90px' },
-                            ],
-                            watchList.map(item => ({
-                                name: getEmployeeDisplay(item.employee),
-                                process: escapeHtml(item.processType),
-                                avg: formatFloat(item.avgHtp),
-                                target: formatFloat(item.target),
-                                delta: formatSigned(item.avgHtp - item.target),
-                                days: formatInt(item.days),
-                                qty: formatInt(item.totalQty),
-                            })),
-                            { accent: '#DC2626', emptyLabel: '개선 우선순위 항목이 없습니다.' }
-                        )}
-                    </div>
-                    <div style="flex:1;">
-                        <div style="font-size:20px;font-weight:800;color:#0F172A;margin-bottom:14px;">안정도 리더</div>
-                        ${buildTableHTML(
-                            [
-                                { key: 'name', label: '이름', align: 'left' },
-                                { key: 'process', label: '공정', align: 'center', width: '62px' },
-                                { key: 'avg', label: '평균 HTP', align: 'right', width: '82px' },
-                                { key: 'target', label: '목표', align: 'right', width: '70px' },
-                                { key: 'days', label: '활동일', align: 'center', width: '60px' },
-                                { key: 'cv', label: '변동계수', align: 'right', width: '82px' },
-                                { key: 'std', label: '표준편차', align: 'right', width: '82px' },
-                            ],
-                            consistencyLeaders.map(item => ({
-                                name: item.employee,
-                                process: escapeHtml(item.processType),
-                                avg: formatFloat(item.avgHtp),
-                                target: formatFloat(item.target),
-                                days: formatInt(item.days),
-                                cv: `${formatFloat(item.cv)}%`,
-                                std: formatFloat(item.stdDev),
-                            })),
-                            { accent: '#7C3AED', emptyLabel: '안정도 리더 데이터가 충분하지 않습니다.' }
-                        )}
-                    </div>
-                </div>
-            </div>
-
-            <div style="padding:24px 36px 0;">
-                <div style="display:flex;gap:16px;align-items:flex-start;">
-                    <div style="flex:1.1;">
-                        <div style="font-size:20px;font-weight:800;color:#0F172A;margin-bottom:14px;">뱃지 보유 현황</div>
-                        ${buildTableHTML(
-                            [
-                                { key: 'name', label: '이름', align: 'left', width: '110px' },
-                                { key: 'count', label: '뱃지 수', align: 'center', width: '60px' },
-                                { key: 'badges', label: '대표 뱃지', align: 'left' },
-                                { key: 'days', label: '근무일', align: 'center', width: '60px' },
-                                { key: 'avg', label: '평균 HTP', align: 'right', width: '82px' },
-                                { key: 'perfect', label: '목표 달성일 비율', align: 'right', width: '98px' },
-                            ],
-                            badgeHolders.map(item => ({
-                                name: item.name,
-                                count: formatInt(item.totalBadges),
-                                badges: item.badges || '-',
-                                days: formatInt(item.days),
-                                avg: formatFloat(item.avgHtp),
-                                perfect: `${formatFloat(item.perfectRate)}%`,
-                            })),
-                            { accent: '#7C3AED', emptyLabel: '뱃지 보유자가 없습니다.' }
-                        )}
-                    </div>
-                    <div style="flex:0.9;">
-                        <div style="font-size:20px;font-weight:800;color:#0F172A;margin-bottom:14px;">공정별 목표 기준</div>
-                        ${buildTableHTML(
-                            [
-                                { key: 'category', label: '카테고리', align: 'left' },
-                                { key: 'target', label: '목표 HTP', align: 'right', width: '86px' },
-                                { key: 'keywords', label: '주요 키워드', align: 'left' },
-                            ],
-                            targetReferenceRows,
-                            { accent: '#0F766E', emptyLabel: '목표 기준 데이터가 없습니다.' }
-                        )}
-                    </div>
-                </div>
-            </div>
-
-            <div style="padding:24px 36px 34px;">
-                <div style="background:#FFFFFF;border:1px solid #E2E8F0;border-radius:22px;padding:18px 20px;box-shadow:0 12px 24px rgba(15,23,42,0.05);">
-                    <div style="font-size:12px;font-weight:700;color:#475569;text-transform:uppercase;letter-spacing:0.08em;">Report Notes</div>
-                    <div style="margin-top:12px;font-size:12px;line-height:1.75;color:#475569;">
-                        <div>1. 본 리포트는 히스토리 탭에서 선택한 기간 데이터를 기반으로 생성됩니다.</div>
-                        <div>2. 사원/공정 그룹 집계는 MH 0.25h 이상, Unit 30 이상 조건을 통과한 데이터만 포함합니다.</div>
-                        <div>3. 목표 달성률과 개선 우선순위는 현재 설정된 목표 HTP 값을 사용하며, 특수 라인과 예외 작업은 현장 해석이 반드시 필요합니다.</div>
-                        <div>4. 안정도 리더는 활동일 3일 이상이면서 평균 성과가 목표의 90% 이상인 작업자만 대상으로 계산했습니다.</div>
-                    </div>
-                    <div style="margin-top:14px;padding-top:14px;border-top:1px solid #E2E8F0;font-size:11px;color:#94A3B8;text-align:center;">
-                        Generated by GWJ2 Pick&amp;Pack HTP Dashboard · ${escapeHtml(reportGeneratedAt)}
-                    </div>
-                </div>
-            </div>
-        `;
+            <div style="position:absolute;bottom:0;left:0;right:0;padding:10px 36px;background:#0f172a;color:#cbd5e1;display:flex;justify-content:space-between;align-items:center;font-size:10px;font-weight:600;"><span>GWJ2 Pick &amp; Pack HTP Dashboard</span><span style="color:#a5b4fc;font-weight:800;letter-spacing:0.05em;">단일 페이지 종합 리포트 · A4 PORTRAIT</span><span>${escapeHtml(reportGeneratedAt)}</span></div>`;
 
         document.body.appendChild(reportDiv);
 
+        const labels = dailySeries.map(d => d.date.slice(5));
+        const totalArr = dailySeries.map(d => +d.htp.toFixed(2));
+        const pickArr  = dailySeries.map(d => +d.pickHtp.toFixed(2));
+        const packArr  = dailySeries.map(d => +d.packHtp.toFixed(2));
+        const baseAxis = (yTitle) => ({
+            x: { grid: { display: false }, ticks: { color: '#64748b', font: { size: 10, weight: '700' } } },
+            y: { grid: { color: 'rgba(148,163,184,0.18)' }, ticks: { color: '#64748b', font: { size: 10, weight: '600' } }, beginAtZero: true, title: yTitle ? { display: true, text: yTitle, color: '#94a3b8', font: { size: 9, weight: '700' } } : { display: false } }
+        });
+        const trendChart = new Chart(reportDiv.querySelector('#__pdf_trend').getContext('2d'), {
+            type: 'line',
+            data: { labels, datasets: [
+                { label: '전체', data: totalArr, borderColor: '#2563eb', backgroundColor: 'rgba(37,99,235,0.14)', borderWidth: 2.5, fill: true, tension: 0.35, pointRadius: 3, pointBackgroundColor: '#2563eb', pointBorderColor: '#fff', pointBorderWidth: 1.5 },
+                { label: '집품', data: pickArr, borderColor: '#3b82f6', borderDash:[5,3], borderWidth: 2, fill: false, tension: 0.35, pointRadius: 2, pointBackgroundColor: '#3b82f6' },
+                { label: '포장', data: packArr, borderColor: '#f59e0b', borderDash:[5,3], borderWidth: 2, fill: false, tension: 0.35, pointRadius: 2, pointBackgroundColor: '#f59e0b' }
+            ]},
+            options: { responsive: true, maintainAspectRatio: false, animation: false, plugins: { legend: { display: false } }, scales: baseAxis('HTP') }
+        });
+        const weeklyChart = new Chart(reportDiv.querySelector('#__pdf_weekly').getContext('2d'), {
+            type: 'bar',
+            data: { labels: weekly.map(s => s.bucket.replace(/^\d{4}-/,'')), datasets: [
+                { label: 'PICK', data: weekly.map(s => +s.pickHtp.toFixed(2)), backgroundColor: '#3b82f6', borderRadius: 6, borderSkipped: false, barPercentage: 0.7, categoryPercentage: 0.78 },
+                { label: 'PACK', data: weekly.map(s => +s.packHtp.toFixed(2)), backgroundColor: '#f59e0b', borderRadius: 6, borderSkipped: false, barPercentage: 0.7, categoryPercentage: 0.78 }
+            ]},
+            options: { responsive: true, maintainAspectRatio: false, animation: false, plugins: { legend: { display: false } }, scales: baseAxis('HTP') }
+        });
+        const monthlyChart = new Chart(reportDiv.querySelector('#__pdf_monthly').getContext('2d'), {
+            type: 'bar',
+            data: { labels: monthly.map(s => s.bucket.replace(/^\d{4}-/,'')+'월'), datasets: [
+                { label: 'PICK', data: monthly.map(s => +s.pickHtp.toFixed(2)), backgroundColor: '#3b82f6', borderRadius: 6, borderSkipped: false, barPercentage: 0.7, categoryPercentage: 0.78 },
+                { label: 'PACK', data: monthly.map(s => +s.packHtp.toFixed(2)), backgroundColor: '#f59e0b', borderRadius: 6, borderSkipped: false, barPercentage: 0.7, categoryPercentage: 0.78 }
+            ]},
+            options: { responsive: true, maintainAspectRatio: false, animation: false, plugins: { legend: { display: false } }, scales: baseAxis('HTP') }
+        });
+        const donutChart = new Chart(reportDiv.querySelector('#__pdf_donut').getContext('2d'), {
+            type: 'doughnut',
+            data: { labels: ['PICK', 'PACK'], datasets: [{ data: [pickQty, packQty], backgroundColor: ['#3b82f6', '#f59e0b'], borderColor: '#fff', borderWidth: 4, hoverOffset: 0 }] },
+            options: { responsive: true, maintainAspectRatio: false, animation: false, cutout: '64%', plugins: { legend: { display: false }, tooltip: { enabled: false } } },
+            plugins: [{ id: 'centerText', afterDraw(chart) { const { ctx, chartArea } = chart; const cx = (chartArea.left + chartArea.right)/2, cy = (chartArea.top + chartArea.bottom)/2; ctx.save(); ctx.textAlign='center'; ctx.textBaseline='middle'; ctx.fillStyle='#64748b'; ctx.font='700 9px Pretendard, sans-serif'; ctx.fillText('총 물량', cx, cy-14); ctx.fillStyle='#0f172a'; ctx.font='900 20px Pretendard, sans-serif'; ctx.fillText(fmtInt(pickQty + packQty), cx, cy+4); ctx.fillStyle='#94a3b8'; ctx.font='600 9px Pretendard, sans-serif'; ctx.fillText('Unit', cx, cy+20); ctx.restore(); } }]
+        });
+
         setTimeout(() => {
-            html2canvas(reportDiv, {
-                scale: 1.6,
-                useCORS: true,
-                logging: false,
-                backgroundColor: '#F5F7FB',
-                windowWidth: reportDiv.scrollWidth,
-                windowHeight: reportDiv.scrollHeight
-            }).then(canvas => {
-                const imgData = canvas.toDataURL('image/jpeg', 0.94);
+            html2canvas(reportDiv, { scale: 2, useCORS: true, logging: false, backgroundColor: '#f8fafc', width: W, height: H, windowWidth: W, windowHeight: H }).then(canvas => {
+                const imgData = canvas.toDataURL('image/jpeg', 0.95);
                 const pdf = new window.jspdf.jsPDF('p', 'mm', 'a4');
-                const pageWidth = 210;
-                const pageHeight = 297;
-                const imageWidth = pageWidth;
-                const imageHeight = (canvas.height * imageWidth) / canvas.width;
-
-                let renderedHeight = 0;
-                let pageIndex = 0;
-                while (renderedHeight < imageHeight) {
-                    if (pageIndex > 0) pdf.addPage();
-                    pdf.addImage(imgData, 'JPEG', 0, -renderedHeight, imageWidth, imageHeight);
-                    renderedHeight += pageHeight;
-                    pageIndex++;
-                }
-
-                pdf.save(`HTP_정밀리포트_${period}_${formatLocalDateKey()}.pdf`);
+                pdf.addImage(imgData, 'JPEG', 0, 0, 210, 297);
+                pdf.save(`HTP_종합리포트_${period}_${formatLocalDateKey()}.pdf`);
+                try { trendChart.destroy(); donutChart.destroy(); weeklyChart.destroy(); monthlyChart.destroy(); } catch(e) {}
                 reportDiv.remove();
                 showModal('PDF 리포트 다운로드 완료!', 1500);
-            }).catch(error => {
-                console.error('PDF 생성 오류:', error);
+            }).catch(err => {
+                console.error('PDF 생성 오류:', err);
+                try { trendChart.destroy(); donutChart.destroy(); weeklyChart.destroy(); monthlyChart.destroy(); } catch(e) {}
                 reportDiv.remove();
                 showModal('PDF 생성 중 오류가 발생했습니다.');
             });
-        }, 350);
+        }, 700);
     }
 
-    // 🚀 페이지 로드 시 즉시 초기화
+        // 🚀 페이지 로드 시 즉시 초기화
     // 🚀 페이지 완전히 로드된 후 초기화 (모든 함수 정의 후)
     if (document.readyState === 'loading') {
         document.addEventListener('DOMContentLoaded', initializePage);
@@ -12051,4 +11971,3 @@ function calculateEmployeeBadges() {
 </script>
 </body>
 </html>
-
