@@ -5365,6 +5365,7 @@
                 <button id="table-view-btn" class="view-tab flex-1 py-2 px-3 text-sm font-semibold rounded-md active whitespace-nowrap">📋 데이터</button>
                 <button id="dashboard-view-btn" class="view-tab flex-1 py-2 px-3 text-sm font-semibold rounded-md whitespace-nowrap">📊 대시보드</button>
                 <button id="history-view-btn" class="view-tab flex-1 py-2 px-3 text-sm font-semibold rounded-md whitespace-nowrap">📈 히스토리</button>
+                <button id="caf-4w1h-view-btn" class="view-tab flex-1 py-2 px-3 text-sm font-semibold rounded-md whitespace-nowrap">☕ Caf 4W1H</button>
                 <button id="calendar-view-btn" class="view-tab flex-1 py-2 px-3 text-sm font-semibold rounded-md whitespace-nowrap">📅 캘린더</button>
                 <button id="ranking-view-btn" class="view-tab flex-1 py-2 px-3 text-sm font-semibold rounded-md whitespace-nowrap">🏆 랭킹</button>
             </div>
@@ -5948,7 +5949,141 @@
                 </button>
             </div>
         </div>
-		
+
+        <!-- ☕ Caf 4W1H Dashboard View -->
+        <div id="caf-4w1h-view" class="hidden flex-col flex-grow min-h-0 p-4 overflow-y-auto">
+            <div class="caf-header">
+                <h1 class="caf-title">Caf 4W1H Dashboard</h1>
+                <p class="caf-subtitle">계약직(TEMP) vs 정규직(PERM) HTP 트렌드 비교 · Who · What · When · Where · How</p>
+            </div>
+
+            <div class="caf-4w1h-grid">
+                <!-- LEFT COLUMN: WHEN (time trends) -->
+                <div class="caf-left-col">
+                    <div class="caf-card">
+                        <div class="caf-card-header">
+                            <h3 class="caf-card-title">📅 Monthly HTP Status</h3>
+                            <div class="caf-card-legend">
+                                <span><i class="caf-swatch caf-sw-perm"></i>PERM</span>
+                                <span><i class="caf-swatch caf-sw-temp"></i>TEMP</span>
+                            </div>
+                        </div>
+                        <div class="caf-canvas-wrap"><canvas id="caf-monthly-chart"></canvas></div>
+                    </div>
+                    <div class="caf-card">
+                        <div class="caf-card-header">
+                            <h3 class="caf-card-title">📊 Weekly HTP Status</h3>
+                            <div class="caf-card-legend">
+                                <span><i class="caf-swatch caf-sw-perm"></i>PERM</span>
+                                <span><i class="caf-swatch caf-sw-temp"></i>TEMP</span>
+                            </div>
+                        </div>
+                        <div class="caf-canvas-wrap"><canvas id="caf-weekly-chart"></canvas></div>
+                    </div>
+                    <div class="caf-card">
+                        <div class="caf-card-header">
+                            <h3 class="caf-card-title">📈 Daily HTP Trend</h3>
+                            <div class="caf-card-legend">
+                                <span><i class="caf-swatch caf-sw-perm"></i>PERM</span>
+                                <span><i class="caf-swatch caf-sw-temp"></i>TEMP</span>
+                            </div>
+                        </div>
+                        <div class="caf-canvas-wrap"><canvas id="caf-daily-chart"></canvas></div>
+                    </div>
+                </div>
+
+                <!-- CENTER COLUMN: WHO / WHAT / WHERE -->
+                <div class="caf-center-col">
+                    <div class="caf-card">
+                        <div class="caf-card-header">
+                            <h3 class="caf-card-title">👥 Individual HTP Status</h3>
+                            <div class="caf-card-legend">
+                                <span><i class="caf-swatch caf-sw-perm"></i>PERM</span>
+                                <span><i class="caf-swatch caf-sw-temp"></i>TEMP</span>
+                            </div>
+                        </div>
+                        <div class="caf-canvas-wrap caf-canvas-tall"><canvas id="caf-individual-chart"></canvas></div>
+                    </div>
+                    <div class="caf-card">
+                        <div class="caf-card-header">
+                            <h3 class="caf-card-title">📦 PACK Type별 HTP</h3>
+                            <div class="caf-card-legend">
+                                <span><i class="caf-swatch caf-sw-perm"></i>PERM</span>
+                                <span><i class="caf-swatch caf-sw-temp"></i>TEMP</span>
+                            </div>
+                        </div>
+                        <div class="caf-canvas-wrap"><canvas id="caf-pack-type-chart"></canvas></div>
+                    </div>
+                    <div class="caf-card">
+                        <div class="caf-card-header">
+                            <h3 class="caf-card-title">🏗️ PICK 그룹별 HTP</h3>
+                            <div class="caf-zone-subtabs" id="caf-zone-subtabs">
+                                <button type="button" class="caf-zone-subtab active" data-zone-mode="floor">층별</button>
+                                <button type="button" class="caf-zone-subtab" data-zone-mode="loc">Zone(Location)</button>
+                                <button type="button" class="caf-zone-subtab" data-zone-mode="pp">Zone(PP)</button>
+                            </div>
+                        </div>
+                        <div class="caf-canvas-wrap"><canvas id="caf-pick-zone-chart"></canvas></div>
+                    </div>
+                </div>
+
+                <!-- RIGHT COLUMN: OPTION PANEL -->
+                <div class="caf-right-col">
+                    <div class="caf-option-card">
+                        <h3 class="caf-option-title">⚙️ Option</h3>
+
+                        <div class="caf-option-group">
+                            <label class="caf-option-label">Process(Task)</label>
+                            <div class="caf-chip-row" id="caf-process-chips">
+                                <button type="button" class="caf-chip active" data-process="ALL">ALL</button>
+                                <button type="button" class="caf-chip" data-process="PICK">PICK</button>
+                                <button type="button" class="caf-chip" data-process="PACK">PACK</button>
+                            </div>
+                        </div>
+
+                        <div class="caf-option-group">
+                            <label class="caf-option-label">Worker Type</label>
+                            <div class="caf-chip-row" id="caf-worker-chips">
+                                <button type="button" class="caf-chip active" data-worker="BOTH">BOTH</button>
+                                <button type="button" class="caf-chip" data-worker="PERM">PERM</button>
+                                <button type="button" class="caf-chip" data-worker="TEMP">TEMP</button>
+                            </div>
+                        </div>
+
+                        <div class="caf-option-group">
+                            <label class="caf-option-label">Pack Type</label>
+                            <div class="caf-chip-row caf-chip-row-wrap" id="caf-packtype-chips"></div>
+                        </div>
+
+                        <div class="caf-option-group">
+                            <label class="caf-option-label">YYMM</label>
+                            <div class="caf-chip-row caf-chip-row-wrap caf-chip-row-scroll" id="caf-yymm-chips"></div>
+                        </div>
+
+                        <div class="caf-option-group">
+                            <label class="caf-option-label">YYWW</label>
+                            <div class="caf-chip-row caf-chip-row-wrap caf-chip-row-scroll" id="caf-yyww-chips"></div>
+                        </div>
+
+                        <div class="caf-option-group">
+                            <label class="caf-option-label">Work Date</label>
+                            <div class="caf-chip-row caf-chip-row-wrap caf-chip-row-scroll" id="caf-workdate-chips"></div>
+                        </div>
+
+                        <div class="caf-option-group">
+                            <label class="caf-option-label">Employee</label>
+                            <input type="text" id="caf-employee-search" class="caf-emp-search" placeholder="이름 또는 쿠코드 검색...">
+                            <div class="caf-chip-row caf-chip-row-wrap caf-chip-row-emp" id="caf-employee-chips"></div>
+                        </div>
+
+                        <div class="caf-option-group caf-option-actions">
+                            <button type="button" id="caf-reset-filters" class="caf-reset-btn">필터 초기화</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
 		<!-- 🆕 Calendar View -->
         <div id="calendar-view" class="hidden flex-col flex-grow min-h-0 p-4 space-y-4 overflow-y-auto">
             <div class="calendar-container">
@@ -6386,11 +6521,13 @@
         tableViewBtn: document.getElementById('table-view-btn'),
         dashboardViewBtn: document.getElementById('dashboard-view-btn'),
         historyViewBtn: document.getElementById('history-view-btn'),
+        caf4w1hViewBtn: document.getElementById('caf-4w1h-view-btn'),
         calendarViewBtn: document.getElementById('calendar-view-btn'),
         rankingViewBtn: document.getElementById('ranking-view-btn'),
         tableView: document.getElementById('table-view'),
         dashboardView: document.getElementById('dashboard-view'),
         historyView: document.getElementById('history-view'),
+        caf4w1hView: document.getElementById('caf-4w1h-view'),
         calendarView: document.getElementById('calendar-view'),
         rankingView: document.getElementById('ranking-view'),
         chartModalBackdrop: document.getElementById('chart-modal-backdrop'),
@@ -6486,6 +6623,25 @@
         lastTickerSignature: '',
         lastLocationHiddenFlag: null,
         lastDashboardAnimationAt: 0,
+        caf4w1hFilters: {
+            processTask: 'ALL',     // ALL | PICK | PACK
+            workerType: 'BOTH',     // BOTH | PERM | TEMP
+            packTypes: new Set(),
+            yymm: new Set(),
+            yyww: new Set(),
+            workDates: new Set(),
+            employees: new Set(),
+            employeeSearch: '',
+            zoneMode: 'floor'       // floor | loc | pp
+        },
+        caf4w1hCharts: {
+            monthly: null,
+            weekly: null,
+            daily: null,
+            individual: null,
+            packType: null,
+            pickZone: null
+        }
     };
     const requestIdle = typeof window.requestIdleCallback === 'function'
         ? (cb, options) => window.requestIdleCallback(cb, options)
@@ -7970,6 +8126,7 @@ function calculateEmployeeBadges() {
     ui.tableViewBtn.addEventListener('click', () => switchView('table'));
     ui.dashboardViewBtn.addEventListener('click', () => switchView('dashboard'));
     ui.historyViewBtn.addEventListener('click', () => switchView('history'));
+    if (ui.caf4w1hViewBtn) ui.caf4w1hViewBtn.addEventListener('click', () => switchView('caf4w1h'));
     ui.calendarViewBtn.addEventListener('click', () => switchView('calendar'));
     ui.rankingViewBtn.addEventListener('click', () => switchView('ranking'));
 
@@ -7977,21 +8134,24 @@ function calculateEmployeeBadges() {
         ui.tableView.classList.add('hidden');
         ui.dashboardView.classList.add('hidden');
         ui.historyView.classList.add('hidden');
+        if (ui.caf4w1hView) ui.caf4w1hView.classList.add('hidden');
         ui.calendarView.classList.add('hidden');
         ui.rankingView.classList.add('hidden');
         ui.dashboardView.classList.remove('flex');
         ui.historyView.classList.remove('flex');
+        if (ui.caf4w1hView) ui.caf4w1hView.classList.remove('flex');
         ui.calendarView.classList.remove('flex');
         ui.rankingView.classList.remove('flex');
-        
+
         ui.tableViewBtn.classList.remove('active');
         ui.dashboardViewBtn.classList.remove('active');
         ui.historyViewBtn.classList.remove('active');
+        if (ui.caf4w1hViewBtn) ui.caf4w1hViewBtn.classList.remove('active');
         ui.calendarViewBtn.classList.remove('active');
         ui.rankingViewBtn.classList.remove('active');
 
         document.body.setAttribute('data-active-view', viewName);
-        
+
         switch(viewName) {
             case 'table':
                 ui.tableView.classList.remove('hidden');
@@ -8007,10 +8167,22 @@ function calculateEmployeeBadges() {
                 ui.historyView.classList.remove('hidden');
                 ui.historyView.classList.add('flex');
                 ui.historyViewBtn.classList.add('active');
-                ensureHistoryDataReady(730).then(() => {
+                // 🆕 초기 진입 시에는 최근 7일만 로드. 더 긴 기간은 period 버튼으로 lazy-load
+                ensureHistoryDataReady(getDaysForPeriod(state.historyPeriod)).then(() => {
                     ensureBadgesCalculated();
                     renderHistoryView();
                 });
+                break;
+            case 'caf4w1h':
+                if (ui.caf4w1hView) {
+                    ui.caf4w1hView.classList.remove('hidden');
+                    ui.caf4w1hView.classList.add('flex');
+                    ui.caf4w1hViewBtn.classList.add('active');
+                    ensureHistoryDataReady(730).then(() => {
+                        ensureBadgesCalculated();
+                        renderCaf4W1HView();
+                    });
+                }
                 break;
             case 'calendar':
                 ui.calendarView.classList.remove('hidden');
@@ -8111,24 +8283,52 @@ function calculateEmployeeBadges() {
         document.querySelectorAll('.hist-period-btn, .period-btn').forEach(btn => btn.classList.remove('active'));
         ui.periodCustomBtn.classList.add('active');
     });
-    ui.applyCustomRange.addEventListener('click', () => {
+    ui.applyCustomRange.addEventListener('click', async () => {
         const start = ui.startDate.value;
         const end = ui.endDate.value;
-        if (start && end) {
-            state.historyPeriod = 'custom';
-            state.historyDateRange = { start, end };
-            renderHistoryView();
-        } else {
+        if (!start || !end) {
             showModal('시작일과 종료일을 모두 선택해주세요.');
+            return;
         }
+        state.historyPeriod = 'custom';
+        state.historyDateRange = { start, end };
+        // 🆕 지정 기간만큼 lazy-load (가장 이른 날부터 오늘까지)
+        const daysNeeded = getDaysForPeriod('custom');
+        if (daysNeeded > loadedHistoryDays) {
+            await ensureHistoryDataReady(daysNeeded);
+        }
+        renderHistoryView();
     });
 
-    function setHistoryPeriod(period) {
+    // 🆕 기간 → 필요한 일수 매핑
+    function getDaysForPeriod(period) {
+        if (period === 'week') return 7;
+        if (period === 'month') return 30;
+        if (period === 'all') return 730;
+        if (period === 'custom') {
+            const { start, end } = state.historyDateRange || {};
+            if (!start) return 7;
+            const startDate = new Date(start);
+            const today = new Date();
+            const diffDays = Math.ceil((today - startDate) / (1000 * 60 * 60 * 24));
+            return Math.max(7, diffDays + 1);
+        }
+        return 7;
+    }
+
+    async function setHistoryPeriod(period) {
         state.historyPeriod = period;
         document.querySelectorAll('.hist-period-btn, .period-btn').forEach(btn => btn.classList.remove('active'));
         if (period === 'week') ui.periodWeekBtn.classList.add('active');
         else if (period === 'month') ui.periodMonthBtn.classList.add('active');
         else if (period === 'all') ui.periodAllBtn.classList.add('active');
+
+        // 🆕 필요한 일수만큼 lazy-load (이미 로드되어 있으면 즉시 통과)
+        const daysNeeded = getDaysForPeriod(period);
+        if (daysNeeded > loadedHistoryDays) {
+            await ensureHistoryDataReady(daysNeeded);
+            ensureBadgesCalculated();
+        }
         renderHistoryView();
     }
 
@@ -10662,9 +10862,10 @@ function calculateEmployeeBadges() {
         const isDark = document.documentElement.getAttribute('data-theme') === 'dark';
         return {
             isDark,
-            grid: isDark ? 'rgba(148,163,184,0.15)' : 'rgba(148,163,184,0.25)',
-            tick: isDark ? '#94a3b8' : '#475569',
-            label: isDark ? '#e2e8f0' : '#1e293b',
+            grid: isDark ? 'rgba(148,163,184,0.2)' : 'rgba(148,163,184,0.25)',
+            tick: isDark ? '#cbd5e1' : '#475569',          // ⬆ 더 밝게 (slate-300)
+            label: isDark ? '#f8fafc' : '#1e293b',          // ⬆ 거의 흰색 (slate-50)
+            labelMuted: isDark ? '#cbd5e1' : '#64748b',     // 보조 라벨용
             tooltipBg: isDark ? '#0f172a' : '#1e293b'
         };
     }
@@ -10798,15 +10999,15 @@ function calculateEmployeeBadges() {
             },
             options: {
                 responsive: true, maintainAspectRatio: false, indexAxis: 'y',
-                layout: { padding: { right: 80 } },
+                layout: { padding: { right: 170 } },
                 plugins: {
                     legend: { display: false },
                     datalabels: { display: false },
                     tooltip: { backgroundColor: t.tooltipBg, titleColor:'#fff', bodyColor:'#e2e8f0', padding: 10, cornerRadius: 8, callbacks: { label: (c) => '평균 ' + c.parsed.x.toFixed(1) + ' HTP · ' + (Number.isFinite(rows[c.dataIndex].qty) ? Math.round(rows[c.dataIndex].qty).toLocaleString('ko-KR') : '0') + ' Unit' } }
                 },
                 scales: {
-                    x: { grid: { color: t.grid }, ticks: { color: t.tick, font: { size: 10, weight: '600' } }, title: { display: true, text: 'HTP', color: t.tick, font: { size: 10, weight: '700' } } },
-                    y: { grid: { display: false }, ticks: { color: t.label, font: { size: 11, weight: '700' }, autoSkip: false } }
+                    x: { grid: { color: t.grid }, ticks: { color: t.tick, font: { size: 11, weight: '600' } }, title: { display: true, text: 'HTP', color: t.tick, font: { size: 11, weight: '700' } } },
+                    y: { grid: { display: false }, ticks: { color: t.label, font: { size: 12, weight: '700' }, autoSkip: false } }
                 }
             },
             plugins: [{
@@ -10816,18 +11017,23 @@ function calculateEmployeeBadges() {
                     const meta = chart.getDatasetMeta(0);
                     if (!meta) return;
                     ctx.save();
-                    ctx.textAlign = 'left'; ctx.textBaseline = 'middle';
+                    ctx.textBaseline = 'middle';
                     meta.data.forEach((bar, i) => {
                         const r = rows[i]; if (!r) return;
-                        const x = bar.x + 8;
+                        const x = bar.x + 10;
                         const y = bar.y;
-                        ctx.fillStyle = t.label;
-                        ctx.font = '700 11px Pretendard, sans-serif';
-                        ctx.fillText(r.htp.toFixed(1), x, y - 6);
-                        ctx.fillStyle = t.tick;
-                        ctx.font = '600 10px Pretendard, sans-serif';
+                        const htpStr = r.htp.toFixed(1);
                         const qtyStr = Number.isFinite(r.qty) ? Math.round(r.qty).toLocaleString('ko-KR') : '0';
-                        ctx.fillText(qtyStr + ' Unit', x, y + 7);
+                        // HTP (강조)
+                        ctx.textAlign = 'left';
+                        ctx.fillStyle = t.label;
+                        ctx.font = '800 13px Pretendard, sans-serif';
+                        ctx.fillText(htpStr, x, y);
+                        const htpWidth = ctx.measureText(htpStr).width;
+                        // Unit (보조) — 같은 줄 오른쪽
+                        ctx.fillStyle = t.labelMuted;
+                        ctx.font = '600 11px Pretendard, sans-serif';
+                        ctx.fillText('  ·  ' + qtyStr + ' Unit', x + htpWidth, y);
                     });
                     ctx.restore();
                 }
@@ -10878,15 +11084,15 @@ function calculateEmployeeBadges() {
             },
             options: {
                 responsive: true, maintainAspectRatio: false, indexAxis: 'y',
-                layout: { padding: { right: 95 } },
+                layout: { padding: { right: 200 } },
                 plugins: {
                     legend: { display: false },
                     datalabels: { display: false },
                     tooltip: { backgroundColor: t.tooltipBg, titleColor:'#fff', bodyColor:'#e2e8f0', padding: 10, cornerRadius: 8, callbacks: { label: (c) => '평균 ' + c.parsed.x.toFixed(1) + ' HTP · ' + fmt(rows[c.dataIndex].qty) + ' Unit' } }
                 },
                 scales: {
-                    x: { grid: { color: t.grid }, ticks: { color: t.tick, font: { size: 10, weight: '600' } }, title: { display: true, text: 'HTP', color: t.tick, font: { size: 10, weight: '700' } } },
-                    y: { grid: { display: false }, ticks: { color: t.label, font: { size: mode === 'floor' ? 12 : 11, weight: '700' }, autoSkip: false } }
+                    x: { grid: { color: t.grid }, ticks: { color: t.tick, font: { size: 11, weight: '600' } }, title: { display: true, text: 'HTP', color: t.tick, font: { size: 11, weight: '700' } } },
+                    y: { grid: { display: false }, ticks: { color: t.label, font: { size: mode === 'floor' ? 13 : 12, weight: '700' }, autoSkip: false } }
                 }
             },
             plugins: [{
@@ -10896,17 +11102,23 @@ function calculateEmployeeBadges() {
                     const meta = chart.getDatasetMeta(0);
                     if (!meta) return;
                     ctx.save();
-                    ctx.textAlign = 'left'; ctx.textBaseline = 'middle';
+                    ctx.textBaseline = 'middle';
                     meta.data.forEach((bar, i) => {
                         const r = rows[i]; if (!r) return;
-                        const x = bar.x + 8;
+                        const x = bar.x + 10;
                         const y = bar.y;
+                        const htpStr = r.htp.toFixed(1) + ' HTP';
+                        const qtyStr = fmt(r.qty) + ' Unit';
+                        // HTP (강조)
+                        ctx.textAlign = 'left';
                         ctx.fillStyle = t.label;
-                        ctx.font = '800 12px Pretendard, sans-serif';
-                        ctx.fillText(r.htp.toFixed(1) + ' HTP', x, y - 7);
-                        ctx.fillStyle = t.tick;
-                        ctx.font = '600 10px Pretendard, sans-serif';
-                        ctx.fillText(fmt(r.qty) + ' Unit', x, y + 8);
+                        ctx.font = '800 13px Pretendard, sans-serif';
+                        ctx.fillText(htpStr, x, y);
+                        const htpWidth = ctx.measureText(htpStr).width;
+                        // Unit (보조) — 같은 줄 오른쪽
+                        ctx.fillStyle = t.labelMuted;
+                        ctx.font = '600 11px Pretendard, sans-serif';
+                        ctx.fillText('  ·  ' + qtyStr, x + htpWidth, y);
                     });
                     ctx.restore();
                 }
@@ -11923,6 +12135,527 @@ function calculateEmployeeBadges() {
                 showModal('PDF 생성 중 오류가 발생했습니다.');
             });
         }, 700);
+    }
+
+    // ============================================================
+    // ☕ Caf 4W1H Dashboard
+    // ============================================================
+    const CAF_COLORS = {
+        perm: '#f59e0b',
+        permSoft: 'rgba(245,158,11,0.25)',
+        temp: '#3b82f6',
+        tempSoft: 'rgba(59,130,246,0.25)',
+        grid: 'rgba(148,163,184,0.2)',
+        tick: '#e2e8f0',          // ⬆ 더 밝은 슬레이트
+        label: '#f8fafc',         // 데이터 라벨용 (거의 흰색)
+        labelMuted: '#cbd5e1'
+    };
+
+    // 공용 legend 플러그인 설정 (밝은 색상 적용)
+    function caf_legendPlugins() {
+        return {
+            legend: {
+                display: true,
+                position: 'top',
+                align: 'end',
+                labels: {
+                    color: CAF_COLORS.tick,
+                    boxWidth: 12,
+                    boxHeight: 12,
+                    font: { size: 12, weight: '600' },
+                    padding: 12
+                }
+            },
+            datalabels: {
+                color: CAF_COLORS.label,
+                font: { weight: '700', size: 11 },
+                anchor: 'end',
+                align: 'top',
+                offset: 2,
+                formatter: (v) => (v && Math.abs(v) >= 0.05) ? Number(v).toFixed(1) : ''
+            },
+            tooltip: { mode: 'index', intersect: false }
+        };
+    }
+
+    function caf_getIsoYYWW(dateStr) {
+        const parts = String(dateStr).split('-');
+        if (parts.length < 3) return '';
+        const d = new Date(Date.UTC(+parts[0], +parts[1] - 1, +parts[2]));
+        if (isNaN(d.getTime())) return '';
+        const day = (d.getUTCDay() + 6) % 7; // Mon=0..Sun=6
+        d.setUTCDate(d.getUTCDate() - day + 3); // Thursday of this ISO week
+        const firstThu = d.valueOf();
+        const yearStart = new Date(Date.UTC(d.getUTCFullYear(), 0, 4));
+        const yearDay = (yearStart.getUTCDay() + 6) % 7;
+        yearStart.setUTCDate(yearStart.getUTCDate() - yearDay + 3);
+        const week = 1 + Math.round((firstThu - yearStart.valueOf()) / 604800000);
+        const yy = String(d.getUTCFullYear()).slice(2);
+        return yy + String(week).padStart(2, '0');
+    }
+
+    function caf_collectAllAgg() {
+        const out = [];
+        if (!historyData || typeof historyData !== 'object') return out;
+        Object.entries(historyData).forEach(([date, dayData]) => {
+            if (!Array.isArray(dayData) || dayData.length === 0) return;
+            try {
+                const agg = aggregateData(dayData);
+                agg.forEach(r => out.push({ ...r, date }));
+            } catch (e) { /* skip malformed */ }
+        });
+        return out;
+    }
+
+    function caf_applyFilters(records) {
+        const f = state.caf4w1hFilters;
+        return records.filter(r => {
+            if (f.processTask === 'PICK' && !r.processType.includes('PICK')) return false;
+            if (f.processTask === 'PACK' && !r.processType.includes('PACK')) return false;
+            if (f.workerType === 'PERM' && !r.isPerm) return false;
+            if (f.workerType === 'TEMP' && r.isPerm) return false;
+            if (f.packTypes.size > 0) {
+                const isPickTask = r.processType.includes('PICK');
+                // pack type filter applies only to PACK records; PICK records pass through
+                if (!isPickTask && !f.packTypes.has(r.packType)) return false;
+            }
+            if (f.yymm.size > 0) {
+                const ym = (r.date || '').slice(0, 7);
+                if (!f.yymm.has(ym)) return false;
+            }
+            if (f.yyww.size > 0) {
+                const yw = caf_getIsoYYWW(r.date);
+                if (!f.yyww.has(yw)) return false;
+            }
+            if (f.workDates.size > 0 && !f.workDates.has(r.date)) return false;
+            if (f.employees.size > 0 && !f.employees.has(r.employee)) return false;
+            return true;
+        });
+    }
+
+    function caf_groupHtp(records, keyFn) {
+        const m = new Map();
+        records.forEach(r => {
+            const k = keyFn(r);
+            if (k === null || k === undefined || k === '') return;
+            if (!m.has(k)) m.set(k, { perm: { q: 0, mh: 0 }, temp: { q: 0, mh: 0 } });
+            const slot = r.isPerm ? m.get(k).perm : m.get(k).temp;
+            slot.q += r.unitQty;
+            slot.mh += (parseFloat(r.mh) || 0);
+        });
+        return m;
+    }
+
+    function caf_avgHtp(slot) {
+        return slot && slot.mh > 0 ? slot.q / slot.mh : 0;
+    }
+
+    function caf_destroyChart(key) {
+        const c = state.caf4w1hCharts[key];
+        if (c) { try { c.destroy(); } catch(e){} state.caf4w1hCharts[key] = null; }
+    }
+
+    function caf_chartOpts(overrides = {}) {
+        return Object.assign({
+            responsive: true,
+            maintainAspectRatio: false,
+            animation: false,
+            plugins: {
+                legend: { display: false },
+                datalabels: { display: false },
+                tooltip: { mode: 'index', intersect: false }
+            },
+            scales: {
+                x: { ticks: { color: CAF_COLORS.tick, font: { size: 11 } }, grid: { color: CAF_COLORS.grid } },
+                y: { ticks: { color: CAF_COLORS.tick, font: { size: 11 } }, grid: { color: CAF_COLORS.grid }, beginAtZero: true }
+            }
+        }, overrides);
+    }
+
+    // ---------------- Chart renderers ----------------
+    function caf_renderMonthlyChart(records) {
+        const canvas = document.getElementById('caf-monthly-chart');
+        if (!canvas || typeof Chart === 'undefined') return;
+        const grouped = caf_groupHtp(records, r => (r.date || '').slice(0, 7));
+        const labels = [...grouped.keys()].sort();
+        const permData = labels.map(k => +caf_avgHtp(grouped.get(k).perm).toFixed(1));
+        const tempData = labels.map(k => +caf_avgHtp(grouped.get(k).temp).toFixed(1));
+        caf_destroyChart('monthly');
+        state.caf4w1hCharts.monthly = new Chart(canvas.getContext('2d'), {
+            type: 'bar',
+            data: { labels: labels, datasets: [
+                { label: 'PERM', data: permData, backgroundColor: CAF_COLORS.perm, borderRadius: 5, barPercentage: 0.75, categoryPercentage: 0.8 },
+                { label: 'TEMP', data: tempData, backgroundColor: CAF_COLORS.temp, borderRadius: 5, barPercentage: 0.75, categoryPercentage: 0.8 }
+            ]},
+            options: caf_chartOpts({
+                plugins: caf_legendPlugins(),
+                layout: { padding: { top: 22 } }
+            })
+        });
+    }
+
+    function caf_renderWeeklyChart(records) {
+        const canvas = document.getElementById('caf-weekly-chart');
+        if (!canvas || typeof Chart === 'undefined') return;
+        const grouped = caf_groupHtp(records, r => caf_getIsoYYWW(r.date));
+        const labels = [...grouped.keys()].sort();
+        const permData = labels.map(k => +caf_avgHtp(grouped.get(k).perm).toFixed(1));
+        const tempData = labels.map(k => +caf_avgHtp(grouped.get(k).temp).toFixed(1));
+        caf_destroyChart('weekly');
+        // 주차가 많으면 데이터 라벨이 겹쳐서 비활성화
+        const plugins = caf_legendPlugins();
+        if (labels.length > 10) plugins.datalabels = { display: false };
+        state.caf4w1hCharts.weekly = new Chart(canvas.getContext('2d'), {
+            type: 'bar',
+            data: { labels, datasets: [
+                { label: 'PERM', data: permData, backgroundColor: CAF_COLORS.perm, borderRadius: 5, barPercentage: 0.75, categoryPercentage: 0.8 },
+                { label: 'TEMP', data: tempData, backgroundColor: CAF_COLORS.temp, borderRadius: 5, barPercentage: 0.75, categoryPercentage: 0.8 }
+            ]},
+            options: caf_chartOpts({
+                plugins,
+                layout: { padding: { top: 22 } }
+            })
+        });
+    }
+
+    function caf_renderDailyChart(records) {
+        const canvas = document.getElementById('caf-daily-chart');
+        if (!canvas || typeof Chart === 'undefined') return;
+        const grouped = caf_groupHtp(records, r => r.date);
+        const labels = [...grouped.keys()].sort();
+        const permData = labels.map(k => +caf_avgHtp(grouped.get(k).perm).toFixed(1));
+        const tempData = labels.map(k => +caf_avgHtp(grouped.get(k).temp).toFixed(1));
+        caf_destroyChart('daily');
+        // 일별 라인 차트는 데이터 라벨을 항상 끔 (점이 너무 많아 겹침)
+        const plugins = caf_legendPlugins();
+        plugins.datalabels = { display: false };
+        state.caf4w1hCharts.daily = new Chart(canvas.getContext('2d'), {
+            type: 'line',
+            data: { labels: labels.map(l => l.slice(5)), datasets: [
+                { label: 'PERM', data: permData, borderColor: CAF_COLORS.perm, backgroundColor: CAF_COLORS.permSoft, borderWidth: 2, tension: 0.35, fill: false, pointRadius: 1.5, pointHoverRadius: 5, pointBackgroundColor: CAF_COLORS.perm },
+                { label: 'TEMP', data: tempData, borderColor: CAF_COLORS.temp, backgroundColor: CAF_COLORS.tempSoft, borderWidth: 2, tension: 0.35, fill: false, pointRadius: 1.5, pointHoverRadius: 5, pointBackgroundColor: CAF_COLORS.temp }
+            ]},
+            options: caf_chartOpts({
+                plugins
+            })
+        });
+    }
+
+    function caf_renderIndividualChart(records) {
+        const canvas = document.getElementById('caf-individual-chart');
+        if (!canvas || typeof Chart === 'undefined') return;
+        const grouped = caf_groupHtp(records, r => r.employee);
+        // Determine PERM/TEMP majority per employee (whichever has higher mh)
+        const empRows = [];
+        grouped.forEach((slots, emp) => {
+            const permMh = slots.perm.mh, tempMh = slots.temp.mh;
+            const isPerm = permMh >= tempMh;
+            const slot = isPerm ? slots.perm : slots.temp;
+            const avg = caf_avgHtp(slot);
+            if (avg > 0) empRows.push({ employee: emp, htp: avg, isPerm });
+        });
+        empRows.sort((a, b) => b.htp - a.htp);
+        const top = empRows.slice(0, 40);
+        const labels = top.map(r => r.employee);
+        const data = top.map(r => +r.htp.toFixed(1));
+        const colors = top.map(r => r.isPerm ? CAF_COLORS.perm : CAF_COLORS.temp);
+        caf_destroyChart('individual');
+        const wrap = canvas.parentElement;
+        if (wrap) wrap.style.height = Math.max(360, top.length * 22) + 'px';
+        state.caf4w1hCharts.individual = new Chart(canvas.getContext('2d'), {
+            type: 'bar',
+            data: { labels, datasets: [{ label: 'HTP', data, backgroundColor: colors, borderRadius: 4, barPercentage: 0.85, categoryPercentage: 0.9 }] },
+            options: caf_chartOpts({
+                indexAxis: 'y',
+                layout: { padding: { right: 50 } },
+                plugins: {
+                    legend: { display: false },
+                    tooltip: { callbacks: { label: ctx => `HTP ${ctx.parsed.x.toFixed(1)} (${top[ctx.dataIndex].isPerm ? 'PERM' : 'TEMP'})` } },
+                    datalabels: {
+                        color: CAF_COLORS.label,
+                        font: { weight: '700', size: 11 },
+                        anchor: 'end',
+                        align: 'end',
+                        offset: 4,
+                        formatter: (v) => Number(v).toFixed(1)
+                    }
+                },
+                scales: {
+                    x: { ticks: { color: CAF_COLORS.tick }, grid: { color: CAF_COLORS.grid }, beginAtZero: true },
+                    y: { ticks: { color: CAF_COLORS.tick, font: { size: 11, weight: '600' } }, grid: { display: false } }
+                }
+            })
+        });
+    }
+
+    function caf_renderPackTypeChart(records) {
+        const canvas = document.getElementById('caf-pack-type-chart');
+        if (!canvas || typeof Chart === 'undefined') return;
+        const packOnly = records.filter(r => r.processType.includes('PACK'));
+        const grouped = caf_groupHtp(packOnly, r => r.packType || '기타');
+        const labels = [...grouped.keys()].sort();
+        const permData = labels.map(k => +caf_avgHtp(grouped.get(k).perm).toFixed(1));
+        const tempData = labels.map(k => +caf_avgHtp(grouped.get(k).temp).toFixed(1));
+        caf_destroyChart('packType');
+        const plugins = caf_legendPlugins();
+        if (labels.length > 8) plugins.datalabels = { display: false };
+        state.caf4w1hCharts.packType = new Chart(canvas.getContext('2d'), {
+            type: 'bar',
+            data: { labels, datasets: [
+                { label: 'PERM', data: permData, backgroundColor: CAF_COLORS.perm, borderRadius: 5, barPercentage: 0.75, categoryPercentage: 0.78 },
+                { label: 'TEMP', data: tempData, backgroundColor: CAF_COLORS.temp, borderRadius: 5, barPercentage: 0.75, categoryPercentage: 0.78 }
+            ]},
+            options: caf_chartOpts({
+                plugins,
+                layout: { padding: { top: 22 } },
+                scales: {
+                    x: { ticks: { color: CAF_COLORS.tick, font: { size: 11, weight: '600' }, maxRotation: 45, minRotation: 30 }, grid: { color: CAF_COLORS.grid } },
+                    y: { ticks: { color: CAF_COLORS.tick, font: { size: 11 } }, grid: { color: CAF_COLORS.grid }, beginAtZero: true }
+                }
+            })
+        });
+    }
+
+    function caf_renderPickZoneChart(records) {
+        const canvas = document.getElementById('caf-pick-zone-chart');
+        if (!canvas || typeof Chart === 'undefined') return;
+        const pickOnly = records.filter(r => r.processType.includes('PICK'));
+        const mode = state.caf4w1hFilters.zoneMode;
+        let keyFn;
+        if (mode === 'loc') {
+            keyFn = r => {
+                const loc = getResolvedLocation(r.location, r.processPathName) || '';
+                const m = loc.match(/^[0-9A-Za-z]{3,5}/);
+                return m ? m[0].toUpperCase() : (loc.slice(0, 4).toUpperCase() || '');
+            };
+        } else if (mode === 'pp') {
+            keyFn = r => {
+                const pp = (r.processPathName || '').trim();
+                if (!pp) return '';
+                // strip trailing workstation suffix, keep zone-ish stem
+                const parts = pp.split(/[_\-]/).filter(Boolean);
+                if (parts.length <= 3) return pp;
+                return parts.slice(0, 3).join('_');
+            };
+        } else {
+            keyFn = r => r.floor || '미상';
+        }
+        const grouped = caf_groupHtp(pickOnly, keyFn);
+        const entries = [...grouped.entries()].map(([k, v]) => {
+            const permAvg = caf_avgHtp(v.perm);
+            const tempAvg = caf_avgHtp(v.temp);
+            const overallMh = v.perm.mh + v.temp.mh;
+            const overallQ = v.perm.q + v.temp.q;
+            const overall = overallMh > 0 ? overallQ / overallMh : 0;
+            return { k, perm: permAvg, temp: tempAvg, overall };
+        });
+        entries.sort((a, b) => b.overall - a.overall);
+        const top = entries.slice(0, 30);
+        const labels = top.map(e => e.k);
+        const permData = top.map(e => +e.perm.toFixed(1));
+        const tempData = top.map(e => +e.temp.toFixed(1));
+        caf_destroyChart('pickZone');
+        const pluginsZ = caf_legendPlugins();
+        if (labels.length > 8) pluginsZ.datalabels = { display: false };
+        state.caf4w1hCharts.pickZone = new Chart(canvas.getContext('2d'), {
+            type: 'bar',
+            data: { labels, datasets: [
+                { label: 'PERM', data: permData, backgroundColor: CAF_COLORS.perm, borderRadius: 5, barPercentage: 0.75, categoryPercentage: 0.78 },
+                { label: 'TEMP', data: tempData, backgroundColor: CAF_COLORS.temp, borderRadius: 5, barPercentage: 0.75, categoryPercentage: 0.78 }
+            ]},
+            options: caf_chartOpts({
+                plugins: pluginsZ,
+                layout: { padding: { top: 22 } },
+                scales: {
+                    x: { ticks: { color: CAF_COLORS.tick, font: { size: 11, weight: '600' }, maxRotation: 45, minRotation: 30 }, grid: { color: CAF_COLORS.grid } },
+                    y: { ticks: { color: CAF_COLORS.tick, font: { size: 11 } }, grid: { color: CAF_COLORS.grid }, beginAtZero: true }
+                }
+            })
+        });
+    }
+
+    // ---------------- Option panel builder ----------------
+    function caf_buildOptionPanel(allAgg) {
+        const f = state.caf4w1hFilters;
+
+        // Pack Type chips
+        const packTypesSet = new Set();
+        allAgg.forEach(r => { if (r.processType.includes('PACK') && r.packType) packTypesSet.add(r.packType); });
+        const packTypeOrder = Object.keys(PACK_TYPE_MAP).concat(['기타']);
+        const packTypes = packTypeOrder.filter(p => packTypesSet.has(p)).concat([...packTypesSet].filter(p => !packTypeOrder.includes(p)));
+        caf_renderChipGroup('caf-packtype-chips', packTypes, f.packTypes, val => {
+            if (f.packTypes.has(val)) f.packTypes.delete(val); else f.packTypes.add(val);
+            renderCaf4W1HView();
+        });
+
+        // YYMM
+        const yymmSet = new Set();
+        allAgg.forEach(r => { if (r.date) yymmSet.add(r.date.slice(0, 7)); });
+        const yymmArr = [...yymmSet].sort().reverse();
+        caf_renderChipGroup('caf-yymm-chips', yymmArr, f.yymm, val => {
+            if (f.yymm.has(val)) f.yymm.delete(val); else f.yymm.add(val);
+            renderCaf4W1HView();
+        });
+
+        // YYWW
+        const yywwSet = new Set();
+        allAgg.forEach(r => { const w = caf_getIsoYYWW(r.date); if (w) yywwSet.add(w); });
+        const yywwArr = [...yywwSet].sort().reverse();
+        caf_renderChipGroup('caf-yyww-chips', yywwArr, f.yyww, val => {
+            if (f.yyww.has(val)) f.yyww.delete(val); else f.yyww.add(val);
+            renderCaf4W1HView();
+        });
+
+        // Work Date
+        const dateSet = new Set(allAgg.map(r => r.date).filter(Boolean));
+        const dateArr = [...dateSet].sort().reverse();
+        caf_renderChipGroup('caf-workdate-chips', dateArr, f.workDates, val => {
+            if (f.workDates.has(val)) f.workDates.delete(val); else f.workDates.add(val);
+            renderCaf4W1HView();
+        });
+
+        // Employee
+        const empMap = new Map(); // emp -> isPerm (whichever has higher mh)
+        const empMh = new Map();
+        allAgg.forEach(r => {
+            const cur = empMh.get(r.employee) || { permMh: 0, tempMh: 0 };
+            if (r.isPerm) cur.permMh += parseFloat(r.mh) || 0; else cur.tempMh += parseFloat(r.mh) || 0;
+            empMh.set(r.employee, cur);
+        });
+        empMh.forEach((v, k) => empMap.set(k, v.permMh >= v.tempMh));
+        let empArr = [...empMap.keys()].sort();
+        const search = (f.employeeSearch || '').toLowerCase().trim();
+        if (search) empArr = empArr.filter(e => e.toLowerCase().includes(search));
+        caf_renderEmployeeChips(empArr, empMap, f.employees, val => {
+            if (f.employees.has(val)) f.employees.delete(val); else f.employees.add(val);
+            renderCaf4W1HView();
+        });
+
+        // Sync top-row chip active states
+        caf_syncTopChips();
+    }
+
+    function caf_renderChipGroup(containerId, values, selectedSet, onClick) {
+        const container = document.getElementById(containerId);
+        if (!container) return;
+        container.innerHTML = '';
+        if (!values.length) {
+            container.innerHTML = '<span class="caf-empty-note">데이터 없음</span>';
+            return;
+        }
+        values.forEach(v => {
+            const btn = document.createElement('button');
+            btn.type = 'button';
+            btn.className = 'caf-chip caf-chip-mini' + (selectedSet.has(v) ? ' active' : '');
+            btn.textContent = v;
+            btn.addEventListener('click', () => onClick(v));
+            container.appendChild(btn);
+        });
+    }
+
+    function caf_renderEmployeeChips(values, empMap, selectedSet, onClick) {
+        const container = document.getElementById('caf-employee-chips');
+        if (!container) return;
+        container.innerHTML = '';
+        if (!values.length) {
+            container.innerHTML = '<span class="caf-empty-note">데이터 없음</span>';
+            return;
+        }
+        values.slice(0, 300).forEach(v => {
+            const isPerm = !!empMap.get(v);
+            const btn = document.createElement('button');
+            btn.type = 'button';
+            btn.className = 'caf-chip caf-chip-mini caf-chip-emp ' + (isPerm ? 'caf-emp-perm' : 'caf-emp-temp') + (selectedSet.has(v) ? ' active' : '');
+            btn.title = v + (isPerm ? ' · PERM' : ' · TEMP');
+            btn.textContent = v;
+            btn.addEventListener('click', () => onClick(v));
+            container.appendChild(btn);
+        });
+    }
+
+    function caf_syncTopChips() {
+        const f = state.caf4w1hFilters;
+        document.querySelectorAll('#caf-process-chips .caf-chip').forEach(el => {
+            el.classList.toggle('active', el.dataset.process === f.processTask);
+        });
+        document.querySelectorAll('#caf-worker-chips .caf-chip').forEach(el => {
+            el.classList.toggle('active', el.dataset.worker === f.workerType);
+        });
+        document.querySelectorAll('#caf-zone-subtabs .caf-zone-subtab').forEach(el => {
+            el.classList.toggle('active', el.dataset.zoneMode === f.zoneMode);
+        });
+    }
+
+    // ---------------- Main entry ----------------
+    let __cafBindingsBound = false;
+    function caf_bindOnce() {
+        if (__cafBindingsBound) return;
+        __cafBindingsBound = true;
+
+        document.querySelectorAll('#caf-process-chips .caf-chip').forEach(el => {
+            el.addEventListener('click', () => {
+                state.caf4w1hFilters.processTask = el.dataset.process || 'ALL';
+                renderCaf4W1HView();
+            });
+        });
+        document.querySelectorAll('#caf-worker-chips .caf-chip').forEach(el => {
+            el.addEventListener('click', () => {
+                state.caf4w1hFilters.workerType = el.dataset.worker || 'BOTH';
+                renderCaf4W1HView();
+            });
+        });
+        document.querySelectorAll('#caf-zone-subtabs .caf-zone-subtab').forEach(el => {
+            el.addEventListener('click', () => {
+                state.caf4w1hFilters.zoneMode = el.dataset.zoneMode || 'floor';
+                renderCaf4W1HView();
+            });
+        });
+        const search = document.getElementById('caf-employee-search');
+        if (search) {
+            search.addEventListener('input', () => {
+                state.caf4w1hFilters.employeeSearch = search.value;
+                renderCaf4W1HView();
+            });
+        }
+        const resetBtn = document.getElementById('caf-reset-filters');
+        if (resetBtn) {
+            resetBtn.addEventListener('click', () => {
+                state.caf4w1hFilters.processTask = 'ALL';
+                state.caf4w1hFilters.workerType = 'BOTH';
+                state.caf4w1hFilters.packTypes.clear();
+                state.caf4w1hFilters.yymm.clear();
+                state.caf4w1hFilters.yyww.clear();
+                state.caf4w1hFilters.workDates.clear();
+                state.caf4w1hFilters.employees.clear();
+                state.caf4w1hFilters.employeeSearch = '';
+                state.caf4w1hFilters.zoneMode = 'floor';
+                if (search) search.value = '';
+                renderCaf4W1HView();
+            });
+        }
+    }
+
+    function renderCaf4W1HView() {
+        if (!ui.caf4w1hView) return;
+        caf_bindOnce();
+
+        if (!historyData || Object.keys(historyData).length === 0) {
+            // no data yet — still build empty panel state
+            caf_buildOptionPanel([]);
+            ['monthly','weekly','daily','individual','packType','pickZone'].forEach(caf_destroyChart);
+            return;
+        }
+
+        const allAgg = caf_collectAllAgg();
+        caf_buildOptionPanel(allAgg);
+        const filtered = caf_applyFilters(allAgg);
+
+        caf_renderMonthlyChart(filtered);
+        caf_renderWeeklyChart(filtered);
+        caf_renderDailyChart(filtered);
+        caf_renderIndividualChart(filtered);
+        caf_renderPackTypeChart(filtered);
+        caf_renderPickZoneChart(filtered);
     }
 
         // 🚀 페이지 로드 시 즉시 초기화

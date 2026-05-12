@@ -2983,3 +2983,286 @@ tr:hover .row-action-menu {
         grid-template-columns: 1fr;
     }
 }
+
+/* ============================================================
+   ☕ Caf 4W1H Dashboard
+   ============================================================ */
+#caf-4w1h-view {
+    background: #0f172a;
+    color: #e2e8f0;
+}
+
+.caf-header {
+    text-align: center;
+    padding: 14px 4px 6px;
+    border-bottom: 3px solid #dc2626;
+    margin-bottom: 18px;
+}
+.caf-title {
+    font-size: 1.85rem;
+    font-weight: 800;
+    color: #ffffff;
+    letter-spacing: 0.02em;
+    font-family: 'Pretendard', 'Segoe UI', serif;
+}
+.caf-subtitle {
+    color: #94a3b8;
+    font-size: 0.85rem;
+    margin-top: 4px;
+}
+
+.caf-4w1h-grid {
+    display: grid;
+    grid-template-columns: 1.05fr 1.35fr 0.85fr;
+    gap: 14px;
+    align-items: start;
+}
+
+@media (max-width: 1400px) {
+    .caf-4w1h-grid { grid-template-columns: 1fr 1fr; }
+    .caf-right-col { grid-column: 1 / -1; }
+}
+@media (max-width: 900px) {
+    .caf-4w1h-grid { grid-template-columns: 1fr; }
+}
+
+.caf-left-col, .caf-center-col, .caf-right-col {
+    display: flex;
+    flex-direction: column;
+    gap: 14px;
+    min-width: 0;
+}
+
+.caf-card {
+    background: rgba(30, 41, 59, 0.75);
+    border: 1px solid rgba(148, 163, 184, 0.15);
+    border-radius: 10px;
+    padding: 12px 14px;
+    box-shadow: 0 4px 12px rgba(0,0,0,0.25);
+}
+
+.caf-card-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 8px;
+    gap: 10px;
+    flex-wrap: wrap;
+}
+
+.caf-card-title {
+    color: #f1f5f9;
+    font-size: 0.95rem;
+    font-weight: 700;
+    margin: 0;
+}
+
+.caf-card-legend {
+    display: flex;
+    gap: 10px;
+    font-size: 0.72rem;
+    color: #94a3b8;
+}
+.caf-card-legend span {
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+}
+.caf-swatch {
+    display: inline-block;
+    width: 10px;
+    height: 10px;
+    border-radius: 2px;
+}
+.caf-sw-perm { background: #f59e0b; }
+.caf-sw-temp { background: #3b82f6; }
+
+.caf-canvas-wrap {
+    position: relative;
+    width: 100%;
+    height: 220px;
+}
+.caf-canvas-tall {
+    height: 600px;
+    max-height: 720px;
+    overflow-y: auto;
+}
+.caf-canvas-tall canvas {
+    min-height: 100%;
+}
+
+/* Option Panel */
+.caf-option-card {
+    background: rgba(30, 41, 59, 0.75);
+    border: 1px solid rgba(148, 163, 184, 0.15);
+    border-radius: 10px;
+    padding: 14px;
+    box-shadow: 0 4px 12px rgba(0,0,0,0.25);
+    position: sticky;
+    top: 8px;
+    max-height: calc(100vh - 120px);
+    overflow-y: auto;
+}
+
+.caf-option-title {
+    color: #f1f5f9;
+    font-size: 1rem;
+    font-weight: 800;
+    margin: 0 0 14px 0;
+    padding-bottom: 8px;
+    border-bottom: 1px solid rgba(148,163,184,0.18);
+}
+
+.caf-option-group {
+    margin-bottom: 14px;
+}
+
+.caf-option-label {
+    display: block;
+    font-size: 0.78rem;
+    font-weight: 700;
+    color: #cbd5e1;
+    margin-bottom: 6px;
+    letter-spacing: 0.02em;
+    text-transform: uppercase;
+}
+
+.caf-chip-row {
+    display: flex;
+    flex-wrap: nowrap;
+    gap: 6px;
+    overflow-x: auto;
+}
+.caf-chip-row-wrap {
+    flex-wrap: wrap;
+}
+.caf-chip-row-scroll {
+    max-height: 100px;
+    overflow-y: auto;
+    overflow-x: hidden;
+    padding: 2px;
+}
+.caf-chip-row-emp {
+    max-height: 200px;
+    overflow-y: auto;
+    overflow-x: hidden;
+    padding: 2px;
+}
+
+.caf-chip {
+    background: rgba(51, 65, 85, 0.6);
+    border: 1px solid rgba(148, 163, 184, 0.2);
+    color: #cbd5e1;
+    padding: 5px 10px;
+    border-radius: 6px;
+    font-size: 0.78rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.15s ease;
+    white-space: nowrap;
+}
+.caf-chip:hover {
+    background: rgba(71, 85, 105, 0.8);
+    border-color: rgba(148, 163, 184, 0.4);
+}
+.caf-chip.active {
+    background: #16a34a;
+    border-color: #16a34a;
+    color: #ffffff;
+    box-shadow: 0 1px 4px rgba(22,163,74,0.45);
+}
+.caf-chip-mini {
+    padding: 4px 8px;
+    font-size: 0.72rem;
+}
+.caf-chip-emp.caf-emp-perm:not(.active) {
+    border-left: 3px solid #f59e0b;
+}
+.caf-chip-emp.caf-emp-temp:not(.active) {
+    border-left: 3px solid #3b82f6;
+}
+
+.caf-emp-search {
+    width: 100%;
+    padding: 6px 10px;
+    background: rgba(15, 23, 42, 0.7);
+    border: 1px solid rgba(148, 163, 184, 0.2);
+    border-radius: 6px;
+    color: #e2e8f0;
+    font-size: 0.8rem;
+    margin-bottom: 6px;
+    box-sizing: border-box;
+}
+.caf-emp-search:focus {
+    outline: none;
+    border-color: #3b82f6;
+}
+
+.caf-zone-subtabs {
+    display: flex;
+    gap: 4px;
+    background: rgba(15, 23, 42, 0.6);
+    padding: 3px;
+    border-radius: 6px;
+}
+.caf-zone-subtab {
+    background: transparent;
+    border: none;
+    color: #94a3b8;
+    padding: 4px 10px;
+    border-radius: 4px;
+    font-size: 0.74rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.15s ease;
+}
+.caf-zone-subtab:hover { color: #e2e8f0; }
+.caf-zone-subtab.active {
+    background: #3b82f6;
+    color: #ffffff;
+}
+
+.caf-option-actions {
+    margin-top: 18px;
+    margin-bottom: 0;
+    border-top: 1px solid rgba(148,163,184,0.15);
+    padding-top: 12px;
+}
+.caf-reset-btn {
+    width: 100%;
+    background: rgba(220, 38, 38, 0.15);
+    border: 1px solid rgba(220, 38, 38, 0.4);
+    color: #fca5a5;
+    padding: 8px;
+    border-radius: 6px;
+    font-size: 0.8rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.15s ease;
+}
+.caf-reset-btn:hover {
+    background: rgba(220, 38, 38, 0.3);
+    color: #ffffff;
+}
+
+.caf-empty-note {
+    color: #64748b;
+    font-size: 0.75rem;
+    font-style: italic;
+}
+
+/* Scrollbar polish */
+.caf-chip-row-scroll::-webkit-scrollbar,
+.caf-chip-row-emp::-webkit-scrollbar,
+.caf-option-card::-webkit-scrollbar,
+.caf-canvas-tall::-webkit-scrollbar {
+    width: 6px;
+    height: 6px;
+}
+.caf-chip-row-scroll::-webkit-scrollbar-thumb,
+.caf-chip-row-emp::-webkit-scrollbar-thumb,
+.caf-option-card::-webkit-scrollbar-thumb,
+.caf-canvas-tall::-webkit-scrollbar-thumb {
+    background: rgba(148, 163, 184, 0.3);
+    border-radius: 3px;
+}
