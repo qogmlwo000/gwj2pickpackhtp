@@ -3181,6 +3181,29 @@ tr:hover .row-action-menu {
 .caf-chip-emp.caf-emp-temp:not(.active) {
     border-left: 3px solid #3b82f6;
 }
+.caf-chip-emp.caf-emp-mgr:not(.active) {
+    border-left: 3px solid #facc15;
+    background: rgba(250, 204, 21, 0.08);
+}
+.caf-chip-emp.caf-emp-ps:not(.active) {
+    border-left: 3px solid #22c55e;
+    background: rgba(34, 197, 94, 0.08);
+}
+/* PICK Type 필터의 층-only 칩 (조합과 시각적으로 구분) */
+.caf-chip.caf-chip-floor-only:not(.active) {
+    background: rgba(139, 92, 246, 0.18);
+    border-color: rgba(139, 92, 246, 0.45);
+    color: #c4b5fd;
+    font-weight: 700;
+}
+.caf-chip.caf-chip-floor-only:not(.active):hover {
+    background: rgba(139, 92, 246, 0.28);
+    color: #ddd6fe;
+}
+.caf-chip.caf-chip-floor-only.active {
+    background: #8b5cf6;
+    border-color: #8b5cf6;
+}
 
 .caf-emp-search {
     width: 100%;
@@ -3265,4 +3288,152 @@ tr:hover .row-action-menu {
 .caf-canvas-tall::-webkit-scrollbar-thumb {
     background: rgba(148, 163, 184, 0.3);
     border-radius: 3px;
+}
+
+/* ============================================================
+   ⚙️ Settings Modal
+   ============================================================ */
+.header-settings-btn {
+    background: rgba(255,255,255,0.08);
+    border: 1px solid rgba(255,255,255,0.15);
+    color: #e2e8f0;
+    width: 40px;
+    height: 40px;
+    border-radius: 8px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    transition: all 0.15s ease;
+}
+.header-settings-btn:hover {
+    background: rgba(255,255,255,0.18);
+    color: #ffffff;
+    transform: rotate(30deg);
+}
+
+.staff-list-section {
+    background: rgba(30, 41, 59, 0.6);
+    border: 1px solid rgba(148, 163, 184, 0.15);
+    border-radius: 10px;
+    padding: 14px;
+}
+.staff-list-header { margin-bottom: 10px; }
+.staff-list-title {
+    color: #f1f5f9;
+    font-size: 1rem;
+    font-weight: 700;
+    margin: 0;
+}
+.staff-count {
+    color: #94a3b8;
+    font-size: 0.85rem;
+    font-weight: 500;
+    margin-left: 6px;
+}
+.staff-list-add {
+    display: flex;
+    gap: 8px;
+    margin-bottom: 12px;
+}
+.staff-list-input {
+    flex: 1;
+    background: rgba(15, 23, 42, 0.7);
+    border: 1px solid rgba(148, 163, 184, 0.25);
+    border-radius: 6px;
+    color: #f1f5f9;
+    padding: 8px 10px;
+    font-size: 0.85rem;
+    text-transform: uppercase;
+}
+.staff-list-input:focus {
+    outline: none;
+    border-color: #3b82f6;
+}
+.staff-list-add-btn {
+    background: #3b82f6;
+    color: #ffffff;
+    border: none;
+    border-radius: 6px;
+    padding: 0 14px;
+    font-size: 0.85rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: background 0.15s ease;
+}
+.staff-list-add-btn:hover { background: #2563eb; }
+.staff-list-chips {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 6px;
+    max-height: 280px;
+    overflow-y: auto;
+    padding: 4px;
+}
+.staff-chip {
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    background: rgba(51, 65, 85, 0.7);
+    border: 1px solid rgba(148, 163, 184, 0.2);
+    color: #cbd5e1;
+    padding: 4px 4px 4px 10px;
+    border-radius: 16px;
+    font-size: 0.78rem;
+    font-weight: 600;
+    font-family: 'Courier New', monospace;
+}
+.staff-chip-default { border-left: 3px solid #f59e0b; }
+.staff-chip-custom { border-left: 3px solid #10b981; }
+.staff-chip-remove {
+    background: rgba(220, 38, 38, 0.2);
+    border: none;
+    color: #fca5a5;
+    width: 18px;
+    height: 18px;
+    border-radius: 50%;
+    cursor: pointer;
+    font-size: 0.9rem;
+    line-height: 1;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+}
+.staff-chip-remove:hover {
+    background: #dc2626;
+    color: #ffffff;
+}
+.staff-empty {
+    color: #64748b;
+    font-size: 0.8rem;
+    font-style: italic;
+    padding: 8px;
+}
+.staff-list-actions {
+    margin-top: 18px;
+    padding-top: 14px;
+    border-top: 1px solid rgba(148,163,184,0.15);
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+}
+.staff-list-reset-btn {
+    background: rgba(220, 38, 38, 0.15);
+    color: #fca5a5;
+    border: 1px solid rgba(220, 38, 38, 0.4);
+    padding: 8px 12px;
+    border-radius: 6px;
+    font-size: 0.82rem;
+    font-weight: 600;
+    cursor: pointer;
+    align-self: flex-end;
+}
+.staff-list-reset-btn:hover {
+    background: rgba(220, 38, 38, 0.35);
+    color: #ffffff;
+}
+.staff-list-help {
+    color: #94a3b8;
+    font-size: 0.78rem;
+    margin: 0;
 }

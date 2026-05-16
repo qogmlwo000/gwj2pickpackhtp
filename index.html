@@ -4,7 +4,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>GWJ2 PICK & PACK HTP TOOL_Bennett (v4.0)</title>
+    <title>GWJ2 PICK & PACK HTP TOOL_Bennett (v5.0)</title>
     
     <!-- Favicon -->
     <link rel="icon" href="Bennett.ico" type="image/x-icon">
@@ -5194,7 +5194,7 @@
                             <div>
                                 <h1 class="header-title">
                                     <span class="gradient-text">GWJ2 OB PICK & PACK</span>
-                                    <span class="version-badge">v4.0</span>
+                                    <span class="version-badge">v5.0</span>
                                 </h1>
                                 <p class="header-subtitle">
                                     <span class="status-pulse">●</span>
@@ -5204,12 +5204,63 @@
                         </div>
                     </div>
                 </div>
-                <div id="status-indicator" class="status-card">
-                    <div class="status-dot status-disconnected"></div>
-                    <div>
-                        <div class="status-label">연결 상태</div>
-                        <div class="status-value">확인 중...</div>
+                <div class="flex items-center gap-3">
+                    <button id="settings-open-btn" class="header-settings-btn" title="설정 (관리자/PS 쿠코드 관리)" aria-label="설정">
+                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z"/>
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/>
+                        </svg>
+                    </button>
+                    <div id="status-indicator" class="status-card">
+                        <div class="status-dot status-disconnected"></div>
+                        <div>
+                            <div class="status-label">연결 상태</div>
+                            <div class="status-value">확인 중...</div>
+                        </div>
                     </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- ⚙️ Settings Modal -->
+        <div id="settings-modal-backdrop" class="fixed inset-0 z-50 hidden items-center justify-center p-4" style="background: rgba(0,0,0,0.7); backdrop-filter: blur(4px);">
+            <div class="bg-gray-800 rounded-lg shadow-xl w-full max-w-3xl p-6 relative" style="max-height: 90vh; overflow-y: auto;">
+                <div class="flex justify-between items-center mb-5">
+                    <h3 class="text-2xl font-bold text-white">⚙️ 설정 — 관리자/PS 쿠코드 관리</h3>
+                    <button id="settings-modal-close" class="text-gray-400 hover:text-white" aria-label="닫기">
+                        <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/></svg>
+                    </button>
+                </div>
+
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-5">
+                    <!-- 관리자 (Managers) -->
+                    <div class="staff-list-section">
+                        <div class="staff-list-header">
+                            <h4 class="staff-list-title">👑 관리자 <span id="settings-mgr-count" class="staff-count">0</span></h4>
+                        </div>
+                        <div class="staff-list-add">
+                            <input id="settings-mgr-input" type="text" placeholder="쿠코드 입력 (예: R5370913)" class="staff-list-input" maxlength="20" />
+                            <button id="settings-mgr-add" class="staff-list-add-btn">추가</button>
+                        </div>
+                        <div id="settings-mgr-list" class="staff-list-chips"></div>
+                    </div>
+
+                    <!-- PS -->
+                    <div class="staff-list-section">
+                        <div class="staff-list-header">
+                            <h4 class="staff-list-title">🍀 PS <span id="settings-ps-count" class="staff-count">0</span></h4>
+                        </div>
+                        <div class="staff-list-add">
+                            <input id="settings-ps-input" type="text" placeholder="쿠코드 입력" class="staff-list-input" maxlength="20" />
+                            <button id="settings-ps-add" class="staff-list-add-btn">추가</button>
+                        </div>
+                        <div id="settings-ps-list" class="staff-list-chips"></div>
+                    </div>
+                </div>
+
+                <div class="staff-list-actions">
+                    <button id="settings-reset-defaults" class="staff-list-reset-btn">기본값으로 초기화</button>
+                    <p class="staff-list-help">변경사항은 자동으로 저장됩니다. 새로고침 시 그대로 유지됩니다.</p>
                 </div>
             </div>
         </div>
@@ -5954,7 +6005,7 @@
         <div id="caf-4w1h-view" class="hidden flex-col flex-grow min-h-0 p-4 overflow-y-auto">
             <div class="caf-header">
                 <h1 class="caf-title">Caf 4W1H Dashboard</h1>
-                <p class="caf-subtitle">계약직(TEMP) vs 정규직(PERM) HTP 트렌드 비교 · Who · What · When · Where · How</p>
+                <p class="caf-subtitle">관리자 · PS · 계약직(PERM) · 단기직(TEMP) HTP 트렌드 — 최근 100일 · Who · What · When · Where · How</p>
             </div>
 
             <div class="caf-4w1h-grid">
@@ -6042,17 +6093,43 @@
                         </div>
 
                         <div class="caf-option-group">
-                            <label class="caf-option-label">Worker Type</label>
-                            <div class="caf-chip-row" id="caf-worker-chips">
-                                <button type="button" class="caf-chip active" data-worker="BOTH">BOTH</button>
-                                <button type="button" class="caf-chip" data-worker="PERM">PERM</button>
-                                <button type="button" class="caf-chip" data-worker="TEMP">TEMP</button>
+                            <label class="caf-option-label">Shift</label>
+                            <div class="caf-chip-row" id="caf-shift-chips">
+                                <button type="button" class="caf-chip active" data-shift="ALL">ALL</button>
+                                <button type="button" class="caf-chip" data-shift="DAY">주간 (09–18)</button>
+                                <button type="button" class="caf-chip" data-shift="SWING">야간 (19–08)</button>
                             </div>
                         </div>
 
                         <div class="caf-option-group">
-                            <label class="caf-option-label">Pack Type</label>
+                            <label class="caf-option-label">Worker Type</label>
+                            <div class="caf-chip-row caf-chip-row-wrap" id="caf-worker-chips">
+                                <button type="button" class="caf-chip caf-chip-mini active" data-worker-multi="ALL">전체</button>
+                                <button type="button" class="caf-chip caf-chip-mini" data-worker-multi="MANAGER">👑 관리자</button>
+                                <button type="button" class="caf-chip caf-chip-mini" data-worker-multi="PS">🍀 PS</button>
+                                <button type="button" class="caf-chip caf-chip-mini" data-worker-multi="PERM">계약직 (Perm)</button>
+                                <button type="button" class="caf-chip caf-chip-mini" data-worker-multi="TEMP">단기직 (Temp)</button>
+                            </div>
+                        </div>
+
+                        <div class="caf-option-group">
+                            <label class="caf-option-label">Pack Type 그룹</label>
+                            <div class="caf-chip-row caf-chip-row-wrap" id="caf-packgroup-chips">
+                                <button type="button" class="caf-chip caf-chip-mini" data-pack-group="manual">메뉴얼</button>
+                                <button type="button" class="caf-chip caf-chip-mini" data-pack-group="autobag">오토백</button>
+                                <button type="button" class="caf-chip caf-chip-mini" data-pack-group="ace">에이스</button>
+                                <button type="button" class="caf-chip caf-chip-mini" data-pack-group="clear">해제</button>
+                            </div>
+                        </div>
+
+                        <div class="caf-option-group">
+                            <label class="caf-option-label">Pack Type (개별)</label>
                             <div class="caf-chip-row caf-chip-row-wrap" id="caf-packtype-chips"></div>
+                        </div>
+
+                        <div class="caf-option-group">
+                            <label class="caf-option-label">PICK Type (PP / 층)</label>
+                            <div class="caf-chip-row caf-chip-row-wrap caf-chip-row-scroll" id="caf-picktype-chips"></div>
                         </div>
 
                         <div class="caf-option-group">
@@ -6625,8 +6702,10 @@
         lastDashboardAnimationAt: 0,
         caf4w1hFilters: {
             processTask: 'ALL',     // ALL | PICK | PACK
-            workerType: 'BOTH',     // BOTH | PERM | TEMP
+            shift: 'ALL',           // ALL | DAY | SWING
+            workerTypes: new Set(['ALL']), // 'ALL' or any of MANAGER/PS/PERM/TEMP
             packTypes: new Set(),
+            pickTypes: new Set(),   // PICK PP/floor 키
             yymm: new Set(),
             yyww: new Set(),
             workDates: new Set(),
@@ -7156,6 +7235,7 @@
     // --- Constants ---
     const PACK_TYPE_MAP = {
 		"메뉴얼팩": ["179_1.3F_MA_S_OG_"],
+		"메뉴얼팩 ACE 8호": ["179-1.3F-MA-ACE-OG-"],
 		"메뉴얼팩 NPB": ["179-1.3F-MA-NPB-OG-"],
 		"메뉴얼팩 멀티": ["179_1.3F_MA_M_OG_", "MA_M_"],
 		"ACE LINE": ["179-1.2F-MA-ACE-OG-"],
@@ -7173,7 +7253,47 @@
 		"CFC 오토백 RTPB": ["190_6.2G_AB_T1_OG_"]
 	};
     const DEFAULT_PACK_TYPE = "기타";
-    const MANAGERS_LIST = ['R5370913', 'E4992491', 'Z7386388', 'Z5406388', 'B3706369', 'S4461023', 'V6568216', 'X4033164', 'X7694762', 'A1943868', 'D5012685', 'N2086791', 'W9345496', 'T5941917', 'K9270657', 'P1637348', 'H6239751', 'X9075186', 'H4633331', 'G4094768', 'R9635160', 'R2637601', 'T9383022', 'V4296863', 'G9236102', 'U7306474', 'P9738071', 'L5291847', 'D9063832', 'R8788212', 'S1827358', 'M9279634', 'H3088014', 'V8173681', 'J7268590', 'G2791563', 'N2607464', 'Y5651563', 'H3614867', 'Q2813675', 'U2554263', 'T9060243', 'G2345755', 'A3511520', 'T3138750', 'A1481426', 'C1457759', 'Y9273085'];
+
+    // 🆕 Caf 4W1H 데이터 범위 캡 (최장 100일) — fetch와 cap 모두에 사용
+    const CAF_MAX_DAYS = 100;
+
+    // 🆕 관리자/PS 리스트 — 기본값 + localStorage 사용자 추가/제거를 합쳐서 사용
+    const MANAGERS_LIST_DEFAULTS = ['R5370913', 'E4992491', 'Z7386388', 'Z5406388', 'B3706369', 'S4461023', 'V6568216', 'X4033164', 'X7694762', 'A1943868', 'D5012685', 'N2086791', 'W9345496', 'T5941917', 'K9270657', 'P1637348', 'H6239751', 'X9075186', 'H4633331', 'G4094768', 'R9635160', 'R2637601', 'T9383022', 'V4296863', 'G9236102', 'U7306474', 'P9738071', 'L5291847', 'D9063832', 'R8788212', 'S1827358', 'M9279634', 'H3088014', 'V8173681', 'J7268590', 'G2791563', 'N2607464', 'Y5651563', 'H3614867', 'Q2813675', 'U2554263', 'T9060243', 'G2345755', 'A3511520', 'T3138750', 'A1481426', 'C1457759', 'Y9273085'];
+    const PS_LIST_DEFAULTS = [];
+    const STAFF_LISTS_STORAGE_KEY = 'staffListsOverrides';
+
+    function loadStaffOverrides() {
+        try {
+            const raw = localStorage.getItem(STAFF_LISTS_STORAGE_KEY);
+            if (!raw) return { managersAdded: [], managersRemoved: [], psAdded: [], psRemoved: [] };
+            const parsed = JSON.parse(raw);
+            return {
+                managersAdded: Array.isArray(parsed.managersAdded) ? parsed.managersAdded : [],
+                managersRemoved: Array.isArray(parsed.managersRemoved) ? parsed.managersRemoved : [],
+                psAdded: Array.isArray(parsed.psAdded) ? parsed.psAdded : [],
+                psRemoved: Array.isArray(parsed.psRemoved) ? parsed.psRemoved : []
+            };
+        } catch (e) {
+            return { managersAdded: [], managersRemoved: [], psAdded: [], psRemoved: [] };
+        }
+    }
+    function saveStaffOverrides(overrides) {
+        try { localStorage.setItem(STAFF_LISTS_STORAGE_KEY, JSON.stringify(overrides)); } catch(e) {}
+    }
+    function recomputeStaffLists() {
+        const o = loadStaffOverrides();
+        const mgrSet = new Set(MANAGERS_LIST_DEFAULTS);
+        o.managersAdded.forEach(id => mgrSet.add(id));
+        o.managersRemoved.forEach(id => mgrSet.delete(id));
+        const psSet = new Set(PS_LIST_DEFAULTS);
+        o.psAdded.forEach(id => psSet.add(id));
+        o.psRemoved.forEach(id => psSet.delete(id));
+        MANAGERS_LIST.length = 0; MANAGERS_LIST.push(...mgrSet);
+        PS_LIST.length = 0; PS_LIST.push(...psSet);
+    }
+    const MANAGERS_LIST = [];
+    const PS_LIST = [];
+    recomputeStaffLists();
     
     const TARGET_HTP_DEFAULTS = {
         "Manual SINGULATION": { value: 100, keywords: ['ManualPack', '179_1.3F_MA_S_OG_'] },
@@ -8178,7 +8298,8 @@ function calculateEmployeeBadges() {
                     ui.caf4w1hView.classList.remove('hidden');
                     ui.caf4w1hView.classList.add('flex');
                     ui.caf4w1hViewBtn.classList.add('active');
-                    ensureHistoryDataReady(730).then(() => {
+                    // 🆕 Caf 4W1H는 최근 100일치만 fetch — 다른 탭이 더 많이 받아둔 경우엔 그대로 사용
+                    ensureHistoryDataReady(CAF_MAX_DAYS).then(() => {
                         ensureBadgesCalculated();
                         renderCaf4W1HView();
                     });
@@ -8441,7 +8562,7 @@ function calculateEmployeeBadges() {
         const employeeCell = row.querySelector('td:nth-child(2)');
         const processCell = row.querySelector('td:nth-child(1)');
         if(employeeCell && processCell) {
-            const employeeName = employeeCell.textContent.replace(/[👑🔥🐢🥇🥈🥉]\s*/g, '').trim();
+            const employeeName = employeeCell.textContent.replace(/[👑🍀🔥🐢🥇🥈🥉]\s*/g, '').trim();
             const processType = processCell.textContent;
             showIndividualTrend(employeeName, processType);
         }
@@ -8610,7 +8731,7 @@ function calculateEmployeeBadges() {
                     processType: item.processTask.includes('PICK') ? 'PICK(집품)' : 'PACK(포장)',
                     employee: item.employee, floor: item.floor, unitQty: 0, totalSeconds: 0,
                     location: resolvedLocation, processPathName: item.processPathName, packType: packType,
-                    isManager: MANAGERS_LIST.includes(empId), isPerm: item.contractType === 'PERM',
+                    isManager: MANAGERS_LIST.includes(empId), isPS: PS_LIST.includes(empId), isPerm: item.contractType === 'PERM',
                     employeeKey: (item.employee || '').toLowerCase()
                 });
             }
@@ -9150,11 +9271,12 @@ function calculateEmployeeBadges() {
 
         let employeeClass = 'text-gray-200';
         if (item.isManager) employeeClass = isDark ? 'text-yellow-300 font-bold' : 'text-yellow-600 font-bold';
+        else if (item.isPS) employeeClass = isDark ? 'text-green-400 font-bold' : 'text-green-600 font-bold';
         else if (item.isPerm) employeeClass = isDark ? 'text-emerald-400 font-bold' : 'text-emerald-600 font-bold';
         else employeeClass = isDark ? 'text-gray-300' : 'text-gray-700';
 
         const employeeName = escapeHtml(item.employee || '');
-        const employeeDisplay = item.isManager ? `👑 ${employeeName}` : employeeName;
+        const employeeDisplay = item.isManager ? `👑 ${employeeName}` : (item.isPS ? `🍀 ${employeeName}` : employeeName);
         const processType = escapeHtml(item.processType || '-');
         const location = escapeHtml(item.location || '-');
         const processPathName = escapeHtml(item.processPathName || '-');
@@ -9259,7 +9381,7 @@ function calculateEmployeeBadges() {
             const isLowPerformer = htpValue < targetHtp;
             const processClass = item.processType.includes('PICK') ? 'pick' : 'pack';
             const htpClass = isLowPerformer ? 'low' : '';
-            const employeeDisplay = item.isManager ? `👑 ${escapeHtml(item.employee)}` : escapeHtml(item.employee);
+            const employeeDisplay = item.isManager ? `👑 ${escapeHtml(item.employee)}` : (item.isPS ? `🍀 ${escapeHtml(item.employee)}` : escapeHtml(item.employee));
             
             cardsHtml += `
                 <div class="employee-card ${isHidden ? 'hidden-employee' : ''}">
@@ -9448,7 +9570,7 @@ function calculateEmployeeBadges() {
         dataToExport.forEach(item => {
             const rowData = {
                 '집품/포장': item.processType,
-                '이름(쿠코드)': item.employee.replace(/[👑🔥🐢🥇🥈🥉]\s*/g, ''),
+                '이름(쿠코드)': item.employee.replace(/[👑🍀🔥🐢🥇🥈🥉]\s*/g, ''),
                 '계약직 여부': item.isPerm ? 'PERM' : 'TEMP',
                 '작업량': Number(item.unitQty),
                 '로케이션 및 작업대': item.location || '-',
@@ -10221,7 +10343,7 @@ function calculateEmployeeBadges() {
     }
 
     function showIndividualTrend(employeeName, processType) {
-        employeeName = employeeName.replace(/[👑🔥🐢🥇🥈🥉]\s*/g, '').trim();
+        employeeName = employeeName.replace(/[👑🍀🔥🐢🥇🥈🥉]\s*/g, '').trim();
         const targetProcessTask = processType.includes('PICK') ? 'PICK(PICKING)' : 'PACK(PACKING)';
         const employeeData = globalRawData.filter(d => d.employee === employeeName && d.processTask === targetProcessTask);
         
@@ -11674,7 +11796,7 @@ function calculateEmployeeBadges() {
             if (!dayData) return;
             aggregateData(dayData).forEach(item => {
                 const row = {
-                    '날짜': date, '이름': item.employee.replace(/[👑🔥🐢🥇🥈🥉]\s*/g, ''),
+                    '날짜': date, '이름': item.employee.replace(/[👑🍀🔥🐢🥇🥈🥉]\s*/g, ''),
                     '작업량': item.unitQty, '로케이션': item.location || '-',
                     'PP': item.processPathName || '-', '팩 종류': item.packType || '-',
                     'M/H': parseFloat(item.mh), 'HTP': parseFloat(item.htp)
@@ -12194,14 +12316,69 @@ function calculateEmployeeBadges() {
         return yy + String(week).padStart(2, '0');
     }
 
-    function caf_collectAllAgg() {
+    function caf_getCappedDates() {
+        if (!historyData || typeof historyData !== 'object') return [];
+        const allDates = Object.keys(historyData).sort();
+        return allDates.slice(-CAF_MAX_DAYS);
+    }
+
+    // 🆕 집계 결과 캐시 — historyData / 관리자/PS 리스트가 바뀌지 않는 한 재계산 안 함
+    const caf_cache = {
+        signature: null,
+        allAgg: null,
+        lastPanelSig: null
+    };
+
+    function caf_buildSignature(dates) {
+        // dates 배열 + 관리자/PS 리스트 변경 감지 (Settings에서 바뀌면 캐시 무효)
+        return dates.length + '|' + (dates[0] || '') + '|' + (dates[dates.length - 1] || '')
+            + '|m' + MANAGERS_LIST.length + '|p' + PS_LIST.length;
+    }
+
+    function caf_getOrComputeAllAgg() {
+        const dates = caf_getCappedDates();
+        const sig = caf_buildSignature(dates);
+        if (caf_cache.signature === sig && caf_cache.allAgg) return caf_cache.allAgg;
+        const allAgg = caf_collectAllAgg(dates);
+        caf_cache.signature = sig;
+        caf_cache.allAgg = allAgg;
+        return allAgg;
+    }
+
+    function caf_invalidateCache() {
+        caf_cache.signature = null;
+        caf_cache.allAgg = null;
+        caf_cache.lastPanelSig = null;
+    }
+
+    function caf_collectAllAgg(precomputedDates) {
         const out = [];
-        if (!historyData || typeof historyData !== 'object') return out;
-        Object.entries(historyData).forEach(([date, dayData]) => {
+        const dates = precomputedDates || caf_getCappedDates();
+        dates.forEach(date => {
+            const dayData = historyData[date];
             if (!Array.isArray(dayData) || dayData.length === 0) return;
             try {
                 const agg = aggregateData(dayData);
-                agg.forEach(r => out.push({ ...r, date }));
+                // 'aggregateData'는 집계 시 일자별 hour 정보를 잃어버리므로 day-level 평균 shift 추정용으로 원본 시작 시각도 보존
+                // ⇒ 여기서는 day 단위 records가 아닌 raw item 단위로 shift 판정이 필요하기 때문에
+                // 추가로 일자 데이터에서 employee → 최빈 hour 를 캐싱
+                const hourByEmp = {};
+                dayData.forEach(it => {
+                    if (!it || !it.htpStart) return;
+                    const h = new Date(it.htpStart).getHours();
+                    if (!hourByEmp[it.employee]) hourByEmp[it.employee] = [];
+                    hourByEmp[it.employee].push(h);
+                });
+                agg.forEach(r => {
+                    const hours = hourByEmp[r.employee] || [];
+                    // 다수 시작 시각이 19~08 사이면 SWING, 09~18이면 DAY, 혼합이면 mixed
+                    let dayCount = 0, swingCount = 0;
+                    hours.forEach(h => { if (h >= 9 && h <= 18) dayCount++; else swingCount++; });
+                    let shift = 'DAY';
+                    if (swingCount > dayCount) shift = 'SWING';
+                    else if (swingCount === dayCount && hours.length > 0) shift = 'MIXED';
+                    out.push({ ...r, date, shift });
+                });
             } catch (e) { /* skip malformed */ }
         });
         return out;
@@ -12209,15 +12386,45 @@ function calculateEmployeeBadges() {
 
     function caf_applyFilters(records) {
         const f = state.caf4w1hFilters;
+        const wts = f.workerTypes;
+        const hasAllWT = wts.has('ALL') || wts.size === 0;
         return records.filter(r => {
             if (f.processTask === 'PICK' && !r.processType.includes('PICK')) return false;
             if (f.processTask === 'PACK' && !r.processType.includes('PACK')) return false;
-            if (f.workerType === 'PERM' && !r.isPerm) return false;
-            if (f.workerType === 'TEMP' && r.isPerm) return false;
+            // Shift
+            if (f.shift === 'DAY' && r.shift !== 'DAY') return false;
+            if (f.shift === 'SWING' && r.shift !== 'SWING') return false;
+            // Worker Type (다중)
+            if (!hasAllWT) {
+                let match = false;
+                if (wts.has('MANAGER') && r.isManager) match = true;
+                if (wts.has('PS') && r.isPS) match = true;
+                if (wts.has('PERM') && !r.isManager && !r.isPS && r.isPerm) match = true;
+                if (wts.has('TEMP') && !r.isManager && !r.isPS && !r.isPerm) match = true;
+                if (!match) return false;
+            }
+            // Pack Type 필터 (PACK 레코드만)
             if (f.packTypes.size > 0) {
                 const isPickTask = r.processType.includes('PICK');
-                // pack type filter applies only to PACK records; PICK records pass through
                 if (!isPickTask && !f.packTypes.has(r.packType)) return false;
+            }
+            // PICK Type 필터 (PICK 레코드만) — 선택 항목 중 하나라도 매칭(OR)되면 통과
+            // 층-only 키(예: "6.1F")와 층+PP 조합 키("6.1F ─ AB_2.5_…") 모두 지원
+            if (f.pickTypes.size > 0) {
+                const isPickTask = r.processType.includes('PICK');
+                if (isPickTask) {
+                    const combo = caf_pickKey(r);
+                    const floor = (r.floor || '').toString().trim();
+                    let matched = false;
+                    for (const k of f.pickTypes) {
+                        if (k.includes(' ─ ')) {
+                            if (k === combo) { matched = true; break; }
+                        } else {
+                            if (k === floor) { matched = true; break; }
+                        }
+                    }
+                    if (!matched) return false;
+                }
             }
             if (f.yymm.size > 0) {
                 const ym = (r.date || '').slice(0, 7);
@@ -12231,6 +12438,12 @@ function calculateEmployeeBadges() {
             if (f.employees.size > 0 && !f.employees.has(r.employee)) return false;
             return true;
         });
+    }
+
+    function caf_pickKey(r) {
+        const floor = (r.floor || '-').toString().trim() || '-';
+        const pp = (r.processPathName || '-').toString().trim() || '-';
+        return floor + ' ─ ' + pp;
     }
 
     function caf_groupHtp(records, keyFn) {
@@ -12341,50 +12554,107 @@ function calculateEmployeeBadges() {
         });
     }
 
+    function caf_empPrefix(rec) {
+        if (rec.isManager) return '👑 ';
+        if (rec.isPS) return '🍀 ';
+        return '';
+    }
+
     function caf_renderIndividualChart(records) {
         const canvas = document.getElementById('caf-individual-chart');
         if (!canvas || typeof Chart === 'undefined') return;
-        const grouped = caf_groupHtp(records, r => r.employee);
-        // Determine PERM/TEMP majority per employee (whichever has higher mh)
+
+        // 직원별 집계: HTP, MH, 그리고 메타 정보(isManager/isPS/isPerm)
+        const empMap = new Map();
+        records.forEach(r => {
+            if (!empMap.has(r.employee)) {
+                empMap.set(r.employee, { q: 0, mh: 0, isManager: r.isManager, isPS: r.isPS, isPerm: r.isPerm, permMh: 0, tempMh: 0 });
+            }
+            const e = empMap.get(r.employee);
+            e.q += r.unitQty;
+            const mh = parseFloat(r.mh) || 0;
+            e.mh += mh;
+            if (r.isPerm) e.permMh += mh; else e.tempMh += mh;
+            // 한 직원의 isManager/isPS 가 일관되지 않으면 가장 강한 신호 유지
+            if (r.isManager) e.isManager = true;
+            if (r.isPS) e.isPS = true;
+        });
+
         const empRows = [];
-        grouped.forEach((slots, emp) => {
-            const permMh = slots.perm.mh, tempMh = slots.temp.mh;
-            const isPerm = permMh >= tempMh;
-            const slot = isPerm ? slots.perm : slots.temp;
-            const avg = caf_avgHtp(slot);
-            if (avg > 0) empRows.push({ employee: emp, htp: avg, isPerm });
+        empMap.forEach((v, emp) => {
+            const htp = v.mh > 0 ? v.q / v.mh : 0;
+            if (htp <= 0 || v.mh < 0.1) return;
+            // 색상 기준은 PERM/TEMP MH 비율
+            const isPerm = v.permMh >= v.tempMh;
+            empRows.push({ employee: emp, htp, mh: v.mh, isPerm, isManager: v.isManager, isPS: v.isPS });
         });
         empRows.sort((a, b) => b.htp - a.htp);
         const top = empRows.slice(0, 40);
-        const labels = top.map(r => r.employee);
+
+        const labels = top.map(r => caf_empPrefix(r) + r.employee);
         const data = top.map(r => +r.htp.toFixed(1));
-        const colors = top.map(r => r.isPerm ? CAF_COLORS.perm : CAF_COLORS.temp);
+        const colors = top.map(r => {
+            if (r.isManager) return '#facc15';   // 골드 (관리자)
+            if (r.isPS) return '#22c55e';        // 그린 (PS)
+            return r.isPerm ? CAF_COLORS.perm : CAF_COLORS.temp;
+        });
         caf_destroyChart('individual');
         const wrap = canvas.parentElement;
-        if (wrap) wrap.style.height = Math.max(360, top.length * 22) + 'px';
+        if (wrap) wrap.style.height = Math.max(360, top.length * 24) + 'px';
         state.caf4w1hCharts.individual = new Chart(canvas.getContext('2d'), {
             type: 'bar',
-            data: { labels, datasets: [{ label: 'HTP', data, backgroundColor: colors, borderRadius: 4, barPercentage: 0.85, categoryPercentage: 0.9 }] },
+            data: { labels, datasets: [{
+                label: 'HTP',
+                data,
+                backgroundColor: colors,
+                borderRadius: 4,
+                barPercentage: 0.85,
+                categoryPercentage: 0.9
+            }] },
             options: caf_chartOpts({
                 indexAxis: 'y',
-                layout: { padding: { right: 50 } },
+                layout: { padding: { right: 160 } },
                 plugins: {
                     legend: { display: false },
-                    tooltip: { callbacks: { label: ctx => `HTP ${ctx.parsed.x.toFixed(1)} (${top[ctx.dataIndex].isPerm ? 'PERM' : 'TEMP'})` } },
-                    datalabels: {
-                        color: CAF_COLORS.label,
-                        font: { weight: '700', size: 11 },
-                        anchor: 'end',
-                        align: 'end',
-                        offset: 4,
-                        formatter: (v) => Number(v).toFixed(1)
-                    }
+                    tooltip: { callbacks: { label: ctx => {
+                        const r = top[ctx.dataIndex];
+                        const role = r.isManager ? '관리자' : r.isPS ? 'PS' : (r.isPerm ? '계약직(PERM)' : '단기직(TEMP)');
+                        return `HTP ${r.htp.toFixed(1)} · MH ${r.mh.toFixed(2)} · ${role}`;
+                    } } },
+                    datalabels: { display: false }   // 커스텀 플러그인으로 그림
                 },
                 scales: {
                     x: { ticks: { color: CAF_COLORS.tick }, grid: { color: CAF_COLORS.grid }, beginAtZero: true },
                     y: { ticks: { color: CAF_COLORS.tick, font: { size: 11, weight: '600' } }, grid: { display: false } }
                 }
-            })
+            }),
+            plugins: [{
+                id: 'cafIndividualValueLabels',
+                afterDatasetsDraw(chart) {
+                    const { ctx } = chart;
+                    const meta = chart.getDatasetMeta(0);
+                    if (!meta) return;
+                    ctx.save();
+                    ctx.textBaseline = 'middle';
+                    meta.data.forEach((bar, i) => {
+                        const r = top[i]; if (!r) return;
+                        const x = bar.x + 8;
+                        const y = bar.y;
+                        // HTP 강조
+                        ctx.textAlign = 'left';
+                        ctx.fillStyle = CAF_COLORS.label;
+                        ctx.font = '800 12px Pretendard, sans-serif';
+                        const htpStr = r.htp.toFixed(1);
+                        ctx.fillText(htpStr, x, y);
+                        const htpW = ctx.measureText(htpStr).width;
+                        // MH 보조
+                        ctx.fillStyle = CAF_COLORS.labelMuted;
+                        ctx.font = '600 10px Pretendard, sans-serif';
+                        ctx.fillText('  ·  MH ' + r.mh.toFixed(1), x + htpW, y);
+                    });
+                    ctx.restore();
+                }
+            }]
         });
     }
 
@@ -12475,6 +12745,12 @@ function calculateEmployeeBadges() {
     }
 
     // ---------------- Option panel builder ----------------
+    const CAF_PACK_GROUPS = {
+        manual: ['메뉴얼팩', '메뉴얼팩 ACE 8호', '메뉴얼팩 NPB', '메뉴얼팩 멀티', 'CFC 메뉴얼팩', 'CFC 메뉴얼팩 멀티'],
+        autobag: ['오토백 1.2', '오토백 2.5', '오토백 4.0', '오토백 RTPB', '오토백 멀티', 'CFC 오토백 2.5', 'CFC 오토백 4.0', 'CFC 오토백 RTPB'],
+        ace: ['ACE LINE']
+    };
+
     function caf_buildOptionPanel(allAgg) {
         const f = state.caf4w1hFilters;
 
@@ -12485,6 +12761,24 @@ function calculateEmployeeBadges() {
         const packTypes = packTypeOrder.filter(p => packTypesSet.has(p)).concat([...packTypesSet].filter(p => !packTypeOrder.includes(p)));
         caf_renderChipGroup('caf-packtype-chips', packTypes, f.packTypes, val => {
             if (f.packTypes.has(val)) f.packTypes.delete(val); else f.packTypes.add(val);
+            renderCaf4W1HView();
+        });
+
+        // PICK Type chips — 층-only(예: 6.1F) + 층+PP 조합 모두 제공
+        const pickFloorSet = new Set();
+        const pickComboSet = new Set();
+        allAgg.forEach(r => {
+            if (!r.processType.includes('PICK')) return;
+            const floor = (r.floor || '').toString().trim();
+            if (floor && floor !== '-') pickFloorSet.add(floor);
+            pickComboSet.add(caf_pickKey(r));
+        });
+        // 층 먼저 (정렬), 그 다음 층+PP 조합 (정렬)
+        const floorsArr = [...pickFloorSet].sort();
+        const combosArr = [...pickComboSet].sort();
+        const pickKeys = [...floorsArr, ...combosArr];
+        caf_renderChipGroup('caf-picktype-chips', pickKeys, f.pickTypes, val => {
+            if (f.pickTypes.has(val)) f.pickTypes.delete(val); else f.pickTypes.add(val);
             renderCaf4W1HView();
         });
 
@@ -12514,19 +12808,20 @@ function calculateEmployeeBadges() {
             renderCaf4W1HView();
         });
 
-        // Employee
-        const empMap = new Map(); // emp -> isPerm (whichever has higher mh)
-        const empMh = new Map();
+        // Employee — meta (isManager, isPS, isPerm 결정)
+        const empMeta = new Map();
         allAgg.forEach(r => {
-            const cur = empMh.get(r.employee) || { permMh: 0, tempMh: 0 };
-            if (r.isPerm) cur.permMh += parseFloat(r.mh) || 0; else cur.tempMh += parseFloat(r.mh) || 0;
-            empMh.set(r.employee, cur);
+            const cur = empMeta.get(r.employee) || { permMh: 0, tempMh: 0, isManager: false, isPS: false };
+            const mh = parseFloat(r.mh) || 0;
+            if (r.isPerm) cur.permMh += mh; else cur.tempMh += mh;
+            if (r.isManager) cur.isManager = true;
+            if (r.isPS) cur.isPS = true;
+            empMeta.set(r.employee, cur);
         });
-        empMh.forEach((v, k) => empMap.set(k, v.permMh >= v.tempMh));
-        let empArr = [...empMap.keys()].sort();
+        let empArr = [...empMeta.keys()].sort();
         const search = (f.employeeSearch || '').toLowerCase().trim();
         if (search) empArr = empArr.filter(e => e.toLowerCase().includes(search));
-        caf_renderEmployeeChips(empArr, empMap, f.employees, val => {
+        caf_renderEmployeeChips(empArr, empMeta, f.employees, val => {
             if (f.employees.has(val)) f.employees.delete(val); else f.employees.add(val);
             renderCaf4W1HView();
         });
@@ -12543,17 +12838,23 @@ function calculateEmployeeBadges() {
             container.innerHTML = '<span class="caf-empty-note">데이터 없음</span>';
             return;
         }
+        // PICK Type 칩 컨테이너에서는 층-only 항목을 시각적으로 구분
+        const isPickContainer = containerId === 'caf-picktype-chips';
         values.forEach(v => {
             const btn = document.createElement('button');
             btn.type = 'button';
-            btn.className = 'caf-chip caf-chip-mini' + (selectedSet.has(v) ? ' active' : '');
+            let cls = 'caf-chip caf-chip-mini';
+            if (isPickContainer && !v.includes(' ─ ')) cls += ' caf-chip-floor-only';
+            if (selectedSet.has(v)) cls += ' active';
+            btn.className = cls;
+            btn.setAttribute('data-val', v);
             btn.textContent = v;
             btn.addEventListener('click', () => onClick(v));
             container.appendChild(btn);
         });
     }
 
-    function caf_renderEmployeeChips(values, empMap, selectedSet, onClick) {
+    function caf_renderEmployeeChips(values, empMeta, selectedSet, onClick) {
         const container = document.getElementById('caf-employee-chips');
         if (!container) return;
         container.innerHTML = '';
@@ -12562,12 +12863,21 @@ function calculateEmployeeBadges() {
             return;
         }
         values.slice(0, 300).forEach(v => {
-            const isPerm = !!empMap.get(v);
+            const meta = empMeta.get(v) || { permMh: 0, tempMh: 0, isManager: false, isPS: false };
+            const isPerm = meta.permMh >= meta.tempMh;
             const btn = document.createElement('button');
             btn.type = 'button';
-            btn.className = 'caf-chip caf-chip-mini caf-chip-emp ' + (isPerm ? 'caf-emp-perm' : 'caf-emp-temp') + (selectedSet.has(v) ? ' active' : '');
-            btn.title = v + (isPerm ? ' · PERM' : ' · TEMP');
-            btn.textContent = v;
+            let cls = 'caf-chip caf-chip-mini caf-chip-emp ';
+            if (meta.isManager) cls += 'caf-emp-mgr';
+            else if (meta.isPS) cls += 'caf-emp-ps';
+            else cls += isPerm ? 'caf-emp-perm' : 'caf-emp-temp';
+            if (selectedSet.has(v)) cls += ' active';
+            btn.className = cls;
+            btn.setAttribute('data-val', v);
+            const role = meta.isManager ? '관리자' : meta.isPS ? 'PS' : (isPerm ? '계약직' : '단기직');
+            btn.title = v + ' · ' + role;
+            const prefix = meta.isManager ? '👑 ' : meta.isPS ? '🍀 ' : '';
+            btn.textContent = prefix + v;
             btn.addEventListener('click', () => onClick(v));
             container.appendChild(btn);
         });
@@ -12578,8 +12888,12 @@ function calculateEmployeeBadges() {
         document.querySelectorAll('#caf-process-chips .caf-chip').forEach(el => {
             el.classList.toggle('active', el.dataset.process === f.processTask);
         });
+        document.querySelectorAll('#caf-shift-chips .caf-chip').forEach(el => {
+            el.classList.toggle('active', el.dataset.shift === f.shift);
+        });
         document.querySelectorAll('#caf-worker-chips .caf-chip').forEach(el => {
-            el.classList.toggle('active', el.dataset.worker === f.workerType);
+            const v = el.dataset.workerMulti;
+            el.classList.toggle('active', f.workerTypes.has(v));
         });
         document.querySelectorAll('#caf-zone-subtabs .caf-zone-subtab').forEach(el => {
             el.classList.toggle('active', el.dataset.zoneMode === f.zoneMode);
@@ -12598,9 +12912,40 @@ function calculateEmployeeBadges() {
                 renderCaf4W1HView();
             });
         });
+        document.querySelectorAll('#caf-shift-chips .caf-chip').forEach(el => {
+            el.addEventListener('click', () => {
+                state.caf4w1hFilters.shift = el.dataset.shift || 'ALL';
+                renderCaf4W1HView();
+            });
+        });
         document.querySelectorAll('#caf-worker-chips .caf-chip').forEach(el => {
             el.addEventListener('click', () => {
-                state.caf4w1hFilters.workerType = el.dataset.worker || 'BOTH';
+                const v = el.dataset.workerMulti;
+                const wts = state.caf4w1hFilters.workerTypes;
+                if (v === 'ALL') {
+                    wts.clear();
+                    wts.add('ALL');
+                } else {
+                    wts.delete('ALL');
+                    if (wts.has(v)) wts.delete(v); else wts.add(v);
+                    if (wts.size === 0) wts.add('ALL');
+                }
+                renderCaf4W1HView();
+            });
+        });
+        document.querySelectorAll('#caf-packgroup-chips .caf-chip').forEach(el => {
+            el.addEventListener('click', () => {
+                const g = el.dataset.packGroup;
+                const pts = state.caf4w1hFilters.packTypes;
+                if (g === 'clear') {
+                    pts.clear();
+                } else if (CAF_PACK_GROUPS[g]) {
+                    // 토글: 그룹의 모든 항목이 이미 선택돼 있으면 해제, 아니면 모두 선택
+                    const items = CAF_PACK_GROUPS[g];
+                    const allSelected = items.every(it => pts.has(it));
+                    if (allSelected) items.forEach(it => pts.delete(it));
+                    else items.forEach(it => pts.add(it));
+                }
                 renderCaf4W1HView();
             });
         });
@@ -12612,17 +12957,24 @@ function calculateEmployeeBadges() {
         });
         const search = document.getElementById('caf-employee-search');
         if (search) {
+            let _searchDebounce = null;
             search.addEventListener('input', () => {
-                state.caf4w1hFilters.employeeSearch = search.value;
-                renderCaf4W1HView();
+                clearTimeout(_searchDebounce);
+                _searchDebounce = setTimeout(() => {
+                    state.caf4w1hFilters.employeeSearch = search.value;
+                    renderCaf4W1HView();
+                }, 150);
             });
         }
         const resetBtn = document.getElementById('caf-reset-filters');
         if (resetBtn) {
             resetBtn.addEventListener('click', () => {
                 state.caf4w1hFilters.processTask = 'ALL';
-                state.caf4w1hFilters.workerType = 'BOTH';
+                state.caf4w1hFilters.shift = 'ALL';
+                state.caf4w1hFilters.workerTypes.clear();
+                state.caf4w1hFilters.workerTypes.add('ALL');
                 state.caf4w1hFilters.packTypes.clear();
+                state.caf4w1hFilters.pickTypes.clear();
                 state.caf4w1hFilters.yymm.clear();
                 state.caf4w1hFilters.yyww.clear();
                 state.caf4w1hFilters.workDates.clear();
@@ -12635,19 +12987,194 @@ function calculateEmployeeBadges() {
         }
     }
 
+    // ============================================================
+    // ⚙️ Settings: 관리자/PS 쿠코드 관리
+    // ============================================================
+    function settings_renderLists() {
+        const o = loadStaffOverrides();
+        const mgr = MANAGERS_LIST.slice().sort();
+        const ps = PS_LIST.slice().sort();
+        const renderChips = (containerId, ids, kind) => {
+            const c = document.getElementById(containerId);
+            if (!c) return;
+            c.innerHTML = '';
+            if (!ids.length) {
+                c.innerHTML = '<span class="staff-empty">등록된 쿠코드가 없습니다.</span>';
+                return;
+            }
+            ids.forEach(id => {
+                const isDefault = (kind === 'mgr' ? MANAGERS_LIST_DEFAULTS : PS_LIST_DEFAULTS).includes(id);
+                const chip = document.createElement('div');
+                chip.className = 'staff-chip' + (isDefault ? ' staff-chip-default' : ' staff-chip-custom');
+                chip.innerHTML = `<span>${id}</span><button class="staff-chip-remove" title="삭제" data-id="${id}" data-kind="${kind}">×</button>`;
+                c.appendChild(chip);
+            });
+        };
+        renderChips('settings-mgr-list', mgr, 'mgr');
+        renderChips('settings-ps-list', ps, 'ps');
+        const mgrCount = document.getElementById('settings-mgr-count');
+        const psCount = document.getElementById('settings-ps-count');
+        if (mgrCount) mgrCount.textContent = `(${mgr.length}명)`;
+        if (psCount) psCount.textContent = `(${ps.length}명)`;
+    }
+
+    function settings_add(kind, rawCode) {
+        const code = (rawCode || '').trim().toUpperCase();
+        if (!code) return;
+        const o = loadStaffOverrides();
+        if (kind === 'mgr') {
+            if (MANAGERS_LIST.includes(code)) { showModal && showModal('이미 등록된 관리자입니다.', 1500); return; }
+            o.managersAdded = [...new Set([...o.managersAdded, code])];
+            o.managersRemoved = o.managersRemoved.filter(c => c !== code);
+        } else {
+            if (PS_LIST.includes(code)) { showModal && showModal('이미 등록된 PS입니다.', 1500); return; }
+            o.psAdded = [...new Set([...o.psAdded, code])];
+            o.psRemoved = o.psRemoved.filter(c => c !== code);
+        }
+        saveStaffOverrides(o);
+        recomputeStaffLists();
+        settings_invalidateCaches();
+        settings_renderLists();
+    }
+
+    function settings_remove(kind, code) {
+        const o = loadStaffOverrides();
+        if (kind === 'mgr') {
+            if (MANAGERS_LIST_DEFAULTS.includes(code)) {
+                o.managersRemoved = [...new Set([...o.managersRemoved, code])];
+            } else {
+                o.managersAdded = o.managersAdded.filter(c => c !== code);
+            }
+        } else {
+            if (PS_LIST_DEFAULTS.includes(code)) {
+                o.psRemoved = [...new Set([...o.psRemoved, code])];
+            } else {
+                o.psAdded = o.psAdded.filter(c => c !== code);
+            }
+        }
+        saveStaffOverrides(o);
+        recomputeStaffLists();
+        settings_invalidateCaches();
+        settings_renderLists();
+    }
+
+    function settings_resetDefaults() {
+        if (!confirm('관리자/PS 리스트를 모두 기본값으로 되돌립니다. 계속하시겠습니까?')) return;
+        saveStaffOverrides({ managersAdded: [], managersRemoved: [], psAdded: [], psRemoved: [] });
+        recomputeStaffLists();
+        settings_invalidateCaches();
+        settings_renderLists();
+    }
+
+    function settings_invalidateCaches() {
+        // 관리자/PS 리스트가 바뀌면 isManager/isPS가 들어간 집계 캐시를 무효화
+        try {
+            if (state && state.cache) {
+                state.cache.rawByHours && state.cache.rawByHours.clear && state.cache.rawByHours.clear();
+                state.cache.aggregatedByHours && state.cache.aggregatedByHours.clear && state.cache.aggregatedByHours.clear();
+            }
+            if (typeof state !== 'undefined') state.dashboardDirty = true;
+            // Caf 4W1H 캐시 무효화
+            if (typeof caf_invalidateCache === 'function') caf_invalidateCache();
+            // 현재 보고 있는 뷰가 caf4w1h이면 다시 렌더
+            if (document.body.getAttribute('data-active-view') === 'caf4w1h') {
+                renderCaf4W1HView();
+            }
+        } catch(e) {}
+    }
+
+    function settings_bindOnce() {
+        const openBtn = document.getElementById('settings-open-btn');
+        const backdrop = document.getElementById('settings-modal-backdrop');
+        const closeBtn = document.getElementById('settings-modal-close');
+        const mgrAdd = document.getElementById('settings-mgr-add');
+        const psAdd = document.getElementById('settings-ps-add');
+        const mgrInput = document.getElementById('settings-mgr-input');
+        const psInput = document.getElementById('settings-ps-input');
+        const resetBtn = document.getElementById('settings-reset-defaults');
+        const mgrList = document.getElementById('settings-mgr-list');
+        const psList = document.getElementById('settings-ps-list');
+        if (!openBtn || !backdrop) return;
+        openBtn.addEventListener('click', () => {
+            settings_renderLists();
+            backdrop.classList.remove('hidden');
+            backdrop.classList.add('flex');
+        });
+        closeBtn && closeBtn.addEventListener('click', () => {
+            backdrop.classList.add('hidden');
+            backdrop.classList.remove('flex');
+        });
+        backdrop.addEventListener('click', (e) => {
+            if (e.target === backdrop) {
+                backdrop.classList.add('hidden');
+                backdrop.classList.remove('flex');
+            }
+        });
+        const addHandler = (kind, inputEl) => {
+            if (!inputEl) return;
+            settings_add(kind, inputEl.value);
+            inputEl.value = '';
+            inputEl.focus();
+        };
+        mgrAdd && mgrAdd.addEventListener('click', () => addHandler('mgr', mgrInput));
+        psAdd && psAdd.addEventListener('click', () => addHandler('ps', psInput));
+        mgrInput && mgrInput.addEventListener('keydown', e => { if (e.key === 'Enter') addHandler('mgr', mgrInput); });
+        psInput && psInput.addEventListener('keydown', e => { if (e.key === 'Enter') addHandler('ps', psInput); });
+        resetBtn && resetBtn.addEventListener('click', settings_resetDefaults);
+        // 칩 삭제(× 버튼) — 이벤트 위임
+        [mgrList, psList].forEach(el => {
+            if (!el) return;
+            el.addEventListener('click', (e) => {
+                const target = e.target.closest('.staff-chip-remove');
+                if (!target) return;
+                const kind = target.getAttribute('data-kind');
+                const id = target.getAttribute('data-id');
+                if (kind && id) settings_remove(kind, id);
+            });
+        });
+    }
+
+    // 페이지 로드 시 한 번 바인딩
+    if (document.readyState === 'loading') {
+        document.addEventListener('DOMContentLoaded', settings_bindOnce);
+    } else {
+        settings_bindOnce();
+    }
+
+    let __cafRenderRaf = null;
     function renderCaf4W1HView() {
+        // 🆕 빠른 연속 클릭에 대비해 RAF로 코얼레스
+        if (__cafRenderRaf) cancelAnimationFrame(__cafRenderRaf);
+        __cafRenderRaf = requestAnimationFrame(() => {
+            __cafRenderRaf = null;
+            _renderCaf4W1HView_impl();
+        });
+    }
+
+    function _renderCaf4W1HView_impl() {
         if (!ui.caf4w1hView) return;
         caf_bindOnce();
 
         if (!historyData || Object.keys(historyData).length === 0) {
-            // no data yet — still build empty panel state
             caf_buildOptionPanel([]);
             ['monthly','weekly','daily','individual','packType','pickZone'].forEach(caf_destroyChart);
             return;
         }
 
-        const allAgg = caf_collectAllAgg();
-        caf_buildOptionPanel(allAgg);
+        const allAgg = caf_getOrComputeAllAgg();
+
+        // 🆕 옵션 패널 재빌드는 데이터 시그니처가 바뀌었거나 검색어가 바뀐 경우만
+        const f = state.caf4w1hFilters;
+        const panelSig = caf_cache.signature + '|s:' + (f.employeeSearch || '');
+        if (caf_cache.lastPanelSig !== panelSig) {
+            caf_buildOptionPanel(allAgg);
+            caf_cache.lastPanelSig = panelSig;
+        } else {
+            // 필터 선택만 바뀌었으면 칩 active 상태만 동기화 (DOM 재생성 안 함)
+            caf_syncTopChips();
+            caf_syncChipSelection();
+        }
+
         const filtered = caf_applyFilters(allAgg);
 
         caf_renderMonthlyChart(filtered);
@@ -12656,6 +13183,26 @@ function calculateEmployeeBadges() {
         caf_renderIndividualChart(filtered);
         caf_renderPackTypeChart(filtered);
         caf_renderPickZoneChart(filtered);
+    }
+
+    // 🆕 칩 컨테이너의 active 클래스만 토글 (DOM 재생성 없음)
+    function caf_syncChipSelection() {
+        const f = state.caf4w1hFilters;
+        const pairs = [
+            ['caf-packtype-chips', f.packTypes],
+            ['caf-picktype-chips', f.pickTypes],
+            ['caf-yymm-chips', f.yymm],
+            ['caf-yyww-chips', f.yyww],
+            ['caf-workdate-chips', f.workDates],
+            ['caf-employee-chips', f.employees]
+        ];
+        pairs.forEach(([id, set]) => {
+            const c = document.getElementById(id);
+            if (!c) return;
+            c.querySelectorAll('button[data-val]').forEach(btn => {
+                btn.classList.toggle('active', set.has(btn.getAttribute('data-val')));
+            });
+        });
     }
 
         // 🚀 페이지 로드 시 즉시 초기화
