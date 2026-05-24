@@ -7279,6 +7279,51 @@
     }
     function saveStaffOverrides(overrides) {
         try { localStorage.setItem(STAFF_LISTS_STORAGE_KEY, JSON.stringify(overrides)); } catch(e) {}
+        // 🔥 Firestore에도 동기화 — 브라우저 데이터가 지워져도 서버에 남고, 다른 PC와도 공유됨
+        try {
+            if (typeof staffListsDocRef !== 'undefined' && staffListsDocRef) {
+                setDoc(staffListsDocRef, {
+                    managersAdded: Array.isArray(overrides.managersAdded) ? overrides.managersAdded : [],
+                    managersRemoved: Array.isArray(overrides.managersRemoved) ? overrides.managersRemoved : [],
+                    psAdded: Array.isArray(overrides.psAdded) ? overrides.psAdded : [],
+                    psRemoved: Array.isArray(overrides.psRemoved) ? overrides.psRemoved : [],
+                    updatedAt: Date.now(),
+                    updatedBy: (typeof userId === 'string' ? userId : null)
+                }).catch(err => console.error('staffLists Firestore 저장 오류:', err));
+            }
+        } catch(e) { console.error('staffLists 저장 예외:', e); }
+    }
+    let __staffListsUnsub = null;
+    function setupStaffListsListener() {
+        if (typeof staffListsDocRef === 'undefined' || !staffListsDocRef) return;
+        if (__staffListsUnsub) { try { __staffListsUnsub(); } catch(e) {} __staffListsUnsub = null; }
+        __staffListsUnsub = onSnapshot(staffListsDocRef, (docSnap) => {
+            if (!docSnap.exists()) {
+                // 서버에 아직 문서가 없으면 — 기존 localStorage 값이 있을 경우 1회 업로드해서 백업
+                const local = loadStaffOverrides();
+                const hasAny = local.managersAdded.length || local.managersRemoved.length
+                    || local.psAdded.length || local.psRemoved.length;
+                if (hasAny) {
+                    saveStaffOverrides(local);
+                }
+                return;
+            }
+            const data = docSnap.data() || {};
+            const overrides = {
+                managersAdded: Array.isArray(data.managersAdded) ? data.managersAdded : [],
+                managersRemoved: Array.isArray(data.managersRemoved) ? data.managersRemoved : [],
+                psAdded: Array.isArray(data.psAdded) ? data.psAdded : [],
+                psRemoved: Array.isArray(data.psRemoved) ? data.psRemoved : []
+            };
+            // localStorage 캐시 갱신 (오프라인 폴백)
+            try { localStorage.setItem(STAFF_LISTS_STORAGE_KEY, JSON.stringify(overrides)); } catch(e) {}
+            // 메모리 리스트 재계산 + 화면 갱신
+            recomputeStaffLists();
+            try { if (typeof settings_invalidateCaches === 'function') settings_invalidateCaches(); } catch(e) {}
+            try { if (typeof settings_renderLists === 'function') settings_renderLists(); } catch(e) {}
+        }, (err) => {
+            console.error('staffLists 리스너 오류:', err);
+        });
     }
     function recomputeStaffLists() {
         const o = loadStaffOverrides();
@@ -7396,13 +7441,14 @@
         appId: "1:913661158847:web:ebaf60d2afbeadda452d0a",
         measurementId: "G-77DRPC5F58"
     };
-    let db, auth, userId, dataDocRef, historyCollectionRef;
+    let db, auth, userId, dataDocRef, historyCollectionRef, staffListsDocRef;
     try {
         const app = initializeApp(firebaseConfig);
         db = getFirestore(app);
         auth = getAuth(app);
         dataDocRef = doc(db, 'artifacts', firebaseConfig.projectId, 'public', 'data', 'htpData', 'latestCompressed');
         historyCollectionRef = collection(db, 'artifacts', firebaseConfig.projectId, 'public', 'data', 'htpHistory');
+        staffListsDocRef = doc(db, 'artifacts', firebaseConfig.projectId, 'public', 'data', 'staffLists', 'overrides');
     } catch(e) {
         console.error("Firebase 초기화 오류:", e);
         updateStatus('disconnected', 'Firebase 초기화에 실패했습니다.');
@@ -7414,6 +7460,7 @@
             updateStatus('connected', '실시간 서버에 연결되었습니다.');
             ui.fileUpload.disabled = false;
             setupRealtimeListener();
+            setupStaffListsListener();
             // ⚡ LAZY LOAD: 히스토리는 히스토리 탭 클릭 시에만 로드
             // loadHistoryData(); // 제거
             loadHiddenEmployees();
