@@ -5226,13 +5226,13 @@
         <div id="settings-modal-backdrop" class="fixed inset-0 z-50 hidden items-center justify-center p-4" style="background: rgba(0,0,0,0.7); backdrop-filter: blur(4px);">
             <div class="bg-gray-800 rounded-lg shadow-xl w-full max-w-3xl p-6 relative" style="max-height: 90vh; overflow-y: auto;">
                 <div class="flex justify-between items-center mb-5">
-                    <h3 class="text-2xl font-bold text-white">⚙️ 설정 — 관리자/PS 쿠코드 관리</h3>
+                    <h3 class="text-2xl font-bold text-white">⚙️ 설정 — 관리자/PS/IB 계약직 쿠코드 관리</h3>
                     <button id="settings-modal-close" class="text-gray-400 hover:text-white" aria-label="닫기">
                         <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/></svg>
                     </button>
                 </div>
 
-                <div class="grid grid-cols-1 md:grid-cols-2 gap-5">
+                <div class="grid grid-cols-1 md:grid-cols-3 gap-5">
                     <!-- 관리자 (Managers) -->
                     <div class="staff-list-section">
                         <div class="staff-list-header">
@@ -5255,6 +5255,18 @@
                             <button id="settings-ps-add" class="staff-list-add-btn">추가</button>
                         </div>
                         <div id="settings-ps-list" class="staff-list-chips"></div>
+                    </div>
+
+                    <!-- IB 계약직 -->
+                    <div class="staff-list-section">
+                        <div class="staff-list-header">
+                            <h4 class="staff-list-title">🔷 IB 계약직 <span id="settings-ib-count" class="staff-count">0</span></h4>
+                        </div>
+                        <div class="staff-list-add">
+                            <input id="settings-ib-input" type="text" placeholder="쿠코드 입력" class="staff-list-input" maxlength="20" />
+                            <button id="settings-ib-add" class="staff-list-add-btn">추가</button>
+                        </div>
+                        <div id="settings-ib-list" class="staff-list-chips"></div>
                     </div>
                 </div>
 
@@ -6102,11 +6114,20 @@
                         </div>
 
                         <div class="caf-option-group">
+                            <label class="caf-option-label">정렬 기준 (클릭: ↓ → ↑ → 해제 · 둘 다 선택 시 숫자=우선순위)</label>
+                            <div class="caf-chip-row" id="caf-sort-chips">
+                                <button type="button" class="caf-chip active" data-sort-metric="HTP">HTP ↓</button>
+                                <button type="button" class="caf-chip" data-sort-metric="MH">MH</button>
+                            </div>
+                        </div>
+
+                        <div class="caf-option-group">
                             <label class="caf-option-label">Worker Type</label>
                             <div class="caf-chip-row caf-chip-row-wrap" id="caf-worker-chips">
                                 <button type="button" class="caf-chip caf-chip-mini active" data-worker-multi="ALL">전체</button>
                                 <button type="button" class="caf-chip caf-chip-mini" data-worker-multi="MANAGER">👑 관리자</button>
                                 <button type="button" class="caf-chip caf-chip-mini" data-worker-multi="PS">🍀 PS</button>
+                                <button type="button" class="caf-chip caf-chip-mini" data-worker-multi="IB">🔷 IB 계약직</button>
                                 <button type="button" class="caf-chip caf-chip-mini" data-worker-multi="PERM">계약직 (Perm)</button>
                                 <button type="button" class="caf-chip caf-chip-mini" data-worker-multi="TEMP">단기직 (Temp)</button>
                             </div>
@@ -6154,6 +6175,7 @@
                         </div>
 
                         <div class="caf-option-group caf-option-actions">
+                            <button type="button" id="caf-export-btn" class="caf-export-btn">📊 엑셀 내보내기</button>
                             <button type="button" id="caf-reset-filters" class="caf-reset-btn">필터 초기화</button>
                         </div>
                     </div>
@@ -6703,7 +6725,8 @@
         caf4w1hFilters: {
             processTask: 'ALL',     // ALL | PICK | PACK
             shift: 'ALL',           // ALL | DAY | SWING
-            workerTypes: new Set(['ALL']), // 'ALL' or any of MANAGER/PS/PERM/TEMP
+            workerTypes: new Set(['ALL']), // 'ALL' or any of MANAGER/PS/IB/PERM/TEMP
+            sorts: [{ metric: 'HTP', dir: 'desc' }], // 다중 정렬: 순서=우선순위, dir=asc|desc, metric=HTP|MH
             packTypes: new Set(),
             pickTypes: new Set(),   // PICK PP/floor 키
             yymm: new Set(),
@@ -7260,21 +7283,25 @@
     // 🆕 관리자/PS 리스트 — 기본값 + localStorage 사용자 추가/제거를 합쳐서 사용
     const MANAGERS_LIST_DEFAULTS = ['R5370913', 'E4992491', 'Z7386388', 'Z5406388', 'B3706369', 'S4461023', 'V6568216', 'X4033164', 'X7694762', 'A1943868', 'D5012685', 'N2086791', 'W9345496', 'T5941917', 'K9270657', 'P1637348', 'H6239751', 'X9075186', 'H4633331', 'G4094768', 'R9635160', 'R2637601', 'T9383022', 'V4296863', 'G9236102', 'U7306474', 'P9738071', 'L5291847', 'D9063832', 'R8788212', 'S1827358', 'M9279634', 'H3088014', 'V8173681', 'J7268590', 'G2791563', 'N2607464', 'Y5651563', 'H3614867', 'Q2813675', 'U2554263', 'T9060243', 'G2345755', 'A3511520', 'T3138750', 'A1481426', 'C1457759', 'Y9273085'];
     const PS_LIST_DEFAULTS = [];
+    const IB_LIST_DEFAULTS = [];
     const STAFF_LISTS_STORAGE_KEY = 'staffListsOverrides';
 
     function loadStaffOverrides() {
+        const empty = { managersAdded: [], managersRemoved: [], psAdded: [], psRemoved: [], ibAdded: [], ibRemoved: [] };
         try {
             const raw = localStorage.getItem(STAFF_LISTS_STORAGE_KEY);
-            if (!raw) return { managersAdded: [], managersRemoved: [], psAdded: [], psRemoved: [] };
+            if (!raw) return empty;
             const parsed = JSON.parse(raw);
             return {
                 managersAdded: Array.isArray(parsed.managersAdded) ? parsed.managersAdded : [],
                 managersRemoved: Array.isArray(parsed.managersRemoved) ? parsed.managersRemoved : [],
                 psAdded: Array.isArray(parsed.psAdded) ? parsed.psAdded : [],
-                psRemoved: Array.isArray(parsed.psRemoved) ? parsed.psRemoved : []
+                psRemoved: Array.isArray(parsed.psRemoved) ? parsed.psRemoved : [],
+                ibAdded: Array.isArray(parsed.ibAdded) ? parsed.ibAdded : [],
+                ibRemoved: Array.isArray(parsed.ibRemoved) ? parsed.ibRemoved : []
             };
         } catch (e) {
-            return { managersAdded: [], managersRemoved: [], psAdded: [], psRemoved: [] };
+            return empty;
         }
     }
     function saveStaffOverrides(overrides) {
@@ -7287,6 +7314,8 @@
                     managersRemoved: Array.isArray(overrides.managersRemoved) ? overrides.managersRemoved : [],
                     psAdded: Array.isArray(overrides.psAdded) ? overrides.psAdded : [],
                     psRemoved: Array.isArray(overrides.psRemoved) ? overrides.psRemoved : [],
+                    ibAdded: Array.isArray(overrides.ibAdded) ? overrides.ibAdded : [],
+                    ibRemoved: Array.isArray(overrides.ibRemoved) ? overrides.ibRemoved : [],
                     updatedAt: Date.now(),
                     updatedBy: (typeof userId === 'string' ? userId : null)
                 }).catch(err => console.error('staffLists Firestore 저장 오류:', err));
@@ -7313,7 +7342,9 @@
                 managersAdded: Array.isArray(data.managersAdded) ? data.managersAdded : [],
                 managersRemoved: Array.isArray(data.managersRemoved) ? data.managersRemoved : [],
                 psAdded: Array.isArray(data.psAdded) ? data.psAdded : [],
-                psRemoved: Array.isArray(data.psRemoved) ? data.psRemoved : []
+                psRemoved: Array.isArray(data.psRemoved) ? data.psRemoved : [],
+                ibAdded: Array.isArray(data.ibAdded) ? data.ibAdded : [],
+                ibRemoved: Array.isArray(data.ibRemoved) ? data.ibRemoved : []
             };
             // localStorage 캐시 갱신 (오프라인 폴백)
             try { localStorage.setItem(STAFF_LISTS_STORAGE_KEY, JSON.stringify(overrides)); } catch(e) {}
@@ -7333,11 +7364,16 @@
         const psSet = new Set(PS_LIST_DEFAULTS);
         o.psAdded.forEach(id => psSet.add(id));
         o.psRemoved.forEach(id => psSet.delete(id));
+        const ibSet = new Set(IB_LIST_DEFAULTS);
+        (o.ibAdded || []).forEach(id => ibSet.add(id));
+        (o.ibRemoved || []).forEach(id => ibSet.delete(id));
         MANAGERS_LIST.length = 0; MANAGERS_LIST.push(...mgrSet);
         PS_LIST.length = 0; PS_LIST.push(...psSet);
+        IB_LIST.length = 0; IB_LIST.push(...ibSet);
     }
     const MANAGERS_LIST = [];
     const PS_LIST = [];
+    const IB_LIST = [];
     recomputeStaffLists();
     
     const TARGET_HTP_DEFAULTS = {
@@ -8609,7 +8645,7 @@ function calculateEmployeeBadges() {
         const employeeCell = row.querySelector('td:nth-child(2)');
         const processCell = row.querySelector('td:nth-child(1)');
         if(employeeCell && processCell) {
-            const employeeName = employeeCell.textContent.replace(/[👑🍀🔥🐢🥇🥈🥉]\s*/g, '').trim();
+            const employeeName = employeeCell.textContent.replace(/[👑🍀🔷🔥🐢🥇🥈🥉]\s*/g, '').trim();
             const processType = processCell.textContent;
             showIndividualTrend(employeeName, processType);
         }
@@ -8778,7 +8814,7 @@ function calculateEmployeeBadges() {
                     processType: item.processTask.includes('PICK') ? 'PICK(집품)' : 'PACK(포장)',
                     employee: item.employee, floor: item.floor, unitQty: 0, totalSeconds: 0,
                     location: resolvedLocation, processPathName: item.processPathName, packType: packType,
-                    isManager: MANAGERS_LIST.includes(empId), isPS: PS_LIST.includes(empId), isPerm: item.contractType === 'PERM',
+                    isManager: MANAGERS_LIST.includes(empId), isPS: PS_LIST.includes(empId), isIB: IB_LIST.includes(empId), isPerm: item.contractType === 'PERM',
                     employeeKey: (item.employee || '').toLowerCase()
                 });
             }
@@ -8794,7 +8830,7 @@ function calculateEmployeeBadges() {
         const finalData = [];
         for (const group of aggregatedMap.values()) {
             const mh = group.totalSeconds > 0 ? group.totalSeconds / 3600 : 0;
-            if (mh >= 0.25 && group.unitQty >= 30) {
+            if (group.unitQty >= 30) {
                 const htpValue = mh > 0 ? group.unitQty / mh : 0;
                 finalData.push({
                     ...group,
@@ -9319,11 +9355,12 @@ function calculateEmployeeBadges() {
         let employeeClass = 'text-gray-200';
         if (item.isManager) employeeClass = isDark ? 'text-yellow-300 font-bold' : 'text-yellow-600 font-bold';
         else if (item.isPS) employeeClass = isDark ? 'text-green-400 font-bold' : 'text-green-600 font-bold';
+        else if (item.isIB) employeeClass = isDark ? 'text-blue-400 font-bold' : 'text-blue-600 font-bold';
         else if (item.isPerm) employeeClass = isDark ? 'text-emerald-400 font-bold' : 'text-emerald-600 font-bold';
         else employeeClass = isDark ? 'text-gray-300' : 'text-gray-700';
 
         const employeeName = escapeHtml(item.employee || '');
-        const employeeDisplay = item.isManager ? `👑 ${employeeName}` : (item.isPS ? `🍀 ${employeeName}` : employeeName);
+        const employeeDisplay = item.isManager ? `👑 ${employeeName}` : (item.isPS ? `🍀 ${employeeName}` : (item.isIB ? `🔷 ${employeeName}` : employeeName));
         const processType = escapeHtml(item.processType || '-');
         const location = escapeHtml(item.location || '-');
         const processPathName = escapeHtml(item.processPathName || '-');
@@ -9358,6 +9395,9 @@ function calculateEmployeeBadges() {
             cancelAnimationFrame(state.tableChunkRaf);
             state.tableChunkRaf = null;
         }
+
+        // 집계는 전부 유지하되, 데이터 테이블 표시에서만 MH 0.25시간 미만(아주 짧은 작업) 행은 숨김
+        data = (data || []).filter(d => (d.mhNum ?? parseFloat(d.mh)) >= 0.25);
 
         ui.tableBody.innerHTML = '';
         if (data.length === 0) {
@@ -9428,12 +9468,13 @@ function calculateEmployeeBadges() {
             const isLowPerformer = htpValue < targetHtp;
             const processClass = item.processType.includes('PICK') ? 'pick' : 'pack';
             const htpClass = isLowPerformer ? 'low' : '';
-            const employeeDisplay = item.isManager ? `👑 ${escapeHtml(item.employee)}` : (item.isPS ? `🍀 ${escapeHtml(item.employee)}` : escapeHtml(item.employee));
-            
+            const employeeDisplay = item.isManager ? `👑 ${escapeHtml(item.employee)}` : (item.isPS ? `🍀 ${escapeHtml(item.employee)}` : (item.isIB ? `🔷 ${escapeHtml(item.employee)}` : escapeHtml(item.employee)));
+            const empNameStyle = item.isIB ? ' style="color:#2563eb;font-weight:700;"' : '';
+
             cardsHtml += `
                 <div class="employee-card ${isHidden ? 'hidden-employee' : ''}">
                     <div class="employee-card-header">
-                        <div class="employee-card-name">${employeeDisplay}</div>
+                        <div class="employee-card-name"${empNameStyle}>${employeeDisplay}</div>
                         <div class="employee-card-process ${processClass}">${escapeHtml(item.processType)}</div>
                     </div>
                     <div class="employee-card-stats">
@@ -9617,7 +9658,7 @@ function calculateEmployeeBadges() {
         dataToExport.forEach(item => {
             const rowData = {
                 '집품/포장': item.processType,
-                '이름(쿠코드)': item.employee.replace(/[👑🍀🔥🐢🥇🥈🥉]\s*/g, ''),
+                '이름(쿠코드)': item.employee.replace(/[👑🍀🔷🔥🐢🥇🥈🥉]\s*/g, ''),
                 '계약직 여부': item.isPerm ? 'PERM' : 'TEMP',
                 '작업량': Number(item.unitQty),
                 '로케이션 및 작업대': item.location || '-',
@@ -10390,7 +10431,7 @@ function calculateEmployeeBadges() {
     }
 
     function showIndividualTrend(employeeName, processType) {
-        employeeName = employeeName.replace(/[👑🍀🔥🐢🥇🥈🥉]\s*/g, '').trim();
+        employeeName = employeeName.replace(/[👑🍀🔷🔥🐢🥇🥈🥉]\s*/g, '').trim();
         const targetProcessTask = processType.includes('PICK') ? 'PICK(PICKING)' : 'PACK(PACKING)';
         const employeeData = globalRawData.filter(d => d.employee === employeeName && d.processTask === targetProcessTask);
         
@@ -11843,7 +11884,7 @@ function calculateEmployeeBadges() {
             if (!dayData) return;
             aggregateData(dayData).forEach(item => {
                 const row = {
-                    '날짜': date, '이름': item.employee.replace(/[👑🍀🔥🐢🥇🥈🥉]\s*/g, ''),
+                    '날짜': date, '이름': item.employee.replace(/[👑🍀🔷🔥🐢🥇🥈🥉]\s*/g, ''),
                     '작업량': item.unitQty, '로케이션': item.location || '-',
                     'PP': item.processPathName || '-', '팩 종류': item.packType || '-',
                     'M/H': parseFloat(item.mh), 'HTP': parseFloat(item.htp)
@@ -12314,6 +12355,8 @@ function calculateEmployeeBadges() {
         permSoft: 'rgba(245,158,11,0.25)',
         temp: '#3b82f6',
         tempSoft: 'rgba(59,130,246,0.25)',
+        ib: '#2563eb',
+        ibSoft: 'rgba(37,99,235,0.25)',
         grid: 'rgba(148,163,184,0.2)',
         tick: '#e2e8f0',          // ⬆ 더 밝은 슬레이트
         label: '#f8fafc',         // 데이터 라벨용 (거의 흰색)
@@ -12412,15 +12455,15 @@ function calculateEmployeeBadges() {
                 const hourByEmp = {};
                 dayData.forEach(it => {
                     if (!it || !it.htpStart) return;
-                    const h = new Date(it.htpStart).getHours();
+                    const h = new Date(it.htpStart).getUTCHours();
                     if (!hourByEmp[it.employee]) hourByEmp[it.employee] = [];
                     hourByEmp[it.employee].push(h);
                 });
                 agg.forEach(r => {
                     const hours = hourByEmp[r.employee] || [];
-                    // 다수 시작 시각이 19~08 사이면 SWING, 09~18이면 DAY, 혼합이면 mixed
+                    // 주간조 08~18시(18:50까지) → DAY, 야간조 19~06시 → SWING, 동률이면 MIXED
                     let dayCount = 0, swingCount = 0;
-                    hours.forEach(h => { if (h >= 9 && h <= 18) dayCount++; else swingCount++; });
+                    hours.forEach(h => { if (h >= 8 && h <= 18) dayCount++; else swingCount++; });
                     let shift = 'DAY';
                     if (swingCount > dayCount) shift = 'SWING';
                     else if (swingCount === dayCount && hours.length > 0) shift = 'MIXED';
@@ -12446,8 +12489,9 @@ function calculateEmployeeBadges() {
                 let match = false;
                 if (wts.has('MANAGER') && r.isManager) match = true;
                 if (wts.has('PS') && r.isPS) match = true;
-                if (wts.has('PERM') && !r.isManager && !r.isPS && r.isPerm) match = true;
-                if (wts.has('TEMP') && !r.isManager && !r.isPS && !r.isPerm) match = true;
+                if (wts.has('IB') && !r.isManager && !r.isPS && r.isIB) match = true;
+                if (wts.has('PERM') && !r.isManager && !r.isPS && !r.isIB && r.isPerm) match = true;
+                if (wts.has('TEMP') && !r.isManager && !r.isPS && !r.isIB && !r.isPerm) match = true;
                 if (!match) return false;
             }
             // Pack Type 필터 (PACK 레코드만)
@@ -12510,6 +12554,35 @@ function calculateEmployeeBadges() {
         return slot && slot.mh > 0 ? slot.q / slot.mh : 0;
     }
 
+    // 활성 정렬 목록(비어있으면 기본 HTP 내림차순). 순서가 곧 우선순위.
+    function caf_activeSorts() {
+        const s = state.caf4w1hFilters.sorts;
+        return (s && s.length) ? s : [{ metric: 'HTP', dir: 'desc' }];
+    }
+    // 표시(라벨/막대 값)에 쓰는 1순위 지표
+    function caf_primaryMetric() {
+        return caf_activeSorts()[0].metric;
+    }
+    // 다중키 비교자 생성: getVal(obj, metric) => number
+    function caf_makeComparator(getVal) {
+        const sorts = caf_activeSorts();
+        return (a, b) => {
+            for (const s of sorts) {
+                const va = getVal(a, s.metric), vb = getVal(b, s.metric);
+                if (va !== vb) return s.dir === 'asc' ? (va - vb) : (vb - va);
+            }
+            return 0;
+        };
+    }
+    // 1순위 지표(HTP 평균 또는 MH 합)에 따른 slot 표시 값
+    function caf_slotMetric(slot) {
+        if (caf_primaryMetric() === 'MH') return slot ? slot.mh : 0;
+        return caf_avgHtp(slot);
+    }
+    function caf_metricLabel() {
+        return caf_primaryMetric() === 'MH' ? 'MH' : 'HTP';
+    }
+
     function caf_destroyChart(key) {
         const c = state.caf4w1hCharts[key];
         if (c) { try { c.destroy(); } catch(e){} state.caf4w1hCharts[key] = null; }
@@ -12538,8 +12611,8 @@ function calculateEmployeeBadges() {
         if (!canvas || typeof Chart === 'undefined') return;
         const grouped = caf_groupHtp(records, r => (r.date || '').slice(0, 7));
         const labels = [...grouped.keys()].sort();
-        const permData = labels.map(k => +caf_avgHtp(grouped.get(k).perm).toFixed(1));
-        const tempData = labels.map(k => +caf_avgHtp(grouped.get(k).temp).toFixed(1));
+        const permData = labels.map(k => +caf_slotMetric(grouped.get(k).perm).toFixed(1));
+        const tempData = labels.map(k => +caf_slotMetric(grouped.get(k).temp).toFixed(1));
         caf_destroyChart('monthly');
         state.caf4w1hCharts.monthly = new Chart(canvas.getContext('2d'), {
             type: 'bar',
@@ -12559,8 +12632,8 @@ function calculateEmployeeBadges() {
         if (!canvas || typeof Chart === 'undefined') return;
         const grouped = caf_groupHtp(records, r => caf_getIsoYYWW(r.date));
         const labels = [...grouped.keys()].sort();
-        const permData = labels.map(k => +caf_avgHtp(grouped.get(k).perm).toFixed(1));
-        const tempData = labels.map(k => +caf_avgHtp(grouped.get(k).temp).toFixed(1));
+        const permData = labels.map(k => +caf_slotMetric(grouped.get(k).perm).toFixed(1));
+        const tempData = labels.map(k => +caf_slotMetric(grouped.get(k).temp).toFixed(1));
         caf_destroyChart('weekly');
         // 주차가 많으면 데이터 라벨이 겹쳐서 비활성화
         const plugins = caf_legendPlugins();
@@ -12583,8 +12656,8 @@ function calculateEmployeeBadges() {
         if (!canvas || typeof Chart === 'undefined') return;
         const grouped = caf_groupHtp(records, r => r.date);
         const labels = [...grouped.keys()].sort();
-        const permData = labels.map(k => +caf_avgHtp(grouped.get(k).perm).toFixed(1));
-        const tempData = labels.map(k => +caf_avgHtp(grouped.get(k).temp).toFixed(1));
+        const permData = labels.map(k => +caf_slotMetric(grouped.get(k).perm).toFixed(1));
+        const tempData = labels.map(k => +caf_slotMetric(grouped.get(k).temp).toFixed(1));
         caf_destroyChart('daily');
         // 일별 라인 차트는 데이터 라벨을 항상 끔 (점이 너무 많아 겹침)
         const plugins = caf_legendPlugins();
@@ -12604,6 +12677,7 @@ function calculateEmployeeBadges() {
     function caf_empPrefix(rec) {
         if (rec.isManager) return '👑 ';
         if (rec.isPS) return '🍀 ';
+        if (rec.isIB) return '🔷 ';
         return '';
     }
 
@@ -12615,16 +12689,18 @@ function calculateEmployeeBadges() {
         const empMap = new Map();
         records.forEach(r => {
             if (!empMap.has(r.employee)) {
-                empMap.set(r.employee, { q: 0, mh: 0, isManager: r.isManager, isPS: r.isPS, isPerm: r.isPerm, permMh: 0, tempMh: 0 });
+                empMap.set(r.employee, { q: 0, mh: 0, isManager: r.isManager, isPS: r.isPS, isIB: r.isIB, isPerm: r.isPerm, permMh: 0, tempMh: 0, daysSet: new Set() });
             }
             const e = empMap.get(r.employee);
             e.q += r.unitQty;
             const mh = parseFloat(r.mh) || 0;
             e.mh += mh;
             if (r.isPerm) e.permMh += mh; else e.tempMh += mh;
-            // 한 직원의 isManager/isPS 가 일관되지 않으면 가장 강한 신호 유지
+            if (r.date) e.daysSet.add(r.date);
+            // 한 직원의 isManager/isPS/isIB 가 일관되지 않으면 가장 강한 신호 유지
             if (r.isManager) e.isManager = true;
             if (r.isPS) e.isPS = true;
+            if (r.isIB) e.isIB = true;
         });
 
         const empRows = [];
@@ -12633,16 +12709,18 @@ function calculateEmployeeBadges() {
             if (htp <= 0 || v.mh < 0.1) return;
             // 색상 기준은 PERM/TEMP MH 비율
             const isPerm = v.permMh >= v.tempMh;
-            empRows.push({ employee: emp, htp, mh: v.mh, isPerm, isManager: v.isManager, isPS: v.isPS });
+            empRows.push({ employee: emp, htp, mh: v.mh, days: v.daysSet.size, isPerm, isManager: v.isManager, isPS: v.isPS, isIB: v.isIB });
         });
-        empRows.sort((a, b) => b.htp - a.htp);
+        empRows.sort(caf_makeComparator((r, m) => m === 'MH' ? r.mh : r.htp));
         const top = empRows.slice(0, 40);
 
+        const isMHMode = caf_primaryMetric() === 'MH';
         const labels = top.map(r => caf_empPrefix(r) + r.employee);
-        const data = top.map(r => +r.htp.toFixed(1));
+        const data = top.map(r => +(isMHMode ? r.mh : r.htp).toFixed(1));
         const colors = top.map(r => {
             if (r.isManager) return '#facc15';   // 골드 (관리자)
             if (r.isPS) return '#22c55e';        // 그린 (PS)
+            if (r.isIB) return CAF_COLORS.ib;    // 진한 파랑 (IB 계약직)
             return r.isPerm ? CAF_COLORS.perm : CAF_COLORS.temp;
         });
         caf_destroyChart('individual');
@@ -12651,7 +12729,7 @@ function calculateEmployeeBadges() {
         state.caf4w1hCharts.individual = new Chart(canvas.getContext('2d'), {
             type: 'bar',
             data: { labels, datasets: [{
-                label: 'HTP',
+                label: isMHMode ? 'MH' : 'HTP',
                 data,
                 backgroundColor: colors,
                 borderRadius: 4,
@@ -12665,8 +12743,8 @@ function calculateEmployeeBadges() {
                     legend: { display: false },
                     tooltip: { callbacks: { label: ctx => {
                         const r = top[ctx.dataIndex];
-                        const role = r.isManager ? '관리자' : r.isPS ? 'PS' : (r.isPerm ? '계약직(PERM)' : '단기직(TEMP)');
-                        return `HTP ${r.htp.toFixed(1)} · MH ${r.mh.toFixed(2)} · ${role}`;
+                        const role = r.isManager ? '관리자' : r.isPS ? 'PS' : r.isIB ? 'IB 계약직' : (r.isPerm ? '계약직(PERM)' : '단기직(TEMP)');
+                        return `HTP ${r.htp.toFixed(1)} · MH ${r.mh.toFixed(2)} · 투입 ${r.days}일 · ${role}`;
                     } } },
                     datalabels: { display: false }   // 커스텀 플러그인으로 그림
                 },
@@ -12687,17 +12765,18 @@ function calculateEmployeeBadges() {
                         const r = top[i]; if (!r) return;
                         const x = bar.x + 8;
                         const y = bar.y;
-                        // HTP 강조
+                        // 주 지표 강조 (정렬 기준에 따라 MH 또는 HTP)
                         ctx.textAlign = 'left';
                         ctx.fillStyle = CAF_COLORS.label;
                         ctx.font = '800 12px Pretendard, sans-serif';
-                        const htpStr = r.htp.toFixed(1);
-                        ctx.fillText(htpStr, x, y);
-                        const htpW = ctx.measureText(htpStr).width;
-                        // MH 보조
+                        const mainStr = isMHMode ? r.mh.toFixed(1) : r.htp.toFixed(1);
+                        ctx.fillText(mainStr, x, y);
+                        const mainW = ctx.measureText(mainStr).width;
+                        // 보조 지표 + 투입일수
                         ctx.fillStyle = CAF_COLORS.labelMuted;
                         ctx.font = '600 10px Pretendard, sans-serif';
-                        ctx.fillText('  ·  MH ' + r.mh.toFixed(1), x + htpW, y);
+                        const subStr = isMHMode ? ('  ·  HTP ' + r.htp.toFixed(1)) : ('  ·  MH ' + r.mh.toFixed(1));
+                        ctx.fillText(subStr + '  ·  ' + r.days + '일', x + mainW, y);
                     });
                     ctx.restore();
                 }
@@ -12710,9 +12789,14 @@ function calculateEmployeeBadges() {
         if (!canvas || typeof Chart === 'undefined') return;
         const packOnly = records.filter(r => r.processType.includes('PACK'));
         const grouped = caf_groupHtp(packOnly, r => r.packType || '기타');
-        const labels = [...grouped.keys()].sort();
-        const permData = labels.map(k => +caf_avgHtp(grouped.get(k).perm).toFixed(1));
-        const tempData = labels.map(k => +caf_avgHtp(grouped.get(k).temp).toFixed(1));
+        // 다중 정렬(HTP 평균 합 / MH 합)
+        const packGetVal = (k, m) => {
+            const g = grouped.get(k);
+            return m === 'MH' ? (g.perm.mh + g.temp.mh) : (caf_avgHtp(g.perm) + caf_avgHtp(g.temp));
+        };
+        const labels = [...grouped.keys()].sort(caf_makeComparator(packGetVal));
+        const permData = labels.map(k => +caf_slotMetric(grouped.get(k).perm).toFixed(1));
+        const tempData = labels.map(k => +caf_slotMetric(grouped.get(k).temp).toFixed(1));
         caf_destroyChart('packType');
         const plugins = caf_legendPlugins();
         if (labels.length > 8) plugins.datalabels = { display: false };
@@ -12759,14 +12843,12 @@ function calculateEmployeeBadges() {
         }
         const grouped = caf_groupHtp(pickOnly, keyFn);
         const entries = [...grouped.entries()].map(([k, v]) => {
-            const permAvg = caf_avgHtp(v.perm);
-            const tempAvg = caf_avgHtp(v.temp);
             const overallMh = v.perm.mh + v.temp.mh;
             const overallQ = v.perm.q + v.temp.q;
-            const overall = overallMh > 0 ? overallQ / overallMh : 0;
-            return { k, perm: permAvg, temp: tempAvg, overall };
+            return { k, perm: caf_slotMetric(v.perm), temp: caf_slotMetric(v.temp),
+                _htp: overallMh > 0 ? overallQ / overallMh : 0, _mh: overallMh };
         });
-        entries.sort((a, b) => b.overall - a.overall);
+        entries.sort(caf_makeComparator((e, m) => m === 'MH' ? e._mh : e._htp));
         const top = entries.slice(0, 30);
         const labels = top.map(e => e.k);
         const permData = top.map(e => +e.perm.toFixed(1));
@@ -12858,11 +12940,12 @@ function calculateEmployeeBadges() {
         // Employee — meta (isManager, isPS, isPerm 결정)
         const empMeta = new Map();
         allAgg.forEach(r => {
-            const cur = empMeta.get(r.employee) || { permMh: 0, tempMh: 0, isManager: false, isPS: false };
+            const cur = empMeta.get(r.employee) || { permMh: 0, tempMh: 0, isManager: false, isPS: false, isIB: false };
             const mh = parseFloat(r.mh) || 0;
             if (r.isPerm) cur.permMh += mh; else cur.tempMh += mh;
             if (r.isManager) cur.isManager = true;
             if (r.isPS) cur.isPS = true;
+            if (r.isIB) cur.isIB = true;
             empMeta.set(r.employee, cur);
         });
         let empArr = [...empMeta.keys()].sort();
@@ -12910,20 +12993,21 @@ function calculateEmployeeBadges() {
             return;
         }
         values.slice(0, 300).forEach(v => {
-            const meta = empMeta.get(v) || { permMh: 0, tempMh: 0, isManager: false, isPS: false };
+            const meta = empMeta.get(v) || { permMh: 0, tempMh: 0, isManager: false, isPS: false, isIB: false };
             const isPerm = meta.permMh >= meta.tempMh;
             const btn = document.createElement('button');
             btn.type = 'button';
             let cls = 'caf-chip caf-chip-mini caf-chip-emp ';
             if (meta.isManager) cls += 'caf-emp-mgr';
             else if (meta.isPS) cls += 'caf-emp-ps';
+            else if (meta.isIB) cls += 'caf-emp-ib';
             else cls += isPerm ? 'caf-emp-perm' : 'caf-emp-temp';
             if (selectedSet.has(v)) cls += ' active';
             btn.className = cls;
             btn.setAttribute('data-val', v);
-            const role = meta.isManager ? '관리자' : meta.isPS ? 'PS' : (isPerm ? '계약직' : '단기직');
+            const role = meta.isManager ? '관리자' : meta.isPS ? 'PS' : meta.isIB ? 'IB 계약직' : (isPerm ? '계약직' : '단기직');
             btn.title = v + ' · ' + role;
-            const prefix = meta.isManager ? '👑 ' : meta.isPS ? '🍀 ' : '';
+            const prefix = meta.isManager ? '👑 ' : meta.isPS ? '🍀 ' : meta.isIB ? '🔷 ' : '';
             btn.textContent = prefix + v;
             btn.addEventListener('click', () => onClick(v));
             container.appendChild(btn);
@@ -12938,6 +13022,21 @@ function calculateEmployeeBadges() {
         document.querySelectorAll('#caf-shift-chips .caf-chip').forEach(el => {
             el.classList.toggle('active', el.dataset.shift === f.shift);
         });
+        document.querySelectorAll('#caf-sort-chips .caf-chip').forEach(el => {
+            const m = el.dataset.sortMetric;
+            const sorts = f.sorts || [];
+            const idx = sorts.findIndex(s => s.metric === m);
+            const base = m === 'MH' ? 'MH' : 'HTP';
+            if (idx === -1) {
+                el.classList.remove('active');
+                el.textContent = base;
+            } else {
+                el.classList.add('active');
+                const arrow = sorts[idx].dir === 'asc' ? '↑' : '↓';
+                const prio = sorts.length > 1 ? ' ' + (idx + 1) : '';
+                el.textContent = base + ' ' + arrow + prio;
+            }
+        });
         document.querySelectorAll('#caf-worker-chips .caf-chip').forEach(el => {
             const v = el.dataset.workerMulti;
             el.classList.toggle('active', f.workerTypes.has(v));
@@ -12949,6 +13048,178 @@ function calculateEmployeeBadges() {
 
     // ---------------- Main entry ----------------
     let __cafBindingsBound = false;
+    // ---------------- Excel 내보내기 (데이터 표) ----------------
+    function caf_exportToExcel() {
+        if (typeof XLSX === 'undefined') { showModal && showModal('엑셀 라이브러리를 불러오지 못했습니다.'); return; }
+        const allAgg = caf_getOrComputeAllAgg();
+        const records = caf_applyFilters(allAgg);
+        if (!records.length) { showModal && showModal('내보낼 데이터가 없습니다.'); return; }
+
+        const f = state.caf4w1hFilters;
+        const round1 = n => Math.round((n || 0) * 10) / 10;
+        const round2 = n => Math.round((n || 0) * 100) / 100;
+        const htpOf = slot => (slot && slot.mh > 0) ? slot.q / slot.mh : 0;
+
+        const wb = XLSX.utils.book_new();
+        const headerStyle = {
+            font: { bold: true, color: { rgb: "FFFFFF" } },
+            fill: { fgColor: { rgb: "4F81BD" } },
+            alignment: { horizontal: "center", vertical: "center" },
+            border: { top: { style: "thin" }, bottom: { style: "thin" }, left: { style: "thin" }, right: { style: "thin" } }
+        };
+        const cellStyle = {
+            alignment: { horizontal: "center", vertical: "center" },
+            border: { top: { style: "thin" }, bottom: { style: "thin" }, left: { style: "thin" }, right: { style: "thin" } }
+        };
+        const numFmt = { 'HTP': '0.0', 'PERM HTP': '0.0', 'TEMP HTP': '0.0', '전체 HTP': '0.0', 'MH': '0.00', 'PERM MH': '0.00', 'TEMP MH': '0.00', '전체 MH': '0.00', '투입일수': '0', '작업량': '0' };
+        const addStyledSheet = (data, sheetName) => {
+            if (!data || !data.length) return;
+            const headers = Object.keys(data[0]);
+            const ws = XLSX.utils.json_to_sheet(data, { header: headers });
+            const range = XLSX.utils.decode_range(ws['!ref']);
+            for (let C = range.s.c; C <= range.e.c; ++C) {
+                const headerAddr = XLSX.utils.encode_cell({ c: C, r: 0 });
+                if (ws[headerAddr]) ws[headerAddr].s = headerStyle;
+                for (let R = 1; R <= range.e.r; ++R) {
+                    const addr = XLSX.utils.encode_cell({ c: C, r: R });
+                    if (!ws[addr]) continue;
+                    ws[addr].s = Object.assign({}, cellStyle);
+                    if (typeof ws[addr].v === 'number' && numFmt[headers[C]]) ws[addr].z = numFmt[headers[C]];
+                }
+            }
+            ws['!cols'] = headers.map(h => ({ wch: Math.max(h.length + 2, 12) }));
+            ws['!autofilter'] = { ref: ws['!ref'] };
+            ws['!freeze'] = { ySplit: 1 };
+            XLSX.utils.book_append_sheet(wb, ws, sheetName);
+        };
+
+        // 시계열(월/주/일) 표 생성기
+        const buildTimeRows = (keyFn, keyLabel) => {
+            const grouped = caf_groupHtp(records, keyFn);
+            return [...grouped.keys()].sort().map(k => {
+                const g = grouped.get(k);
+                return {
+                    [keyLabel]: k,
+                    'PERM HTP': round1(htpOf(g.perm)),
+                    'TEMP HTP': round1(htpOf(g.temp)),
+                    'PERM MH': round2(g.perm.mh),
+                    'TEMP MH': round2(g.temp.mh)
+                };
+            });
+        };
+
+        // 요약 시트
+        const wtArr = (f.workerTypes.has('ALL') || f.workerTypes.size === 0) ? ['전체'] : [...f.workerTypes];
+        const totalMh = records.reduce((s, r) => s + (parseFloat(r.mh) || 0), 0);
+        const totalQ = records.reduce((s, r) => s + (r.unitQty || 0), 0);
+        const empSet = new Set(records.map(r => r.employee));
+        const filterText = arr => (arr && arr.length) ? arr.join(', ') : '전체';
+        const summaryAoa = [
+            ['Caf 4W1H Dashboard 내보내기', ''],
+            ['생성 일시', new Date().toLocaleString('ko-KR')],
+            ['', ''],
+            ['[ 적용된 필터 ]', ''],
+            ['Process(Task)', f.processTask || 'ALL'],
+            ['Shift', f.shift || 'ALL'],
+            ['Worker Type', wtArr.join(', ')],
+            ['정렬 기준', caf_activeSorts().map(s => s.metric + ' ' + (s.dir === 'asc' ? '오름차순' : '내림차순')).join(', ')],
+            ['Pack Type', filterText([...f.packTypes])],
+            ['PICK Type', filterText([...f.pickTypes])],
+            ['YYMM', filterText([...f.yymm])],
+            ['YYWW', filterText([...f.yyww])],
+            ['Work Date', filterText([...f.workDates])],
+            ['Employee', filterText([...f.employees])],
+            ['', ''],
+            ['[ 집계 요약 ]', ''],
+            ['총 인원', empSet.size],
+            ['총 작업량', totalQ],
+            ['총 MH', round2(totalMh)],
+            ['전체 평균 HTP', round1(totalMh > 0 ? totalQ / totalMh : 0)]
+        ];
+        const wsSum = XLSX.utils.aoa_to_sheet(summaryAoa);
+        wsSum['!cols'] = [{ wch: 18 }, { wch: 32 }];
+        const titleStyle = { font: { bold: true, sz: 14, color: { rgb: "1F4E79" } } };
+        const sectionStyle = { font: { bold: true, color: { rgb: "FFFFFF" } }, fill: { fgColor: { rgb: "4F81BD" } } };
+        if (wsSum['A1']) wsSum['A1'].s = titleStyle;
+        ['A4', 'A16'].forEach(a => { if (wsSum[a]) wsSum[a].s = sectionStyle; });
+        XLSX.utils.book_append_sheet(wb, wsSum, '요약');
+
+        // Monthly / Weekly / Daily
+        addStyledSheet(buildTimeRows(r => (r.date || '').slice(0, 7), 'YYMM'), 'Monthly');
+        addStyledSheet(buildTimeRows(r => caf_getIsoYYWW(r.date), 'YYWW'), 'Weekly');
+        addStyledSheet(buildTimeRows(r => r.date, '일자'), 'Daily');
+
+        // Individual (현재 정렬 기준대로)
+        const empMap = new Map();
+        records.forEach(r => {
+            if (!empMap.has(r.employee)) empMap.set(r.employee, { q: 0, mh: 0, isManager: r.isManager, isPS: r.isPS, isIB: r.isIB, permMh: 0, tempMh: 0, daysSet: new Set() });
+            const e = empMap.get(r.employee);
+            e.q += r.unitQty;
+            const mh = parseFloat(r.mh) || 0;
+            e.mh += mh;
+            if (r.isPerm) e.permMh += mh; else e.tempMh += mh;
+            if (r.date) e.daysSet.add(r.date);
+            if (r.isManager) e.isManager = true;
+            if (r.isPS) e.isPS = true;
+            if (r.isIB) e.isIB = true;
+        });
+        const indivRows = [];
+        empMap.forEach((v, emp) => {
+            const htp = v.mh > 0 ? v.q / v.mh : 0;
+            if (htp <= 0 || v.mh < 0.1) return;
+            const role = v.isManager ? '관리자' : v.isPS ? 'PS' : v.isIB ? 'IB 계약직' : (v.permMh >= v.tempMh ? '계약직(PERM)' : '단기직(TEMP)');
+            indivRows.push({ _htp: htp, _mh: v.mh,
+                '직원': emp.replace(/[👑🍀🔷🔥🐢🥇🥈🥉]\s*/g, ''),
+                '역할': role,
+                'HTP': round1(htp),
+                'MH': round2(v.mh),
+                '투입일수': v.daysSet.size
+            });
+        });
+        indivRows.sort(caf_makeComparator((r, m) => m === 'MH' ? r._mh : r._htp));
+        indivRows.forEach(r => { delete r._htp; delete r._mh; });
+        addStyledSheet(indivRows, 'Individual');
+
+        // PACK Type
+        const packGrouped = caf_groupHtp(records.filter(r => r.processType.includes('PACK')), r => r.packType || '기타');
+        const packRows = [...packGrouped.keys()].map(k => {
+            const g = packGrouped.get(k);
+            return { '_sv': htpOf(g.perm) + htpOf(g.temp), '팩 타입': k,
+                'PERM HTP': round1(htpOf(g.perm)), 'TEMP HTP': round1(htpOf(g.temp)),
+                'PERM MH': round2(g.perm.mh), 'TEMP MH': round2(g.temp.mh) };
+        }).sort((a, b) => b._sv - a._sv);
+        packRows.forEach(r => delete r._sv);
+        addStyledSheet(packRows, 'PACK Type');
+
+        // PICK Zone (현재 zoneMode 기준)
+        const mode = f.zoneMode || 'floor';
+        let keyFn;
+        if (mode === 'loc') {
+            keyFn = r => { const loc = getResolvedLocation(r.location, r.processPathName) || ''; const m = loc.match(/^[0-9A-Za-z]{3,5}/); return m ? m[0].toUpperCase() : (loc.slice(0, 4).toUpperCase() || ''); };
+        } else if (mode === 'pp') {
+            keyFn = r => { const pp = (r.processPathName || '').trim(); if (!pp) return ''; const parts = pp.split(/[_\-]/).filter(Boolean); return parts.length <= 3 ? pp : parts.slice(0, 3).join('_'); };
+        } else {
+            keyFn = r => r.floor || '미상';
+        }
+        const zoneGrouped = caf_groupHtp(records.filter(r => r.processType.includes('PICK')), keyFn);
+        const zoneLabel = mode === 'loc' ? 'Zone(Location)' : mode === 'pp' ? 'Zone(PP)' : '층';
+        const zoneRows = [...zoneGrouped.entries()].map(([k, g]) => {
+            const overallMh = g.perm.mh + g.temp.mh;
+            const overallQ = g.perm.q + g.temp.q;
+            return { '_sv': overallMh > 0 ? overallQ / overallMh : 0, [zoneLabel]: k,
+                'PERM HTP': round1(htpOf(g.perm)), 'TEMP HTP': round1(htpOf(g.temp)),
+                '전체 HTP': round1(overallMh > 0 ? overallQ / overallMh : 0),
+                'PERM MH': round2(g.perm.mh), 'TEMP MH': round2(g.temp.mh), '전체 MH': round2(overallMh) };
+        }).sort((a, b) => b._sv - a._sv);
+        zoneRows.forEach(r => delete r._sv);
+        addStyledSheet(zoneRows, 'PICK Zone');
+
+        const d = new Date();
+        const ymd = `${d.getFullYear()}${String(d.getMonth() + 1).padStart(2, '0')}${String(d.getDate()).padStart(2, '0')}`;
+        XLSX.writeFile(wb, `Caf_4W1H_${ymd}.xlsx`);
+        showModal && showModal('엑셀 파일을 내보냈습니다.', 2000);
+    }
+
     function caf_bindOnce() {
         if (__cafBindingsBound) return;
         __cafBindingsBound = true;
@@ -12962,6 +13233,18 @@ function calculateEmployeeBadges() {
         document.querySelectorAll('#caf-shift-chips .caf-chip').forEach(el => {
             el.addEventListener('click', () => {
                 state.caf4w1hFilters.shift = el.dataset.shift || 'ALL';
+                renderCaf4W1HView();
+            });
+        });
+        document.querySelectorAll('#caf-sort-chips .caf-chip').forEach(el => {
+            el.addEventListener('click', () => {
+                const m = el.dataset.sortMetric || 'HTP';
+                const sorts = state.caf4w1hFilters.sorts || (state.caf4w1hFilters.sorts = []);
+                const idx = sorts.findIndex(s => s.metric === m);
+                // 비활성 → 내림차순 → 오름차순 → 비활성 순으로 토글
+                if (idx === -1) sorts.push({ metric: m, dir: 'desc' });
+                else if (sorts[idx].dir === 'desc') sorts[idx].dir = 'asc';
+                else sorts.splice(idx, 1);
                 renderCaf4W1HView();
             });
         });
@@ -13013,11 +13296,16 @@ function calculateEmployeeBadges() {
                 }, 150);
             });
         }
+        const exportBtn = document.getElementById('caf-export-btn');
+        if (exportBtn) {
+            exportBtn.addEventListener('click', () => caf_exportToExcel());
+        }
         const resetBtn = document.getElementById('caf-reset-filters');
         if (resetBtn) {
             resetBtn.addEventListener('click', () => {
                 state.caf4w1hFilters.processTask = 'ALL';
                 state.caf4w1hFilters.shift = 'ALL';
+                state.caf4w1hFilters.sorts = [{ metric: 'HTP', dir: 'desc' }];
                 state.caf4w1hFilters.workerTypes.clear();
                 state.caf4w1hFilters.workerTypes.add('ALL');
                 state.caf4w1hFilters.packTypes.clear();
@@ -13041,6 +13329,8 @@ function calculateEmployeeBadges() {
         const o = loadStaffOverrides();
         const mgr = MANAGERS_LIST.slice().sort();
         const ps = PS_LIST.slice().sort();
+        const ib = IB_LIST.slice().sort();
+        const DEFAULTS_BY_KIND = { mgr: MANAGERS_LIST_DEFAULTS, ps: PS_LIST_DEFAULTS, ib: IB_LIST_DEFAULTS };
         const renderChips = (containerId, ids, kind) => {
             const c = document.getElementById(containerId);
             if (!c) return;
@@ -13050,7 +13340,7 @@ function calculateEmployeeBadges() {
                 return;
             }
             ids.forEach(id => {
-                const isDefault = (kind === 'mgr' ? MANAGERS_LIST_DEFAULTS : PS_LIST_DEFAULTS).includes(id);
+                const isDefault = (DEFAULTS_BY_KIND[kind] || []).includes(id);
                 const chip = document.createElement('div');
                 chip.className = 'staff-chip' + (isDefault ? ' staff-chip-default' : ' staff-chip-custom');
                 chip.innerHTML = `<span>${id}</span><button class="staff-chip-remove" title="삭제" data-id="${id}" data-kind="${kind}">×</button>`;
@@ -13059,10 +13349,13 @@ function calculateEmployeeBadges() {
         };
         renderChips('settings-mgr-list', mgr, 'mgr');
         renderChips('settings-ps-list', ps, 'ps');
+        renderChips('settings-ib-list', ib, 'ib');
         const mgrCount = document.getElementById('settings-mgr-count');
         const psCount = document.getElementById('settings-ps-count');
+        const ibCount = document.getElementById('settings-ib-count');
         if (mgrCount) mgrCount.textContent = `(${mgr.length}명)`;
         if (psCount) psCount.textContent = `(${ps.length}명)`;
+        if (ibCount) ibCount.textContent = `(${ib.length}명)`;
     }
 
     function settings_add(kind, rawCode) {
@@ -13073,6 +13366,10 @@ function calculateEmployeeBadges() {
             if (MANAGERS_LIST.includes(code)) { showModal && showModal('이미 등록된 관리자입니다.', 1500); return; }
             o.managersAdded = [...new Set([...o.managersAdded, code])];
             o.managersRemoved = o.managersRemoved.filter(c => c !== code);
+        } else if (kind === 'ib') {
+            if (IB_LIST.includes(code)) { showModal && showModal('이미 등록된 IB 계약직입니다.', 1500); return; }
+            o.ibAdded = [...new Set([...(o.ibAdded || []), code])];
+            o.ibRemoved = (o.ibRemoved || []).filter(c => c !== code);
         } else {
             if (PS_LIST.includes(code)) { showModal && showModal('이미 등록된 PS입니다.', 1500); return; }
             o.psAdded = [...new Set([...o.psAdded, code])];
@@ -13092,6 +13389,12 @@ function calculateEmployeeBadges() {
             } else {
                 o.managersAdded = o.managersAdded.filter(c => c !== code);
             }
+        } else if (kind === 'ib') {
+            if (IB_LIST_DEFAULTS.includes(code)) {
+                o.ibRemoved = [...new Set([...(o.ibRemoved || []), code])];
+            } else {
+                o.ibAdded = (o.ibAdded || []).filter(c => c !== code);
+            }
         } else {
             if (PS_LIST_DEFAULTS.includes(code)) {
                 o.psRemoved = [...new Set([...o.psRemoved, code])];
@@ -13106,8 +13409,8 @@ function calculateEmployeeBadges() {
     }
 
     function settings_resetDefaults() {
-        if (!confirm('관리자/PS 리스트를 모두 기본값으로 되돌립니다. 계속하시겠습니까?')) return;
-        saveStaffOverrides({ managersAdded: [], managersRemoved: [], psAdded: [], psRemoved: [] });
+        if (!confirm('관리자/PS/IB 계약직 리스트를 모두 기본값으로 되돌립니다. 계속하시겠습니까?')) return;
+        saveStaffOverrides({ managersAdded: [], managersRemoved: [], psAdded: [], psRemoved: [], ibAdded: [], ibRemoved: [] });
         recomputeStaffLists();
         settings_invalidateCaches();
         settings_renderLists();
@@ -13136,11 +13439,14 @@ function calculateEmployeeBadges() {
         const closeBtn = document.getElementById('settings-modal-close');
         const mgrAdd = document.getElementById('settings-mgr-add');
         const psAdd = document.getElementById('settings-ps-add');
+        const ibAdd = document.getElementById('settings-ib-add');
         const mgrInput = document.getElementById('settings-mgr-input');
         const psInput = document.getElementById('settings-ps-input');
+        const ibInput = document.getElementById('settings-ib-input');
         const resetBtn = document.getElementById('settings-reset-defaults');
         const mgrList = document.getElementById('settings-mgr-list');
         const psList = document.getElementById('settings-ps-list');
+        const ibList = document.getElementById('settings-ib-list');
         if (!openBtn || !backdrop) return;
         openBtn.addEventListener('click', () => {
             settings_renderLists();
@@ -13165,11 +13471,13 @@ function calculateEmployeeBadges() {
         };
         mgrAdd && mgrAdd.addEventListener('click', () => addHandler('mgr', mgrInput));
         psAdd && psAdd.addEventListener('click', () => addHandler('ps', psInput));
+        ibAdd && ibAdd.addEventListener('click', () => addHandler('ib', ibInput));
         mgrInput && mgrInput.addEventListener('keydown', e => { if (e.key === 'Enter') addHandler('mgr', mgrInput); });
         psInput && psInput.addEventListener('keydown', e => { if (e.key === 'Enter') addHandler('ps', psInput); });
+        ibInput && ibInput.addEventListener('keydown', e => { if (e.key === 'Enter') addHandler('ib', ibInput); });
         resetBtn && resetBtn.addEventListener('click', settings_resetDefaults);
         // 칩 삭제(× 버튼) — 이벤트 위임
-        [mgrList, psList].forEach(el => {
+        [mgrList, psList, ibList].forEach(el => {
             if (!el) return;
             el.addEventListener('click', (e) => {
                 const target = e.target.closest('.staff-chip-remove');

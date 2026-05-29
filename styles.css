@@ -3189,6 +3189,11 @@ tr:hover .row-action-menu {
     border-left: 3px solid #22c55e;
     background: rgba(34, 197, 94, 0.08);
 }
+.caf-chip-emp.caf-emp-ib:not(.active) {
+    border-left: 3px solid #2563eb;
+    background: rgba(37, 99, 235, 0.1);
+    color: #93c5fd;
+}
 /* PICK Type 필터의 층-only 칩 (조합과 시각적으로 구분) */
 .caf-chip.caf-chip-floor-only:not(.active) {
     background: rgba(139, 92, 246, 0.18);
@@ -3250,6 +3255,23 @@ tr:hover .row-action-menu {
     margin-bottom: 0;
     border-top: 1px solid rgba(148,163,184,0.15);
     padding-top: 12px;
+}
+.caf-export-btn {
+    width: 100%;
+    background: rgba(22, 163, 74, 0.15);
+    border: 1px solid rgba(22, 163, 74, 0.4);
+    color: #86efac;
+    padding: 8px;
+    border-radius: 6px;
+    font-size: 0.8rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.15s ease;
+    margin-bottom: 8px;
+}
+.caf-export-btn:hover {
+    background: rgba(22, 163, 74, 0.3);
+    color: #ffffff;
 }
 .caf-reset-btn {
     width: 100%;
@@ -3337,7 +3359,8 @@ tr:hover .row-action-menu {
     margin-bottom: 12px;
 }
 .staff-list-input {
-    flex: 1;
+    flex: 1 1 auto;
+    min-width: 0;
     background: rgba(15, 23, 42, 0.7);
     border: 1px solid rgba(148, 163, 184, 0.25);
     border-radius: 6px;
@@ -3351,6 +3374,8 @@ tr:hover .row-action-menu {
     border-color: #3b82f6;
 }
 .staff-list-add-btn {
+    flex: 0 0 auto;
+    white-space: nowrap;
     background: #3b82f6;
     color: #ffffff;
     border: none;
